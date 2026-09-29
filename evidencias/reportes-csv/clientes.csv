@@ -1,0 +1,8 @@
+﻿
+id;tipo;documento;nombre;telefono;direccion;distrito;activo;fechaRegistro;ventasPeriodo;totalComprado;saldoPendiente;pedidosPeriodo
+1;EMPRESA;20601234567;Restaurante El Puerto S.A.C.;900101010;Jr. Bolognesi 120, Iberia;Iberia;true;2026-09-28 13:27;180;9757.5;1672.5;188
+2;EMPRESA;20509876543;Hotel Vista del Sol S.A.C.;900202020;Av. Iberia 450, Iberia;Iberia;true;2026-09-28 13:27;172;8592.5;595.5;185
+3;INSTITUCION;20123456789;I.E.P. Bilingüe Iberia;900303030;Av. Castilla 88, Iberia;Iberia;true;2026-09-28 13:27;171;9090;1212.5;182
+4;EMPRESA;20445566777;Comercial Ñanari E.I.R.L.;900404040;Jr. Túpac Amaru 45, Iberia;Iberia;true;2026-09-28 13:27;177;9347;721;181
+5;PERSONA;45566778;María Elena Quispe Ayala;900505050;Jr. Huáscar 210, Iberia;Iberia;true;2026-09-28 13:27;218;12436;1259;229
+6;PERSONA;45677889;Jorge Antonio Flores Ruiz;900606060;Jr. Dos de Mayo 33, Iberia;Iberia;true;2026-09-28 13:27;170;9511;875.5;180

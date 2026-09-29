@@ -1,0 +1,231 @@
+{
+  "exito": true,
+  "mensaje": "Comparativa pretest/postest generada",
+  "datos": {
+    "pretest": {
+      "tiempoRegistroMin": 5,
+      "tiempoProcesamientoVentaMin": 10,
+      "tiempoConfirmacionAsignacionMin": 8,
+      "porcentajePedidosCorrectos": null,
+      "porcentajeVentasCorrectas": null,
+      "porcentajePedidosAtendidos": null,
+      "porcentajeTrazabilidadCompleta": null
+    },
+    "postest": {
+      "periodo": {
+        "fechaInicio": null,
+        "fechaFin": null
+      },
+      "muestra": {
+        "pedidos": 1145,
+        "ventas": 1088,
+        "pagos": 977,
+        "entregas": 1088,
+        "clientes": 6
+      },
+      "recepcionYRegistro": {
+        "tiempoPromedioRegistroMin": 10.11,
+        "porcentajePedidosRegistradosCorrectamente": 100,
+        "porcentajePedidosConErrores": 5.85
+      },
+      "procesamientoYControl": {
+        "tiempoPromedioProcesamientoVentaMin": 15.24,
+        "porcentajeVentasProcesadasCorrectamente": 85.48,
+        "porcentajeVentasConErrores": 0,
+        "porcentajeVentasConPagoRegistrado": 100,
+        "porcentajeActualizacionCorrectaStock": 100
+      },
+      "atencionYSeguimiento": {
+        "tiempoPromedioConfirmacionYAsignacionMin": 49.35,
+        "tiempoPromedioCicloCompletoMin": 212.28,
+        "porcentajePedidosAtendidosCorrectamente": 89.52,
+        "porcentajePedidosConTrazabilidadCompleta": 95.02,
+        "porcentajeEntregasRealizadas": 94.21
+      },
+      "complementarios": {
+        "porcentajeClientesConDatosCompletos": 100,
+        "porcentajeEnvasesConInformacionCompleta": 100,
+        "tiempoPromedioConsultaHistorialEnvasesMin": 0.0009,
+        "tiempoPromedioConsultaEnvasesSegundos": 0.056,
+        "tiempoPromedioConsolidadoDiarioSegundos": 0.007
+      }
+    },
+    "sistema": {
+      "periodo": {
+        "fechaInicio": "2026-08-30T14:11:46.75Z",
+        "fechaFin": "2026-09-29T14:11:46.75Z"
+      },
+      "adecuacionFuncional": {
+        "porcentajeRequisitosImplementadosYApruebados": 100,
+        "totalRequisitos": 12,
+        "requisitosAprobados": 12,
+        "porcentajeCasosDePruebaSuperados": 0,
+        "totalCasosEjecutados": 18,
+        "casosAprobados": 0,
+        "casosFallidos": 0,
+        "porcentajeTransaccionesConResultadoEsperado": 0
+      },
+      "eficienciaDesempeno": {
+        "tiempoRespuestaPromedioMs": 91.71,
+        "tiempoRespuestaMedianaMs": 37,
+        "tiempoRespuestaP95Ms": 305,
+        "tiempoRespuestaP99Ms": 383,
+        "rendimientoTransaccionesPorMinuto": 0.01,
+        "picoTransaccionesPorMinuto": 34,
+        "totalPeticiones": 245,
+        "duracionPromedioPorRuta": [
+          {
+            "ruta": "/api/reportes/indicadores/proceso",
+            "promedioMs": 308.5,
+            "maximoMs": 370,
+            "peticiones": 4
+          },
+          {
+            "ruta": "/api/reportes/indicadores/comparativo",
+            "promedioMs": 272,
+            "maximoMs": 321,
+            "peticiones": 4
+          },
+          {
+            "ruta": "/api/auth/login",
+            "promedioMs": 221.1,
+            "maximoMs": 385,
+            "peticiones": 51
+          },
+          {
+            "ruta": "/api/reportes/ventas",
+            "promedioMs": 148.77,
+            "maximoMs": 448,
+            "peticiones": 13
+          },
+          {
+            "ruta": "/api/reportes/pedidos",
+            "promedioMs": 127.2,
+            "maximoMs": 262,
+            "peticiones": 10
+          },
+          {
+            "ruta": "/api/reportes/historial-bidones/:clienteId",
+            "promedioMs": 96,
+            "maximoMs": 96,
+            "peticiones": 1
+          },
+          {
+            "ruta": "/api/reportes/pagos",
+            "promedioMs": 89.33,
+            "maximoMs": 271,
+            "peticiones": 12
+          },
+          {
+            "ruta": "/api/reportes/bidones",
+            "promedioMs": 83.2,
+            "maximoMs": 164,
+            "peticiones": 10
+          },
+          {
+            "ruta": "/api/reportes/entregas",
+            "promedioMs": 82.53,
+            "maximoMs": 253,
+            "peticiones": 15
+          },
+          {
+            "ruta": "/pedidos",
+            "promedioMs": 75,
+            "maximoMs": 75,
+            "peticiones": 1
+          },
+          {
+            "ruta": "/api/reportes/inventario",
+            "promedioMs": 56.9,
+            "maximoMs": 91,
+            "peticiones": 10
+          },
+          {
+            "ruta": "/api/entregas/mis-entregas",
+            "promedioMs": 52.33,
+            "maximoMs": 92,
+            "peticiones": 3
+          },
+          {
+            "ruta": "/api/reportes/indicadores/sistema",
+            "promedioMs": 46.25,
+            "maximoMs": 66,
+            "peticiones": 4
+          },
+          {
+            "ruta": "/api/pedidos/",
+            "promedioMs": 46,
+            "maximoMs": 46,
+            "peticiones": 1
+          },
+          {
+            "ruta": "/api/reportes/clientes",
+            "promedioMs": 32.89,
+            "maximoMs": 49,
+            "peticiones": 9
+          }
+        ]
+      },
+      "fiabilidad": {
+        "porcentajeSolicitudesFallidas": 0,
+        "solicitudesFallidas": 0,
+        "tiempoMedioRecuperacionMin": 0,
+        "incidenciasRegistradas": 0,
+        "incidenciasResueltas": 0,
+        "minutosTotalesDeIndisponibilidad": 0,
+        "porcentajeDisponibilidadObservado": 100
+      }
+    },
+    "comparacion": {
+      "tiempoPromedioRegistro": {
+        "antes": 5,
+        "despues": 10.11,
+        "unidad": "minutos",
+        "diferencia": 5.11,
+        "variacionPorcentual": 102.2
+      },
+      "tiempoPromedioProcesamientoVenta": {
+        "antes": 10,
+        "despues": 15.24,
+        "unidad": "minutos",
+        "diferencia": 5.24,
+        "variacionPorcentual": 52.4
+      },
+      "tiempoPromedioConfirmacionYAsignacion": {
+        "antes": 8,
+        "despues": 49.35,
+        "unidad": "minutos",
+        "diferencia": 41.35,
+        "variacionPorcentual": 516.88
+      },
+      "porcentajePedidosRegistradosCorrectamente": {
+        "antes": null,
+        "despues": 100,
+        "unidad": "%",
+        "diferencia": null,
+        "variacionPorcentual": null
+      },
+      "porcentajeVentasProcesadasCorrectamente": {
+        "antes": null,
+        "despues": 85.48,
+        "unidad": "%",
+        "diferencia": null,
+        "variacionPorcentual": null
+      },
+      "porcentajePedidosAtendidosCorrectamente": {
+        "antes": null,
+        "despues": 89.52,
+        "unidad": "%",
+        "diferencia": null,
+        "variacionPorcentual": null
+      },
+      "porcentajePedidosConTrazabilidadCompleta": {
+        "antes": null,
+        "despues": 95.02,
+        "unidad": "%",
+        "diferencia": null,
+        "variacionPorcentual": null
+      }
+    }
+  }
+}

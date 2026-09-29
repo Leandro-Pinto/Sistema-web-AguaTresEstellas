@@ -1,0 +1,502 @@
+﻿
+id;tipo;cantidad;stockAnterior;stockResultante;origen;fecha;producto.nombre;producto.unidadMedida;usuario.nombreCompleto
+3513;ENTRADA;240;0;240;CARGA INICIAL;2026-09-29 01:43;Botella de agua pura 1.5 litros;UNIDAD;Carlos Mendoza Rojas
+3512;ENTRADA;480;0;480;CARGA INICIAL;2026-09-29 01:43;Botella de agua pura 625 ml;UNIDAD;Carlos Mendoza Rojas
+3511;ENTRADA;320;0;320;CARGA INICIAL;2026-09-29 01:43;Bidón de agua pura 20 litros;BIDON;Carlos Mendoza Rojas
+3510;SALIDA;4;724;720;VENTA;2026-09-28 08:59;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3509;SALIDA;18;309;291;VENTA;2026-09-28 08:59;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3508;SALIDA;11;614;603;VENTA;2026-09-28 11:47;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3507;ENTRADA;6;608;614;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3506;SALIDA;12;620;608;VENTA;2026-09-28 08:38;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3505;SALIDA;1;621;620;VENTA;2026-09-28 12:34;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3504;SALIDA;1;310;309;VENTA;2026-09-28 12:34;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3503;SALIDA;1;725;724;VENTA;2026-09-28 14:50;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3502;ENTRADA;5;616;621;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Iván Ccorimanya Choque
+3501;SALIDA;12;322;310;VENTA;2026-09-28 16:30;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3500;SALIDA;5;621;616;VENTA;2026-09-28 16:30;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3499;SALIDA;3;728;725;VENTA;2026-09-28 17:37;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3498;SALIDA;3;325;322;VENTA;2026-09-28 17:37;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3497;SALIDA;2;623;621;VENTA;2026-09-28 17:37;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3496;SALIDA;3;626;623;VENTA;2026-09-28 14:28;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3495;SALIDA;10;738;728;VENTA;2026-09-28 14:28;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3494;SALIDA;11;749;738;VENTA;2026-09-28 09:43;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3493;SALIDA;1;627;626;VENTA;2026-09-28 09:43;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3492;SALIDA;5;330;325;VENTA;2026-09-28 13:06;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3491;SALIDA;12;639;627;VENTA;2026-09-28 10:14;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3490;SALIDA;13;762;749;VENTA;2026-09-28 18:40;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3489;SALIDA;7;337;330;VENTA;2026-09-28 12:33;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3488;SALIDA;4;643;639;VENTA;2026-09-28 12:33;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3487;ENTRADA;3;640;643;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3486;SALIDA;4;644;640;VENTA;2026-09-28 16:05;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3485;SALIDA;6;768;762;VENTA;2026-09-28 16:05;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3484;SALIDA;8;345;337;VENTA;2026-09-28 16:05;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3483;SALIDA;7;775;768;VENTA;2026-09-28 08:40;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3482;SALIDA;1;645;644;VENTA;2026-09-28 08:40;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3481;SALIDA;2;647;645;VENTA;2026-09-28 08:48;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3480;SALIDA;16;361;345;VENTA;2026-09-28 08:48;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3479;SALIDA;2;649;647;VENTA;2026-09-28 11:11;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3478;SALIDA;12;373;361;VENTA;2026-09-28 16:19;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3477;SALIDA;2;651;649;VENTA;2026-09-28 16:19;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3476;SALIDA;4;779;775;VENTA;2026-09-28 16:19;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3475;SALIDA;12;791;779;VENTA;2026-09-28 16:01;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3474;SALIDA;2;653;651;VENTA;2026-09-28 16:01;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3473;SALIDA;8;381;373;VENTA;2026-09-28 10:40;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3472;SALIDA;11;802;791;VENTA;2026-09-28 10:40;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3471;SALIDA;4;806;802;VENTA;2026-09-28 13:44;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3470;SALIDA;4;385;381;VENTA;2026-09-28 13:44;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3469;SALIDA;3;656;653;VENTA;2026-09-28 13:46;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3468;SALIDA;10;395;385;VENTA;2026-09-28 13:46;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3467;SALIDA;2;808;806;VENTA;2026-09-28 13:46;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3466;SALIDA;14;409;395;VENTA;2026-09-28 14:49;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3465;SALIDA;2;810;808;VENTA;2026-09-28 18:46;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3464;SALIDA;7;817;810;VENTA;2026-09-28 15:39;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3463;SALIDA;9;826;817;VENTA;2026-09-28 09:21;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3462;SALIDA;5;661;656;VENTA;2026-09-28 11:31;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3461;SALIDA;9;835;826;VENTA;2026-09-28 09:02;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3460;ENTRADA;1;660;661;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3459;SALIDA;2;662;660;VENTA;2026-09-28 13:47;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3458;SALIDA;2;411;409;VENTA;2026-09-28 18:07;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3457;SALIDA;11;422;411;VENTA;2026-09-28 09:19;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3456;SALIDA;2;664;662;VENTA;2026-09-28 09:19;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3455;SALIDA;10;845;835;VENTA;2026-09-28 09:19;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3454;SALIDA;1;665;664;VENTA;2026-09-28 14:37;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3453;SALIDA;3;425;422;VENTA;2026-09-28 14:37;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3452;SALIDA;9;854;845;VENTA;2026-09-28 15:02;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3451;SALIDA;4;669;665;VENTA;2026-09-28 17:43;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3450;SALIDA;7;861;854;VENTA;2026-09-28 17:43;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3449;SALIDA;12;437;425;VENTA;2026-09-28 17:43;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3448;ENTRADA;1;668;669;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3447;SALIDA;4;672;668;VENTA;2026-09-28 13:54;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3446;ENTRADA;2;670;672;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Iván Ccorimanya Choque
+3445;SALIDA;3;864;861;VENTA;2026-09-28 13:09;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3444;SALIDA;3;673;670;VENTA;2026-09-28 13:09;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3443;SALIDA;8;445;437;VENTA;2026-09-28 12:03;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3442;SALIDA;5;869;864;VENTA;2026-09-28 16:26;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3441;SALIDA;3;676;673;VENTA;2026-09-28 16:26;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3440;SALIDA;10;879;869;VENTA;2026-09-28 10:39;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3439;SALIDA;3;448;445;VENTA;2026-09-28 10:39;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3438;SALIDA;5;681;676;VENTA;2026-09-28 12:09;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3437;SALIDA;10;889;879;VENTA;2026-09-28 12:09;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3436;SALIDA;1;890;889;VENTA;2026-09-28 10:07;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3435;SALIDA;2;683;681;VENTA;2026-09-28 10:07;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3434;SALIDA;6;689;683;VENTA;2026-09-28 09:44;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3433;ENTRADA;1;688;689;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3432;SALIDA;10;900;890;VENTA;2026-09-28 14:12;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3431;SALIDA;6;694;688;VENTA;2026-09-28 14:12;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3430;ENTRADA;573;327;900;REABASTECIMIENTO;2026-09-29 01:39;Botella de agua pura 625 ml;UNIDAD;Carlos Mendoza Rojas
+3429;SALIDA;10;458;448;VENTA;2026-09-27 15:45;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3428;SALIDA;6;700;694;VENTA;2026-09-27 15:45;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3427;SALIDA;10;468;458;VENTA;2026-09-27 15:56;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3426;SALIDA;3;703;700;VENTA;2026-09-27 15:56;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3425;SALIDA;10;337;327;VENTA;2026-09-27 12:35;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3424;SALIDA;12;349;337;VENTA;2026-09-27 12:27;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3423;SALIDA;6;709;703;VENTA;2026-09-27 15:00;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3422;SALIDA;1;469;468;VENTA;2026-09-27 08:54;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3421;SALIDA;1;710;709;VENTA;2026-09-27 08:54;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3420;SALIDA;2;351;349;VENTA;2026-09-27 08:54;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3419;SALIDA;11;362;351;VENTA;2026-09-27 17:03;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3418;SALIDA;7;369;362;VENTA;2026-09-27 08:46;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3417;SALIDA;4;714;710;VENTA;2026-09-27 09:30;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3416;SALIDA;21;390;369;VENTA;2026-09-27 09:30;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3415;ENTRADA;1;713;714;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3414;SALIDA;1;391;390;VENTA;2026-09-27 18:07;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3413;SALIDA;2;715;713;VENTA;2026-09-27 18:07;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3412;SALIDA;9;400;391;VENTA;2026-09-27 09:28;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3411;SALIDA;6;406;400;VENTA;2026-09-27 13:37;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3410;ENTRADA;1;714;715;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3409;SALIDA;12;418;406;VENTA;2026-09-27 16:22;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3408;SALIDA;2;716;714;VENTA;2026-09-27 16:22;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3407;SALIDA;5;721;716;VENTA;2026-09-27 12:26;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3406;SALIDA;10;428;418;VENTA;2026-09-27 12:26;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3405;SALIDA;10;479;469;VENTA;2026-09-27 12:26;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3404;SALIDA;3;724;721;VENTA;2026-09-27 11:57;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3403;SALIDA;7;486;479;VENTA;2026-09-26 14:58;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3402;ENTRADA;1;723;724;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3401;SALIDA;7;493;486;VENTA;2026-09-26 15:21;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3400;SALIDA;2;725;723;VENTA;2026-09-26 15:21;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3399;SALIDA;8;436;428;VENTA;2026-09-26 18:12;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3398;SALIDA;12;448;436;VENTA;2026-09-26 15:05;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3397;SALIDA;7;500;493;VENTA;2026-09-26 15:05;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3396;SALIDA;2;450;448;VENTA;2026-09-26 11:33;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3395;SALIDA;11;511;500;VENTA;2026-09-26 18:04;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3394;SALIDA;9;459;450;VENTA;2026-09-26 18:04;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3393;ENTRADA;1;724;725;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3392;SALIDA;2;726;724;VENTA;2026-09-26 11:04;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3391;SALIDA;3;514;511;VENTA;2026-09-26 11:04;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3390;ENTRADA;3;723;726;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3389;SALIDA;4;727;723;VENTA;2026-09-26 15:36;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3388;SALIDA;19;533;514;VENTA;2026-09-26 15:36;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3387;SALIDA;2;461;459;VENTA;2026-09-26 10:03;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3386;SALIDA;9;542;533;VENTA;2026-09-26 10:03;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3385;SALIDA;8;550;542;VENTA;2026-09-26 10:08;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3384;SALIDA;1;728;727;VENTA;2026-09-26 10:08;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3383;SALIDA;11;472;461;VENTA;2026-09-26 13:17;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3382;SALIDA;2;552;550;VENTA;2026-09-26 08:34;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3381;SALIDA;6;734;728;VENTA;2026-09-26 16:09;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3380;ENTRADA;3;731;734;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3379;SALIDA;13;485;472;VENTA;2026-09-26 17:30;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3378;SALIDA;6;737;731;VENTA;2026-09-26 17:30;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3377;SALIDA;4;489;485;VENTA;2026-09-26 09:26;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3376;SALIDA;6;743;737;VENTA;2026-09-26 13:45;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3375;SALIDA;4;747;743;VENTA;2026-09-26 13:00;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3374;SALIDA;7;559;552;VENTA;2026-09-26 13:00;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3373;SALIDA;4;563;559;VENTA;2026-09-26 15:30;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3372;ENTRADA;3;744;747;DEVOLUCION BIDON;2026-09-29 01:39;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3371;SALIDA;5;749;744;VENTA;2026-09-26 08:46;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3370;SALIDA;9;572;563;VENTA;2026-09-26 11:40;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3369;SALIDA;2;491;489;VENTA;2026-09-26 11:40;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3368;SALIDA;3;575;572;VENTA;2026-09-26 13:11;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3367;SALIDA;5;754;749;VENTA;2026-09-26 08:39;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3366;SALIDA;8;499;491;VENTA;2026-09-26 08:39;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3365;SALIDA;4;579;575;VENTA;2026-09-26 14:52;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3364;SALIDA;10;509;499;VENTA;2026-09-26 14:52;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3363;SALIDA;5;584;579;VENTA;2026-09-26 16:41;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3362;SALIDA;12;521;509;VENTA;2026-09-26 16:41;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3361;SALIDA;1;755;754;VENTA;2026-09-26 15:28;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3360;SALIDA;10;594;584;VENTA;2026-09-26 15:28;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3359;SALIDA;4;759;755;VENTA;2026-09-26 14:47;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3358;SALIDA;10;531;521;VENTA;2026-09-26 14:47;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3357;SALIDA;12;606;594;VENTA;2026-09-26 14:36;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3356;SALIDA;2;761;759;VENTA;2026-09-26 14:36;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3355;SALIDA;14;545;531;VENTA;2026-09-26 18:05;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3354;SALIDA;10;555;545;VENTA;2026-09-26 15:58;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3353;SALIDA;9;770;761;VENTA;2026-09-26 15:58;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3352;SALIDA;21;576;555;VENTA;2026-09-26 18:03;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3351;ENTRADA;1;769;770;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3350;SALIDA;4;773;769;VENTA;2026-09-26 17:01;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3349;SALIDA;5;581;576;VENTA;2026-09-26 17:01;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3348;SALIDA;9;615;606;VENTA;2026-09-26 16:19;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3347;SALIDA;1;774;773;VENTA;2026-09-26 16:19;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3346;SALIDA;22;603;581;VENTA;2026-09-25 09:04;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3345;SALIDA;3;606;603;VENTA;2026-09-25 08:52;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3344;SALIDA;9;624;615;VENTA;2026-09-25 15:19;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3343;SALIDA;6;780;774;VENTA;2026-09-25 14:50;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3342;SALIDA;5;611;606;VENTA;2026-09-25 13:10;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3341;SALIDA;8;788;780;VENTA;2026-09-25 13:10;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3340;SALIDA;7;631;624;VENTA;2026-09-25 18:05;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3339;SALIDA;9;620;611;VENTA;2026-09-25 15:52;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3338;SALIDA;1;632;631;VENTA;2026-09-25 14:07;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3337;SALIDA;8;628;620;VENTA;2026-09-25 14:07;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3336;SALIDA;2;630;628;VENTA;2026-09-25 17:05;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3335;SALIDA;12;642;630;VENTA;2026-09-25 11:53;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3334;ENTRADA;2;786;788;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3333;SALIDA;2;788;786;VENTA;2026-09-25 12:02;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3332;SALIDA;9;651;642;VENTA;2026-09-25 12:02;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3331;SALIDA;5;637;632;VENTA;2026-09-25 12:02;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3330;SALIDA;5;656;651;VENTA;2026-09-25 13:26;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3329;SALIDA;6;643;637;VENTA;2026-09-25 13:26;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3328;SALIDA;3;791;788;VENTA;2026-09-25 15:18;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3327;SALIDA;1;644;643;VENTA;2026-09-25 15:18;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3326;SALIDA;3;794;791;VENTA;2026-09-25 17:01;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3325;SALIDA;4;660;656;VENTA;2026-09-25 17:01;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3324;SALIDA;10;654;644;VENTA;2026-09-25 17:01;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3323;SALIDA;13;673;660;VENTA;2026-09-25 15:58;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3322;SALIDA;3;657;654;VENTA;2026-09-25 18:13;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3321;SALIDA;5;799;794;VENTA;2026-09-25 18:13;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3320;SALIDA;11;668;657;VENTA;2026-09-25 17:58;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3319;SALIDA;15;688;673;VENTA;2026-09-25 17:58;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3318;SALIDA;7;806;799;VENTA;2026-09-25 13:54;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3317;ENTRADA;3;803;806;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Iván Ccorimanya Choque
+3316;SALIDA;4;807;803;VENTA;2026-09-25 18:12;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3315;SALIDA;3;671;668;VENTA;2026-09-25 09:13;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3314;SALIDA;5;812;807;VENTA;2026-09-25 16:03;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3313;SALIDA;3;691;688;VENTA;2026-09-25 12:34;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3312;SALIDA;3;674;671;VENTA;2026-09-25 12:34;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3311;SALIDA;9;821;812;VENTA;2026-09-25 17:18;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3310;SALIDA;9;683;674;VENTA;2026-09-25 11:45;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3309;SALIDA;1;692;691;VENTA;2026-09-25 11:45;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3308;SALIDA;3;824;821;VENTA;2026-09-25 10:11;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3307;ENTRADA;4;820;824;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Iván Ccorimanya Choque
+3306;SALIDA;18;838;820;VENTA;2026-09-25 09:39;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3305;SALIDA;5;843;838;VENTA;2026-09-25 10:13;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3304;SALIDA;4;687;683;VENTA;2026-09-25 10:13;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3303;SALIDA;14;701;687;VENTA;2026-09-25 11:31;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3302;SALIDA;9;710;701;VENTA;2026-09-25 10:52;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3301;SALIDA;3;695;692;VENTA;2026-09-25 10:52;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3300;SALIDA;9;704;695;VENTA;2026-09-25 13:36;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3299;SALIDA;4;714;710;VENTA;2026-09-25 13:24;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3298;SALIDA;5;719;714;VENTA;2026-09-25 10:10;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3297;ENTRADA;1;842;843;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3296;SALIDA;1;705;704;VENTA;2026-09-25 10:58;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3295;SALIDA;2;844;842;VENTA;2026-09-25 10:58;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3294;SALIDA;7;726;719;VENTA;2026-09-25 10:58;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3293;SALIDA;7;712;705;VENTA;2026-09-25 09:43;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3292;SALIDA;11;723;712;VENTA;2026-09-25 12:58;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3291;SALIDA;2;728;726;VENTA;2026-09-25 10:24;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3290;SALIDA;10;733;723;VENTA;2026-09-25 10:24;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3289;SALIDA;8;741;733;VENTA;2026-09-25 15:09;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3288;SALIDA;2;743;741;VENTA;2026-09-25 17:13;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3287;SALIDA;1;729;728;VENTA;2026-09-25 17:29;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3286;ENTRADA;1;843;844;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3285;SALIDA;2;845;843;VENTA;2026-09-25 15:50;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3284;SALIDA;12;741;729;VENTA;2026-09-25 09:43;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3283;SALIDA;1;744;743;VENTA;2026-09-25 17:00;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3282;SALIDA;4;745;741;VENTA;2026-09-25 11:28;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3281;SALIDA;6;851;845;VENTA;2026-09-25 11:28;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3280;SALIDA;9;754;745;VENTA;2026-09-24 12:43;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3279;SALIDA;12;756;744;VENTA;2026-09-24 12:43;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3278;SALIDA;11;765;754;VENTA;2026-09-24 12:25;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3277;SALIDA;6;762;756;VENTA;2026-09-24 12:25;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3276;SALIDA;10;775;765;VENTA;2026-09-24 12:52;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3275;SALIDA;1;852;851;VENTA;2026-09-24 12:52;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3274;SALIDA;6;781;775;VENTA;2026-09-24 18:11;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3273;SALIDA;17;798;781;VENTA;2026-09-24 09:21;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3272;SALIDA;4;766;762;VENTA;2026-09-24 18:30;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3271;SALIDA;5;771;766;VENTA;2026-09-24 08:38;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3270;SALIDA;7;778;771;VENTA;2026-09-24 14:36;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3269;SALIDA;4;802;798;VENTA;2026-09-24 09:13;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3268;SALIDA;1;853;852;VENTA;2026-09-24 12:04;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3267;SALIDA;3;781;778;VENTA;2026-09-24 12:04;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3266;SALIDA;3;784;781;VENTA;2026-09-24 13:55;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3265;SALIDA;5;807;802;VENTA;2026-09-24 08:57;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3264;SALIDA;6;790;784;VENTA;2026-09-24 17:23;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3263;SALIDA;4;811;807;VENTA;2026-09-24 17:23;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3262;SALIDA;12;802;790;VENTA;2026-09-24 09:41;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3261;SALIDA;6;859;853;VENTA;2026-09-24 09:41;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3260;SALIDA;1;812;811;VENTA;2026-09-24 15:50;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3259;SALIDA;4;816;812;VENTA;2026-09-24 09:21;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3258;SALIDA;2;804;802;VENTA;2026-09-24 09:21;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3257;SALIDA;7;823;816;VENTA;2026-09-24 18:00;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3256;SALIDA;4;808;804;VENTA;2026-09-24 18:00;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3255;SALIDA;4;863;859;VENTA;2026-09-24 08:38;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3254;SALIDA;11;834;823;VENTA;2026-09-24 12:05;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3253;SALIDA;6;869;863;VENTA;2026-09-24 12:05;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3252;SALIDA;2;871;869;VENTA;2026-09-24 09:45;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3251;SALIDA;9;843;834;VENTA;2026-09-24 09:45;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3250;SALIDA;5;848;843;VENTA;2026-09-24 10:37;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3249;SALIDA;6;814;808;VENTA;2026-09-24 13:57;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3248;SALIDA;1;872;871;VENTA;2026-09-24 13:57;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3247;SALIDA;2;874;872;VENTA;2026-09-24 12:35;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3246;SALIDA;2;816;814;VENTA;2026-09-24 13:44;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3245;SALIDA;6;880;874;VENTA;2026-09-24 10:30;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3244;SALIDA;8;888;880;VENTA;2026-09-24 15:18;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3243;SALIDA;10;858;848;VENTA;2026-09-24 15:18;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3242;SALIDA;7;895;888;VENTA;2026-09-24 18:20;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3241;SALIDA;9;825;816;VENTA;2026-09-24 12:04;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3240;SALIDA;3;898;895;VENTA;2026-09-24 12:04;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3239;SALIDA;11;836;825;VENTA;2026-09-24 15:50;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3238;SALIDA;10;846;836;VENTA;2026-09-24 10:19;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3237;SALIDA;10;868;858;VENTA;2026-09-24 10:19;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3236;SALIDA;2;900;898;VENTA;2026-09-24 10:19;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3235;SALIDA;1;847;846;VENTA;2026-09-24 15:09;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3234;SALIDA;3;871;868;VENTA;2026-09-24 15:09;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3233;SALIDA;1;872;871;VENTA;2026-09-24 09:46;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3232;SALIDA;2;849;847;VENTA;2026-09-24 09:46;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3231;SALIDA;2;874;872;VENTA;2026-09-24 17:35;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3230;SALIDA;5;854;849;VENTA;2026-09-24 17:35;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3229;ENTRADA;1;899;900;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3228;SALIDA;11;865;854;VENTA;2026-09-24 13:21;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3227;SALIDA;1;900;899;VENTA;2026-09-24 13:21;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3226;SALIDA;5;879;874;VENTA;2026-09-24 17:54;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3225;SALIDA;5;870;865;VENTA;2026-09-24 17:54;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3224;SALIDA;15;885;870;VENTA;2026-09-24 11:16;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3223;SALIDA;6;885;879;VENTA;2026-09-24 12:04;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3222;SALIDA;7;892;885;VENTA;2026-09-24 12:04;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3221;SALIDA;9;894;885;VENTA;2026-09-24 09:07;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3220;SALIDA;8;900;892;VENTA;2026-09-24 09:10;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3219;SALIDA;6;900;894;VENTA;2026-09-24 09:10;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3218;ENTRADA;644;256;900;REABASTECIMIENTO;2026-09-29 01:38;Botella de agua pura 1.5 litros;UNIDAD;Carlos Mendoza Rojas
+3217;ENTRADA;567;333;900;REABASTECIMIENTO;2026-09-29 01:38;Botella de agua pura 625 ml;UNIDAD;Carlos Mendoza Rojas
+3216;ENTRADA;509;391;900;REABASTECIMIENTO;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Carlos Mendoza Rojas
+3215;SALIDA;5;396;391;VENTA;2026-09-23 12:21;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3214;SALIDA;11;267;256;VENTA;2026-09-23 14:40;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3213;SALIDA;1;397;396;VENTA;2026-09-23 14:19;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3212;SALIDA;11;278;267;VENTA;2026-09-23 14:19;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3211;SALIDA;3;400;397;VENTA;2026-09-23 10:22;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3210;SALIDA;1;279;278;VENTA;2026-09-23 10:22;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3209;SALIDA;7;340;333;VENTA;2026-09-23 16:12;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3208;SALIDA;1;280;279;VENTA;2026-09-23 16:12;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3207;SALIDA;10;350;340;VENTA;2026-09-23 09:22;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3206;SALIDA;5;405;400;VENTA;2026-09-23 09:22;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3205;SALIDA;4;354;350;VENTA;2026-09-23 10:52;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3204;SALIDA;1;281;280;VENTA;2026-09-23 14:24;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3203;ENTRADA;4;401;405;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3202;SALIDA;5;406;401;VENTA;2026-09-23 18:05;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3201;SALIDA;12;366;354;VENTA;2026-09-23 18:05;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3200;SALIDA;10;376;366;VENTA;2026-09-23 17:54;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3199;SALIDA;13;294;281;VENTA;2026-09-23 17:54;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3198;SALIDA;1;407;406;VENTA;2026-09-23 11:31;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3197;SALIDA;6;300;294;VENTA;2026-09-23 12:36;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3196;ENTRADA;1;406;407;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Iván Ccorimanya Choque
+3195;SALIDA;12;312;300;VENTA;2026-09-23 16:52;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3194;SALIDA;2;408;406;VENTA;2026-09-23 16:52;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3193;SALIDA;14;390;376;VENTA;2026-09-23 15:16;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3192;SALIDA;1;409;408;VENTA;2026-09-23 16:12;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3191;SALIDA;3;393;390;VENTA;2026-09-23 16:12;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3190;SALIDA;12;324;312;VENTA;2026-09-23 16:12;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3189;SALIDA;7;331;324;VENTA;2026-09-23 14:03;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3188;SALIDA;6;415;409;VENTA;2026-09-23 14:03;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3187;SALIDA;1;394;393;VENTA;2026-09-23 14:03;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3186;SALIDA;7;338;331;VENTA;2026-09-23 16:27;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3185;SALIDA;4;342;338;VENTA;2026-09-23 17:15;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3184;SALIDA;3;418;415;VENTA;2026-09-23 09:18;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3183;SALIDA;19;413;394;VENTA;2026-09-23 09:57;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3182;SALIDA;12;425;413;VENTA;2026-09-23 12:39;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3181;SALIDA;5;423;418;VENTA;2026-09-23 14:57;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3180;SALIDA;5;430;425;VENTA;2026-09-23 14:57;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3179;SALIDA;7;349;342;VENTA;2026-09-23 14:57;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3178;SALIDA;8;438;430;VENTA;2026-09-23 17:59;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3177;SALIDA;17;455;438;VENTA;2026-09-23 17:01;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3176;ENTRADA;4;419;423;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3175;SALIDA;13;362;349;VENTA;2026-09-23 13:52;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3174;SALIDA;4;423;419;VENTA;2026-09-23 13:52;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3173;SALIDA;17;379;362;VENTA;2026-09-23 13:25;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3172;SALIDA;11;434;423;VENTA;2026-09-23 09:16;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3171;SALIDA;15;470;455;VENTA;2026-09-23 14:21;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3170;SALIDA;3;382;379;VENTA;2026-09-23 15:43;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3169;ENTRADA;2;432;434;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Iván Ccorimanya Choque
+3168;SALIDA;2;434;432;VENTA;2026-09-23 14:52;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3167;SALIDA;15;485;470;VENTA;2026-09-23 14:52;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3166;SALIDA;5;439;434;VENTA;2026-09-23 17:07;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3165;SALIDA;11;393;382;VENTA;2026-09-23 17:07;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3164;SALIDA;4;397;393;VENTA;2026-09-23 12:32;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3163;SALIDA;5;490;485;VENTA;2026-09-23 12:32;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3162;SALIDA;6;445;439;VENTA;2026-09-23 12:32;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3161;ENTRADA;2;443;445;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Iván Ccorimanya Choque
+3160;SALIDA;4;447;443;VENTA;2026-09-23 13:00;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3159;SALIDA;7;497;490;VENTA;2026-09-23 13:00;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3158;SALIDA;9;506;497;VENTA;2026-09-23 16:00;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3157;SALIDA;12;518;506;VENTA;2026-09-23 10:16;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3156;SALIDA;12;530;518;VENTA;2026-09-23 09:52;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3155;ENTRADA;5;442;447;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3154;SALIDA;13;455;442;VENTA;2026-09-23 11:37;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3153;SALIDA;16;546;530;VENTA;2026-09-23 10:01;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3152;SALIDA;6;403;397;VENTA;2026-09-23 10:01;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3151;ENTRADA;2;453;455;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Iván Ccorimanya Choque
+3150;SALIDA;4;457;453;VENTA;2026-09-23 12:23;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3149;SALIDA;12;558;546;VENTA;2026-09-23 12:23;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3148;SALIDA;1;404;403;VENTA;2026-09-23 12:23;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3147;SALIDA;3;460;457;VENTA;2026-09-23 12:14;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3146;SALIDA;12;570;558;VENTA;2026-09-23 08:58;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3145;SALIDA;5;409;404;VENTA;2026-09-23 08:58;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3144;ENTRADA;3;457;460;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3143;SALIDA;5;462;457;VENTA;2026-09-23 17:18;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3142;SALIDA;2;411;409;VENTA;2026-09-23 17:18;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3141;SALIDA;8;419;411;VENTA;2026-09-23 09:57;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3140;SALIDA;5;467;462;VENTA;2026-09-23 12:34;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3139;SALIDA;2;572;570;VENTA;2026-09-22 09:01;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3138;ENTRADA;1;466;467;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3137;SALIDA;8;427;419;VENTA;2026-09-22 09:56;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3136;SALIDA;5;471;466;VENTA;2026-09-22 09:56;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3135;SALIDA;8;580;572;VENTA;2026-09-22 16:08;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3134;SALIDA;9;436;427;VENTA;2026-09-22 16:08;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3133;SALIDA;7;443;436;VENTA;2026-09-22 12:59;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3132;ENTRADA;3;468;471;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3131;SALIDA;3;446;443;VENTA;2026-09-22 17:50;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3130;SALIDA;6;474;468;VENTA;2026-09-22 17:50;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3129;SALIDA;12;458;446;VENTA;2026-09-22 10:27;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3128;SALIDA;23;481;458;VENTA;2026-09-22 13:47;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3127;SALIDA;4;584;580;VENTA;2026-09-22 18:14;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3126;SALIDA;7;481;474;VENTA;2026-09-22 18:14;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3125;SALIDA;8;489;481;VENTA;2026-09-22 18:17;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3124;SALIDA;6;487;481;VENTA;2026-09-22 15:38;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3123;SALIDA;5;494;489;VENTA;2026-09-22 15:38;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3122;SALIDA;10;497;487;VENTA;2026-09-22 13:45;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3121;SALIDA;6;500;494;VENTA;2026-09-22 11:57;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3120;SALIDA;2;586;584;VENTA;2026-09-22 11:57;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3119;SALIDA;4;501;497;VENTA;2026-09-22 11:57;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3118;ENTRADA;3;498;501;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Iván Ccorimanya Choque
+3117;SALIDA;3;501;498;VENTA;2026-09-22 12:43;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3116;ENTRADA;1;500;501;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3115;SALIDA;3;503;500;VENTA;2026-09-22 09:27;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3114;SALIDA;1;504;503;VENTA;2026-09-22 10:05;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3113;SALIDA;17;517;500;VENTA;2026-09-22 10:05;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3112;SALIDA;2;506;504;VENTA;2026-09-22 09:23;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3111;SALIDA;10;596;586;VENTA;2026-09-22 09:23;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3110;SALIDA;8;604;596;VENTA;2026-09-22 17:29;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3109;SALIDA;8;525;517;VENTA;2026-09-22 17:29;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3108;ENTRADA;2;504;506;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Iván Ccorimanya Choque
+3107;SALIDA;10;535;525;VENTA;2026-09-22 13:28;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3106;SALIDA;5;509;504;VENTA;2026-09-22 13:28;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3105;SALIDA;10;545;535;VENTA;2026-09-22 15:45;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3104;SALIDA;4;513;509;VENTA;2026-09-22 15:45;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3103;SALIDA;12;616;604;VENTA;2026-09-22 10:25;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3102;ENTRADA;3;510;513;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3101;SALIDA;4;514;510;VENTA;2026-09-22 09:11;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3100;SALIDA;5;550;545;VENTA;2026-09-22 09:11;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3099;SALIDA;8;558;550;VENTA;2026-09-22 15:39;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3098;SALIDA;2;618;616;VENTA;2026-09-22 18:00;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3097;ENTRADA;4;510;514;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3096;SALIDA;4;514;510;VENTA;2026-09-22 13:45;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3095;SALIDA;2;620;618;VENTA;2026-09-22 13:45;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3094;SALIDA;13;571;558;VENTA;2026-09-22 17:23;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3093;SALIDA;16;587;571;VENTA;2026-09-22 09:58;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3092;SALIDA;3;517;514;VENTA;2026-09-22 17:03;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3091;SALIDA;1;518;517;VENTA;2026-09-22 16:10;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3090;SALIDA;3;623;620;VENTA;2026-09-22 17:00;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3089;SALIDA;11;598;587;VENTA;2026-09-22 17:00;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3088;SALIDA;8;606;598;VENTA;2026-09-22 12:55;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3087;SALIDA;2;608;606;VENTA;2026-09-22 16:32;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3086;SALIDA;2;610;608;VENTA;2026-09-22 14:41;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3085;SALIDA;4;614;610;VENTA;2026-09-22 09:25;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3084;ENTRADA;3;515;518;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3083;SALIDA;7;630;623;VENTA;2026-09-22 08:27;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3082;SALIDA;7;621;614;VENTA;2026-09-22 08:27;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3081;SALIDA;5;520;515;VENTA;2026-09-22 08:27;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3080;ENTRADA;3;517;520;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3079;SALIDA;4;521;517;VENTA;2026-09-22 12:14;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3078;SALIDA;1;631;630;VENTA;2026-09-22 12:14;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3077;SALIDA;5;636;631;VENTA;2026-09-22 15:23;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3076;SALIDA;3;524;521;VENTA;2026-09-22 09:35;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3075;SALIDA;5;626;621;VENTA;2026-09-22 09:35;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3074;ENTRADA;5;519;524;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3073;SALIDA;5;524;519;VENTA;2026-09-22 10:43;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3072;ENTRADA;4;520;524;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3071;SALIDA;6;526;520;VENTA;2026-09-22 17:33;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3070;SALIDA;8;644;636;VENTA;2026-09-22 10:27;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3069;SALIDA;3;529;526;VENTA;2026-09-22 10:27;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3068;SALIDA;6;632;626;VENTA;2026-09-22 10:27;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3067;SALIDA;8;652;644;VENTA;2026-09-22 13:24;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3066;SALIDA;4;533;529;VENTA;2026-09-22 17:01;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3065;SALIDA;5;637;632;VENTA;2026-09-22 17:01;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3064;SALIDA;8;660;652;VENTA;2026-09-22 09:06;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3063;SALIDA;16;653;637;VENTA;2026-09-22 09:06;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3062;SALIDA;12;672;660;VENTA;2026-09-21 15:42;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3061;SALIDA;1;534;533;VENTA;2026-09-21 15:42;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3060;SALIDA;6;540;534;VENTA;2026-09-21 17:29;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3059;SALIDA;12;665;653;VENTA;2026-09-21 17:29;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3058;SALIDA;3;675;672;VENTA;2026-09-21 17:29;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3057;SALIDA;1;666;665;VENTA;2026-09-21 13:41;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3056;SALIDA;17;692;675;VENTA;2026-09-21 13:41;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3055;SALIDA;2;668;666;VENTA;2026-09-21 16:55;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3054;SALIDA;2;542;540;VENTA;2026-09-21 16:55;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3053;SALIDA;8;700;692;VENTA;2026-09-21 16:55;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3052;SALIDA;9;709;700;VENTA;2026-09-21 12:28;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3051;ENTRADA;4;538;542;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3050;SALIDA;7;716;709;VENTA;2026-09-21 17:29;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3049;SALIDA;6;544;538;VENTA;2026-09-21 17:29;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3048;SALIDA;3;671;668;VENTA;2026-09-21 15:35;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3047;SALIDA;7;551;544;VENTA;2026-09-21 11:39;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3046;SALIDA;7;723;716;VENTA;2026-09-21 10:07;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3045;SALIDA;11;734;723;VENTA;2026-09-21 10:31;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3044;ENTRADA;1;550;551;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Iván Ccorimanya Choque
+3043;SALIDA;3;737;734;VENTA;2026-09-21 10:43;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3042;SALIDA;1;551;550;VENTA;2026-09-21 10:43;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3041;SALIDA;19;756;737;VENTA;2026-09-21 10:05;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3040;SALIDA;3;554;551;VENTA;2026-09-21 10:05;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3039;ENTRADA;2;552;554;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3038;SALIDA;2;554;552;VENTA;2026-09-21 13:57;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3037;SALIDA;10;766;756;VENTA;2026-09-21 13:57;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3036;SALIDA;7;678;671;VENTA;2026-09-21 10:26;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3035;SALIDA;12;690;678;VENTA;2026-09-21 09:10;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3034;SALIDA;8;562;554;VENTA;2026-09-21 09:10;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3033;SALIDA;3;769;766;VENTA;2026-09-21 17:23;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3032;SALIDA;8;698;690;VENTA;2026-09-21 17:23;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3031;SALIDA;12;781;769;VENTA;2026-09-21 15:42;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3030;ENTRADA;2;560;562;DEVOLUCION BIDON;2026-09-29 01:38;Bidón de agua pura 20 litros;BIDON;Miguel Chávez Rojas
+3029;SALIDA;3;563;560;VENTA;2026-09-21 16:48;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3028;SALIDA;11;792;781;VENTA;2026-09-21 16:48;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3027;SALIDA;12;804;792;VENTA;2026-09-21 18:09;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3026;SALIDA;6;810;804;VENTA;2026-09-21 17:56;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3025;SALIDA;10;708;698;VENTA;2026-09-21 17:56;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3024;SALIDA;4;712;708;VENTA;2026-09-21 10:31;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3023;SALIDA;2;812;810;VENTA;2026-09-21 17:07;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3022;SALIDA;11;723;712;VENTA;2026-09-21 17:07;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3021;SALIDA;4;727;723;VENTA;2026-09-21 09:21;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3020;SALIDA;2;814;812;VENTA;2026-09-21 09:21;Botella de agua pura 625 ml;UNIDAD;Lucía Quispe Huaman
+3019;SALIDA;3;566;563;VENTA;2026-09-21 13:14;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3018;ENTRADA;1;565;566;DEVOLUCION BIDON;2026-09-29 01:37;Bidón de agua pura 20 litros;BIDON;Rosa Paredes Nina
+3017;SALIDA;5;570;565;VENTA;2026-09-21 12:41;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3016;SALIDA;3;730;727;VENTA;2026-09-21 12:41;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman
+3015;SALIDA;5;575;570;VENTA;2026-09-21 08:40;Bidón de agua pura 20 litros;BIDON;Lucía Quispe Huaman
+3014;SALIDA;7;737;730;VENTA;2026-09-21 08:40;Botella de agua pura 1.5 litros;UNIDAD;Lucía Quispe Huaman

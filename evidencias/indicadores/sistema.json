@@ -1,0 +1,130 @@
+{
+  "exito": true,
+  "mensaje": "Indicadores del sistema web obtenidos",
+  "datos": {
+    "periodo": {
+      "fechaInicio": "2026-08-31T05:00:00Z",
+      "fechaFin": "2026-10-01T05:00:00Z"
+    },
+    "adecuacionFuncional": {
+      "porcentajeRequisitosImplementadosYApruebados": 100,
+      "totalRequisitos": 12,
+      "requisitosAprobados": 12,
+      "porcentajeCasosDePruebaSuperados": 0,
+      "totalCasosEjecutados": 18,
+      "casosAprobados": 0,
+      "casosFallidos": 0,
+      "porcentajeTransaccionesConResultadoEsperado": 0
+    },
+    "eficienciaDesempeno": {
+      "tiempoRespuestaPromedioMs": 90.94,
+      "tiempoRespuestaMedianaMs": 37,
+      "tiempoRespuestaP95Ms": 305,
+      "tiempoRespuestaP99Ms": 383,
+      "rendimientoTransaccionesPorMinuto": 0.01,
+      "picoTransaccionesPorMinuto": 34,
+      "totalPeticiones": 243,
+      "duracionPromedioPorRuta": [
+        {
+          "ruta": "/api/reportes/indicadores/proceso",
+          "promedioMs": 310,
+          "maximoMs": 370,
+          "peticiones": 3
+        },
+        {
+          "ruta": "/api/reportes/indicadores/comparativo",
+          "promedioMs": 272,
+          "maximoMs": 321,
+          "peticiones": 4
+        },
+        {
+          "ruta": "/api/auth/login",
+          "promedioMs": 221.1,
+          "maximoMs": 385,
+          "peticiones": 51
+        },
+        {
+          "ruta": "/api/reportes/ventas",
+          "promedioMs": 148.77,
+          "maximoMs": 448,
+          "peticiones": 13
+        },
+        {
+          "ruta": "/api/reportes/pedidos",
+          "promedioMs": 127.2,
+          "maximoMs": 262,
+          "peticiones": 10
+        },
+        {
+          "ruta": "/api/reportes/historial-bidones/:clienteId",
+          "promedioMs": 96,
+          "maximoMs": 96,
+          "peticiones": 1
+        },
+        {
+          "ruta": "/api/reportes/pagos",
+          "promedioMs": 89.33,
+          "maximoMs": 271,
+          "peticiones": 12
+        },
+        {
+          "ruta": "/api/reportes/bidones",
+          "promedioMs": 83.2,
+          "maximoMs": 164,
+          "peticiones": 10
+        },
+        {
+          "ruta": "/api/reportes/entregas",
+          "promedioMs": 82.53,
+          "maximoMs": 253,
+          "peticiones": 15
+        },
+        {
+          "ruta": "/pedidos",
+          "promedioMs": 75,
+          "maximoMs": 75,
+          "peticiones": 1
+        },
+        {
+          "ruta": "/api/reportes/inventario",
+          "promedioMs": 56.9,
+          "maximoMs": 91,
+          "peticiones": 10
+        },
+        {
+          "ruta": "/api/entregas/mis-entregas",
+          "promedioMs": 52.33,
+          "maximoMs": 92,
+          "peticiones": 3
+        },
+        {
+          "ruta": "/api/pedidos/",
+          "promedioMs": 46,
+          "maximoMs": 46,
+          "peticiones": 1
+        },
+        {
+          "ruta": "/api/reportes/indicadores/sistema",
+          "promedioMs": 39.67,
+          "maximoMs": 53,
+          "peticiones": 3
+        },
+        {
+          "ruta": "/api/reportes/clientes",
+          "promedioMs": 32.89,
+          "maximoMs": 49,
+          "peticiones": 9
+        }
+      ]
+    },
+    "fiabilidad": {
+      "porcentajeSolicitudesFallidas": 0,
+      "solicitudesFallidas": 0,
+      "tiempoMedioRecuperacionMin": 0,
+      "incidenciasRegistradas": 0,
+      "incidenciasResueltas": 0,
+      "minutosTotalesDeIndisponibilidad": 0,
+      "porcentajeDisponibilidadObservado": 100
+    }
+  }
+}

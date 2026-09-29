@@ -1,0 +1,43 @@
+{
+  "exito": true,
+  "mensaje": "Indicadores del proceso de ventas obtenidos",
+  "datos": {
+    "periodo": {
+      "fechaInicio": "2026-08-31T05:00:00Z",
+      "fechaFin": "2026-10-01T05:00:00Z"
+    },
+    "muestra": {
+      "pedidos": 1145,
+      "ventas": 1088,
+      "pagos": 977,
+      "entregas": 1088,
+      "clientes": 6
+    },
+    "recepcionYRegistro": {
+      "tiempoPromedioRegistroMin": 10.11,
+      "porcentajePedidosRegistradosCorrectamente": 100,
+      "porcentajePedidosConErrores": 5.85
+    },
+    "procesamientoYControl": {
+      "tiempoPromedioProcesamientoVentaMin": 15.24,
+      "porcentajeVentasProcesadasCorrectamente": 85.48,
+      "porcentajeVentasConErrores": 0,
+      "porcentajeVentasConPagoRegistrado": 100,
+      "porcentajeActualizacionCorrectaStock": 100
+    },
+    "atencionYSeguimiento": {
+      "tiempoPromedioConfirmacionYAsignacionMin": 49.35,
+      "tiempoPromedioCicloCompletoMin": 212.28,
+      "porcentajePedidosAtendidosCorrectamente": 89.52,
+      "porcentajePedidosConTrazabilidadCompleta": 95.02,
+      "porcentajeEntregasRealizadas": 94.21
+    },
+    "complementarios": {
+      "porcentajeClientesConDatosCompletos": 100,
+      "porcentajeEnvasesConInformacionCompleta": 100,
+      "tiempoPromedioConsultaHistorialEnvasesMin": 0.0009,
+      "tiempoPromedioConsultaEnvasesSegundos": 0.056,
+      "tiempoPromedioConsolidadoDiarioSegundos": 0.007
+    }
+  }
+}

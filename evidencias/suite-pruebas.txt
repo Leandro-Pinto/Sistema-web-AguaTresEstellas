@@ -1,0 +1,264 @@
+
+> agua-tres-estrellas-backend@1.0.0 test
+> jest
+
+PASS tests/entregas-bidones.test.ts (15.716 s)
+  POST /api/entregas/entregas
+    ÔêÜ asigna el repartidor y lleva el pedido a ASIGNADO (1096 ms)
+    ÔêÜ no permite asignar dos veces el mismo pedido (626 ms)
+    ÔêÜ exige que el pedido est├® confirmado (426 ms)
+    ÔêÜ rechaza un repartidor inexistente (400 ms)
+  PUT /api/entregas/entregas/:id
+    ÔêÜ lleva la entrega a ENTREGADA y el pedido a ENTREGADO (808 ms)
+    ÔêÜ no permite cerrar la entrega sin haber salido a ruta (551 ms)
+    ÔêÜ registra la salida a ruta con su marca de tiempo (589 ms)
+    ÔêÜ exige motivo cuando la entrega no se realiz├│ (683 ms)
+    ÔêÜ rechaza una transici├│n de entrega imposible (558 ms)
+  Saldos de bidones
+    ÔêÜ la entrega registra los bidones a nombre del cliente (706 ms)
+    ÔêÜ la devoluci├│n reduce el saldo y repone el inventario (759 ms)
+    ÔêÜ rechaza devolver m├ís bidones de los que el cliente tiene (726 ms)
+    ÔêÜ rechaza control de bidones sobre un producto no retornable (318 ms)
+    ÔêÜ rechaza registrar una p├®rdida sin explicaci├│n (319 ms)
+    ÔêÜ la p├®rdida interna descuenta del stock sin adeudarlo a un cliente (373 ms)
+    ÔêÜ el saldo total de la empresa cuadra con la suma por cliente (697 ms)
+  Aislamiento del repartidor
+    ÔêÜ el repartidor solo ve las entregas de su ficha (881 ms)
+    ÔêÜ el repartidor puede actualizar su propia entrega (954 ms)
+
+PASS tests/ventas-pagos.test.ts (10.16 s)
+  POST /api/ventas
+    ÔêÜ genera la venta y descuenta el stock del inventario (627 ms)
+    ÔêÜ no permite una segunda venta para el mismo pedido (512 ms)
+    ÔêÜ no permite vender un pedido sin confirmar (363 ms)
+    ÔêÜ no permite vender un pedido cancelado (413 ms)
+    ÔêÜ rechaza la venta cuando no hay stock suficiente (457 ms)
+    ÔêÜ impide que el repartidor registre ventas (622 ms)
+  POST /api/ventas/:id/anular
+    ÔêÜ anula la venta, repone el stock y deja constancia del motivo (533 ms)
+    ÔêÜ rechaza anular dos veces la misma venta (511 ms)
+    ÔêÜ exige el motivo de la anulaci├│n (480 ms)
+  POST /api/pagos
+    ÔêÜ registra un pago parcial y reduce el saldo (499 ms)
+    ÔêÜ rechaza un pago mayor al saldo pendiente (464 ms)
+    ÔêÜ rechaza un pago de cero o negativo (469 ms)
+    ÔêÜ completa la venta cuando el pago cancela el saldo total (530 ms)
+    ÔêÜ acepta el pago en el mismo paso de la venta (490 ms)
+    ÔêÜ no permite pagos sobre una venta anulada (751 ms)
+    ÔêÜ el administrador anula un pago y el saldo vuelve a abrirse (795 ms)
+    ÔêÜ el vendedor no puede anular un pago (537 ms)
+
+  console.log
+    prisma:error 
+    Invalid `prisma.pedido.groupBy()` invocation in
+    C:\LEANDRO PINTO\TESIS\sistema-web\backend\src\services\reportes.service.ts:170:23
+    
+      167   },
+      168 }),
+      169 prisma.pedido.groupBy({ by: ['estado'], where, _count: { _all: true } }),
+    ÔåÆ 170 prisma.pedido.groupBy({
+            select: {
+              _count: {
+                select: {
+                  _all: true
+                }
+              },
+              canal: true
+            },
+            by: [
+              "canal"
+            ],
+            where: {
+              registradoEn: {
+                gte: new Date("2026-08-31T05:00:00.000Z"),
+                lte: new Date("2026-09-30T05:00:00.000Z")
+              },
+              estado: "NO_EXISTE"
+                      ~~~~~~~~~~~
+            }
+          })
+    
+    Invalid value for argument `estado`. Expected EstadoPedido.
+
+      at Object.zc (node_modules/@prisma/internals/src/logger.ts:13:11)
+          at async Promise.all (index 2)
+
+  console.log
+    prisma:error 
+    Invalid `prisma.pedido.groupBy()` invocation in
+    C:\LEANDRO PINTO\TESIS\sistema-web\backend\src\services\reportes.service.ts:169:23
+    
+      166     venta: { select: { numero: true } },
+      167   },
+      168 }),
+    ÔåÆ 169 prisma.pedido.groupBy({
+            select: {
+              _count: {
+                select: {
+                  _all: true
+                }
+              },
+              estado: true
+            },
+            by: [
+              "estado"
+            ],
+            where: {
+              registradoEn: {
+                gte: new Date("2026-08-31T05:00:00.000Z"),
+                lte: new Date("2026-09-30T05:00:00.000Z")
+              },
+              estado: "NO_EXISTE"
+                      ~~~~~~~~~~~
+            }
+          })
+    
+    Invalid value for argument `estado`. Expected EstadoPedido.
+
+      at Object.zc (node_modules/@prisma/internals/src/logger.ts:13:11)
+          at async Promise.all (index 1)
+
+  console.log
+    prisma:error 
+    Invalid `prisma.pedido.findMany()` invocation in
+    C:\LEANDRO PINTO\TESIS\sistema-web\backend\src\services\reportes.service.ts:148:23
+    
+      145 };
+      146 
+      147 const [pedidos, porEstado, porCanal, tiempos] = await Promise.all([
+    ÔåÆ 148   prisma.pedido.findMany({
+              where: {
+                registradoEn: {
+                  gte: new Date("2026-08-31T05:00:00.000Z"),
+                  lte: new Date("2026-09-30T05:00:00.000Z")
+                },
+                estado: "NO_EXISTE"
+                        ~~~~~~~~~~~
+              },
+              orderBy: {
+                registradoEn: "desc"
+              },
+              take: 500,
+              select: {
+                id: true,
+                codigo: true,
+                estado: true,
+                canal: true,
+                total: true,
+                recibidoEn: true,
+                registradoEn: true,
+                confirmadoEn: true,
+                asignadoEn: true,
+                entregadoEn: true,
+                requiereCorreccion: true,
+                cliente: {
+                  select: {
+                    id: true,
+                    nombre: true,
+                    documento: true
+                  }
+                },
+                entrega: {
+                  select: {
+                    repartidor: {
+                      select: {
+                        nombre: true
+                      }
+                    },
+                    horaEntrega: true
+                  }
+                },
+                venta: {
+                  select: {
+                    numero: true
+                  }
+                }
+              }
+            })
+    
+    Invalid value for argument `estado`. Expected EstadoPedido.
+
+      at Object.zc (node_modules/@prisma/internals/src/logger.ts:13:11)
+          at async Promise.all (index 0)
+
+PASS tests/reportes.test.ts (8.222 s)
+  Reportes: forma de la respuesta
+    ÔêÜ devuelve el detalle de ventas anidado como lo espera la tabla (964 ms)
+    ÔêÜ rechaza un estado de pedido que no existe en el cat├ílogo (1016 ms)
+  Reportes: descarga CSV
+    ÔêÜ exporta el detalle y no el primer cuadro resumen (1243 ms)
+    ÔêÜ exporta los indicadores en dos columnas cuando el reporte no tiene listas (797 ms)
+    ÔêÜ indica que no hay registros en vez de devolver un archivo vac├¡o (373 ms)
+  Reportes: totales del resumen
+    ÔêÜ cuenta todos los pedidos del periodo, no los del recorte (668 ms)
+    ÔêÜ el porcentaje de entregas se calcula sobre el total real (863 ms)
+  Reportes: control de acceso
+    ÔêÜ reserva el costo de consultas al administrador (671 ms)
+    ÔêÜ exige sesi├│n para cualquier reporte (43 ms)
+  Reportes: costo de consultas
+    ÔêÜ registra la duraci├│n de la consulta m├ís reciente (783 ms)
+
+PASS tests/pedidos.test.ts (6.868 s)
+  POST /api/pedidos
+    ÔêÜ registra un pedido con c├│digo y marcas de tiempo (600 ms)
+    ÔêÜ confirma en el mismo paso cuando se solicita (481 ms)
+    ÔêÜ rechaza un pedido sin productos (318 ms)
+    ÔêÜ rechaza una fecha de recepci├│n futura (338 ms)
+    ÔêÜ rechaza un descuento mayor al subtotal (354 ms)
+    ÔêÜ impide que el repartidor registre pedidos (332 ms)
+  PATCH /api/pedidos/:id/estado
+    ÔêÜ avanza por las etapas v├ílidas (463 ms)
+    ÔêÜ no permite saltar de PENDIENTE a ENTREGADO (423 ms)
+    ÔêÜ rechaza repetir el estado actual (359 ms)
+    ÔêÜ exige motivo para cancelar (430 ms)
+    ÔêÜ devuelve 404 para un pedido inexistente (312 ms)
+  Historial del pedido
+    ÔêÜ registra cada cambio de estado con usuario y fecha (404 ms)
+  Listado y conteo de pedidos
+    ÔêÜ cuenta por estado (425 ms)
+    ÔêÜ respeta la paginaci├│n (516 ms)
+
+PASS tests/auth.test.ts (6.057 s)
+  POST /api/auth/login
+    ÔêÜ inicia sesi├│n con credenciales v├ílidas y devuelve ambos tokens (359 ms)
+    ÔêÜ registra el ├║ltimo acceso del usuario (268 ms)
+    ÔêÜ rechaza una contrase├▒a incorrecta sin revelar si el correo existe (271 ms)
+    ÔêÜ bloquea la cuenta tras superar los intentos permitidos (1272 ms)
+    ÔêÜ valida el formato del correo antes de tocar la base de datos (21 ms)
+  GET /api/auth/perfil
+    ÔêÜ devuelve el perfil con su rol (326 ms)
+    ÔêÜ rechaza la petici├│n sin token (21 ms)
+    ÔêÜ rechaza un token con firma inv├ílida (23 ms)
+  POST /api/auth/refresh
+    ÔêÜ emite un token de acceso nuevo a partir del de renovaci├│n (285 ms)
+    ÔêÜ rechaza un token de acceso usado como token de renovaci├│n (268 ms)
+  Autorizaci├│n por rol
+    ÔêÜ impide al vendedor anular una venta (exclusivo del administrador) (284 ms)
+    ÔêÜ impide al repartidor crear usuarios (276 ms)
+    ÔêÜ impide al vendedor registrar movimientos de inventario (269 ms)
+    ÔêÜ permite al administrador usar los m├│dulos restringidos (320 ms)
+    ÔêÜ permite al repartidor consultar su propia ruta (309 ms)
+    ÔêÜ impide a un vendedor consultar la ruta del repartidor (303 ms)
+  Rutas inexistentes
+    ÔêÜ responde 404 con un mensaje claro (261 ms)
+  Aislamiento de los datos operativos
+    ÔêÜ la limpieza no borra el cat├ílogo sembrado (66 ms)
+
+PASS tests/salud-catalogo.test.ts
+  GET /salud
+    ÔêÜ responde sin credenciales y sin consultar la base de datos (58 ms)
+  GET /salud/completa
+    ÔêÜ exige sesi├│n (34 ms)
+    ÔêÜ rechaza a quien no es administrador (381 ms)
+    ÔêÜ devuelve el diagn├│stico completo al administrador (311 ms)
+  Cat├ílogo de productos
+    ÔêÜ lista el cat├ílogo sembrado con su stock (358 ms)
+    ÔêÜ el inventario distingue el nivel de stock y alerta de reposici├│n (327 ms)
+    ÔêÜ el administrador puede registrar una entrada de inventario (355 ms)
+    ÔêÜ rechaza una entrada de cantidad negativa (311 ms)
+
+Test Suites: 6 passed, 6 total
+Tests:       85 passed, 85 total
+Snapshots:   0 total
+Time:        50.436 s
+Ran all test suites.
