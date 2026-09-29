@@ -1,0 +1,806 @@
+// =====================================================================
+//  AGUA TRES ESTRELLAS PURA - SISTEMA WEB DE GESTIÓN DEL PROCESO DE VENTAS
+//  Tesis: "Implementación de un sistema web para mejorar el proceso de
+//  ventas en la empresa Agua Tres Estrellas Pura de Iberia, 2026"
+//
+//  UNIVERSIDAD NACIONAL AMAZÓNICA DE MADRE DE DIOS - UNAMAD
+//  Ingeniería de Sistemas e Informática
+//
+//  Este esquema no solo "persiste datos": también almacena las marcas de
+//  tiempo y la bitácora necesarias para MEDIR el proceso de ventas
+//  (variables dependiente e independiente de la matriz de
+//  operacionalización de variables).
+// =====================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================================
+//  ENUMERACIONES
+// =====================================================================
+
+/// Estado de un usuario. La baja es lógica (activo=false), nunca física.
+enum EstadoRegistro {
+  ACTIVO
+  INACTIVO
+}
+
+enum TipoCliente {
+  PERSONA
+  EMPRESA
+  INSTITUCION
+}
+
+/// Canal por el que el cliente Winsows comunica el pedido.
+/// Refleja la realidad operativa: llamadas y WhatsApp.
+enum CanalPedido {
+  TELEFONO
+  WHATSAPP
+  MOSTRADOR
+  OTRO
+}
+
+enum ModalidadEntrega {
+  DOMICILIO
+  RECOJO
+}
+
+enum EstadoPedido {
+  PENDIENTE
+  CONFIRMADO
+  ASIGNADO
+  EN_RUTA
+  ENTREGADO
+  CANCELADO
+}
+
+enum EstadoVenta {
+  PENDIENTE
+  COMPLETADA
+  ANULADA
+}
+
+enum MetodoPago {
+  EFECTIVO
+  YAPE
+  TRANSFERENCIA
+  OTRO
+}
+
+enum EstadoPago {
+  PENDIENTE
+  REGISTRADO
+  ANULADO
+}
+
+enum EstadoEntrega {
+  PENDIENTE
+  ASIGNADA
+  EN_RUTA
+  ENTREGADA
+  NO_ENTREGADO
+  CANCELADA
+}
+
+enum TipoMovimientoInventario {
+  ENTRADA
+  SALIDA
+  AJUSTE
+}
+
+/// Tipos de movimiento de bidones retornables.
+///   ENTREGA   -> el bidón sale de la empresa hacia el cliente (aumenta su deuda de envase)
+///   DEVOLUCION-> el bidón vuelve del cliente a la empresa (reduce la deuda de envase)
+///   PERDIDA   -> baja definitiva de un bidón (merma)
+///   AJUSTE    -> corrección de inventario de envases
+enum TipoMovimientoBidon {
+  ENTREGA
+  DEVOLUCION
+  PERDIDA
+  AJUSTE
+}
+
+enum TipoRegistroHistorial {
+  PEDIDO
+  VENTA
+  PAGO
+  ENTREGA
+  CLIENTE
+  PRODUCTO
+  REPARTIDOR
+  INVENTARIO
+  BIDON
+  USUARIO
+  INCIDENCIA
+}
+
+/// Acciones auditadas. Alimentan la trazabilidad y el historial de estados.
+enum AccionHistorial {
+  CREADO
+  ACTUALIZADO
+  ELIMINADO
+  RESTAURADO
+  CAMBIO_ESTADO
+  ASIGNACION
+  SALIDA_RUTA
+  ENTREGA
+  CANCELACION
+  PAGO_REGISTRADO
+  INVENTARIO_MOVIMIENTO
+  BIDON_MOVIMIENTO
+  INICIO_SESION
+  CIERRE_SESION
+}
+
+/// Dimensiones de la variable INDEPENDIENTE (sistema web) - ISO/IEC 25010:2023
+/// Dimensiones de la variable DEPENDIENTE (proceso de ventas)
+enum DimensionIndicador {
+  ADECUACION_FUNCIONAL
+  EFICIENCIA_DESEMPENO
+  FIABILIDAD
+  RECEPCION_REGISTRO_PEDIDOS
+  PROCESAMIENTO_CONTROL_VENTAS
+  ATENCION_SEGUIMIENTO_PEDIDOS
+}
+
+enum EstadoCasoPrueba {
+  PENDIENTE
+  APROBADO
+  FALLIDO
+}
+
+// =====================================================================
+//  0. CORRELATIVOS
+//  Una fila por año con los últimos números usados. Permite generar
+//  códigos consecutivos sin colisiones bajo concurrencia.
+// =====================================================================
+
+model Correlativo {
+  anio               Int      @id
+  pedidoContador     Int      @default(0)
+  ventaContador      Int      @default(0)
+  entregaContador    Int      @default(0)
+  incidenciaContador Int      @default(0)
+  constanciaContador Int      @default(0)
+  actualizadoEn      DateTime @updatedAt @db.DateTime(3)
+
+  @@map("correlativos")
+}
+
+// =====================================================================
+//  1. SEGURIDAD: ROLES Y USUARIOS
+// =====================================================================
+
+model Rol {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique @db.VarChar(50)
+  descripcion String?  @db.VarChar(255)
+  /// Nivel de privilegio: 1=Administrador, 2=Vendedor, 3=Repartidor
+  nivel       Int      @default(3)
+  activo      Boolean  @default(true)
+  creadoEn    DateTime @default(now()) @db.DateTime(3)
+
+  usuarios Usuario[]
+
+  @@index([activo])
+  @@map("roles")
+}
+
+model Usuario {
+  id                  Int       @id @default(autoincrement())
+  nombres             String    @db.VarChar(100)
+  apellidos           String    @db.VarChar(100)
+  /// Nombre completo derivado, usado por el historial y los reportes.
+  nombreCompleto      String    @db.VarChar(201)
+  email               String    @unique @db.VarChar(150)
+  /// Documento de identidad. Permite vincular un usuario de rol REPARTIDOR
+  /// con su registro en la tabla de repartidores, que es quien realiza la
+  /// entrega física. Es la única llave compartida entre ambas entidades.
+  documento           String?   @db.VarChar(20)
+  telefono            String?   @db.VarChar(20)
+  /// Hash bcrypt. NUNCA se devuelve al frontend.
+  passwordHash        String    @db.VarChar(255)
+  rolId               Int
+  activo              Boolean   @default(true)
+  ultimoAcceso        DateTime? @db.DateTime(3)
+  ultimoAccesoIp      String?   @db.VarChar(45)
+  intentosFallidos    Int       @default(0)
+  bloqueadoHasta      DateTime? @db.DateTime(3)
+  debeCambiarPassword Boolean   @default(false)
+  creadoEn            DateTime  @default(now()) @db.DateTime(3)
+  actualizadoEn       DateTime  @updatedAt @db.DateTime(3)
+  eliminadoEn         DateTime? @db.DateTime(3)
+
+  rol Rol @relation(fields: [rolId], references: [id], onDelete: Restrict)
+
+  repartidor Repartidor? @relation(fields: [documento], references: [documento], onDelete: SetNull, onUpdate: NoAction)
+
+  pedidos               Pedido[]
+  ventas                Venta[]
+  pagos                 Pago[]                 @relation("PagosRecibidos")
+  entregas              Entrega[]              @relation("EntregasAsignadas")
+  historial             HistorialEstado[]
+  movimientosBidon      MovimientoBidon[]
+  movimientosInventario MovimientoInventario[]
+  incidencias           IncidenciaSistema[]    @relation("IncidenciasReportadas")
+  incidenciasResueltas  IncidenciaSistema[]    @relation("IncidenciasResueltas")
+  logConsultas          LogConsulta[]
+
+  @@index([rolId])
+  @@index([activo])
+  @@map("usuarios")
+}
+
+// =====================================================================
+//  2. EMPRESA (datos para reportes y constancias)
+// =====================================================================
+
+model Empresa {
+  id              Int      @id @default(autoincrement())
+  razonSocial     String   @db.VarChar(150)
+  nombreComercial String   @db.VarChar(150)
+  ruc             String?  @unique @db.VarChar(20)
+  direccion       String?  @db.VarChar(200)
+  telefono        String?  @db.VarChar(20)
+  email           String?  @db.VarChar(150)
+  activo          Boolean  @default(true)
+  creadoEn        DateTime @default(now()) @db.DateTime(3)
+
+  @@map("empresa")
+}
+
+// =====================================================================
+//  3. CLIENTES
+//  Fuente principal de datos para los pedidos. Evita duplicados.
+// =====================================================================
+
+model Cliente {
+  id            Int         @id @default(autoincrement())
+  /// PERSONA: DNI · EMPRESA/INSTITUCION: RUC. Clave lógica de unicidad.
+  tipo          TipoCliente @default(PERSONA)
+  documento     String      @db.VarChar(20)
+  nombres       String?     @db.VarChar(100)
+  razonSocial   String?     @db.VarChar(150)
+  /// Nombre mostrable, derivado. Se usa en listados y reportes.
+  nombre        String      @db.VarChar(200)
+  telefono      String      @db.VarChar(20)
+  /// Teléfono alternativo, útil cuando el cliente tiene 2 números.
+  telefonoAlt   String?     @db.VarChar(20)
+  email         String?     @db.VarChar(150)
+  direccion     String      @db.VarChar(200)
+  referencia    String?     @db.VarChar(200)
+  distrito      String?     @db.VarChar(80)
+  /// Crédito autorizado (para clientes empresa/institución). 0 = solo contra entrega.
+  limiteCredito Decimal     @default(0) @db.Decimal(10, 2)
+  notas         String?     @db.Text
+  activo        Boolean     @default(true)
+  fechaRegistro DateTime    @default(now()) @db.DateTime(3)
+  creadoEn      DateTime    @default(now()) @db.DateTime(3)
+  actualizadoEn DateTime    @updatedAt @db.DateTime(3)
+  eliminadoEn   DateTime?   @db.DateTime(3)
+
+  pedidos          Pedido[]
+  ventas           Venta[]
+  movimientosBidon MovimientoBidon[]
+
+  @@unique([tipo, documento])
+  @@index([nombre])
+  @@index([telefono])
+  @@index([activo])
+  @@map("clientes")
+}
+
+// =====================================================================
+//  4. PRODUCTOS
+//  Producto actual: bidón de agua de 20 litros. Soporta productos futuros.
+// =====================================================================
+
+model Producto {
+  id            Int       @id @default(autoincrement())
+  codigo        String    @unique @db.VarChar(30)
+  nombre        String    @unique @db.VarChar(150)
+  descripcion   String?   @db.Text
+  unidadMedida  String    @default("UNIDAD") @db.VarChar(20)
+  precioVenta   Decimal   @db.Decimal(10, 2)
+  /// Costo referencial (no contable): sirve para reportes de margen estimativo.
+  costoUnitario Decimal?  @db.Decimal(10, 2)
+  stock         Int       @default(0)
+  stockMinimo   Int       @default(0)
+  /// Marca los bidones retornables: habilita el módulo de control de bidones.
+  esRetornable  Boolean   @default(false)
+  activo        Boolean   @default(true)
+  creadoEn      DateTime  @default(now()) @db.DateTime(3)
+  actualizadoEn DateTime  @updatedAt @db.DateTime(3)
+  eliminadoEn   DateTime? @db.DateTime(3)
+
+  detallesPedido        DetallePedido[]
+  detallesVenta         DetalleVenta[]
+  movimientosInventario MovimientoInventario[]
+  movimientosBidon      MovimientoBidon[]
+
+  @@index([activo])
+  @@map("productos")
+}
+
+// =====================================================================
+//  5. REPARTIDORES
+// =====================================================================
+
+model Repartidor {
+  id            Int       @id @default(autoincrement())
+  nombres       String    @db.VarChar(100)
+  apellidos     String    @db.VarChar(100)
+  nombre        String    @db.VarChar(201)
+  documento     String    @unique @db.VarChar(20)
+  telefono      String    @db.VarChar(20)
+  direccion     String?   @db.VarChar(200)
+  /// Zona o sector de cobertura asignado (Iberia y barrios).
+  zona          String?   @db.VarChar(100)
+  activo        Boolean   @default(true)
+  fechaRegistro DateTime  @default(now()) @db.DateTime(3)
+  creadoEn      DateTime  @default(now()) @db.DateTime(3)
+  actualizadoEn DateTime  @updatedAt @db.DateTime(3)
+  eliminadoEn   DateTime? @db.DateTime(3)
+
+  entregas         Entrega[]
+  usuarios         Usuario[]
+  movimientosBidon MovimientoBidon[]
+
+  @@index([activo])
+  @@map("repartidores")
+}
+
+// =====================================================================
+//  6. PEDIDOS  (núcleo del proceso)
+//  Las marcas de tiempo son la evidencia del indicador
+//  "tiempo promedio de registro de un pedido" y "tiempo promedio de
+//  confirmación y asignación del pedido".
+// =====================================================================
+
+model Pedido {
+  id           Int       @id @default(autoincrement())
+  /// Código único legible, p.ej. PED-000125. Es el identificador de trazabilidad.
+  codigo       String    @unique @db.VarChar(20)
+  clienteId    Int
+  /// Fecha y hora en que el COMUNICÓ el pedido (llamada / WhatsApp / mostrador).
+  recibidoEn   DateTime  @db.DateTime(3)
+  /// Fecha y hora en que el pedido quedó REGISTRADO en el sistema.
+  /// TPRP = registradoEn - recibidoEn
+  registradoEn DateTime  @default(now()) @db.DateTime(3)
+  /// Fecha y hora en que el usuario que realizó el pedido lo confirmó.
+  confirmadoEn DateTime? @db.DateTime(3)
+  /// Fecha y hora en que se asignó el repartidor.
+  asignadoEn   DateTime? @db.DateTime(3)
+  enRutaEn     DateTime? @db.DateTime(3)
+  entregadoEn  DateTime? @db.DateTime(3)
+  canceladoEn  DateTime? @db.DateTime(3)
+
+  canal                  CanalPedido      @default(WHATSAPP)
+  modalidadEntrega       ModalidadEntrega @default(DOMICILIO)
+  direccionEntrega       String           @db.VarChar(200)
+  referenciaEntrega      String?          @db.VarChar(200)
+  fechaEntregaProgramada DateTime?        @db.DateTime(3)
+
+  estado             EstadoPedido @default(PENDIENTE)
+  subtotal           Decimal      @default(0) @db.Decimal(10, 2)
+  descuento          Decimal      @default(0) @db.Decimal(10, 2)
+  total              Decimal      @default(0) @db.Decimal(10, 2)
+  observaciones      String?      @db.Text
+  /// Incidencias reportadas por el personal sobre el registro (sirve para el
+  /// indicador "porcentaje de pedidos con errores de registro").
+  incidencias        String?      @db.Text
+  /// Marca puesta por el personal cuando detecta un error y lo corrige.
+  requiereCorreccion Boolean      @default(false)
+
+  /// Usuario (vendedor) que registró el pedido: responsable del proceso.
+  usuarioId Int
+
+  cliente               Cliente                @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  usuario               Usuario                @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  detalles              DetallePedido[]
+  venta                 Venta?
+  entrega               Entrega?
+  movimientosBidon      MovimientoBidon[]
+  movimientosInventario MovimientoInventario[]
+  historial             HistorialEstado[]
+
+  @@index([clienteId])
+  @@index([estado])
+  @@index([registradoEn])
+  @@index([usuarioId])
+  @@map("pedidos")
+}
+
+model DetallePedido {
+  id             Int     @id @default(autoincrement())
+  pedidoId       Int
+  productoId     Int
+  cantidad       Int
+  /// Precio CONGELADO al momento del registro (el precio del catálogo puede cambiar).
+  precioUnitario Decimal @db.Decimal(10, 2)
+  subtotal       Decimal @db.Decimal(10, 2)
+  observaciones  String? @db.VarChar(255)
+
+  pedido   Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  producto Producto @relation(fields: [productoId], references: [id], onDelete: Restrict)
+
+  @@index([pedidoId])
+  @@index([productoId])
+  @@map("detalle_pedidos")
+}
+
+// =====================================================================
+//  7. VENTAS
+//  Regla de integridad: un pedido no puede generar dos ventas activas.
+//  El servicio lo valida dentro de una transacción.
+// =====================================================================
+
+model Venta {
+  id                  Int         @id @default(autoincrement())
+  numero              String      @unique @db.VarChar(20)
+  pedidoId            Int         @unique
+  clienteId           Int
+  usuarioId           Int
+  fecha               DateTime    @default(now()) @db.DateTime(3)
+  subtotal            Decimal     @db.Decimal(10, 2)
+  descuento           Decimal     @default(0) @db.Decimal(10, 2)
+  total               Decimal     @db.Decimal(10, 2)
+  /// Total efectivamente cobrado (suma de pagos no anulados).
+  totalPagado         Decimal     @default(0) @db.Decimal(10, 2)
+  /// Saldo pendiente = total - totalPagado
+  saldo               Decimal     @default(0) @db.Decimal(10, 2)
+  estado              EstadoVenta @default(PENDIENTE)
+  /// Marca que permite emitir la constancia / nota de venta imprimible.
+  /// Es parte del criterio de "venta procesada correctamente".
+  constanciaEmitida   Boolean     @default(false)
+  constanciaCodigo    String?     @db.VarChar(20)
+  constanciaEmitidaEn DateTime?   @db.DateTime(3)
+  observaciones       String?     @db.Text
+  anuladaEn           DateTime?   @db.DateTime(3)
+  motivoAnulacion     String?     @db.VarChar(255)
+  creadoEn            DateTime    @default(now()) @db.DateTime(3)
+  actualizadoEn       DateTime    @updatedAt @db.DateTime(3)
+
+  pedido                Pedido                 @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  cliente               Cliente                @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  usuario               Usuario                @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  detalles              DetalleVenta[]
+  pagos                 Pago[]
+  movimientosInventario MovimientoInventario[]
+  historial             HistorialEstado[]
+
+  @@index([clienteId])
+  @@index([estado])
+  @@index([fecha])
+  @@map("ventas")
+}
+
+model DetalleVenta {
+  id             Int      @id @default(autoincrement())
+  ventaId        Int
+  productoId     Int
+  cantidad       Int
+  /// Precio histórico: nunca se recalcula desde el catálogo.
+  precioUnitario Decimal  @db.Decimal(10, 2)
+  subtotal       Decimal  @db.Decimal(10, 2)
+  /// Costo unitario congelado, para reportes de margen.
+  costoUnitario  Decimal? @db.Decimal(10, 2)
+
+  venta    Venta    @relation(fields: [ventaId], references: [id], onDelete: Cascade)
+  producto Producto @relation(fields: [productoId], references: [id], onDelete: Restrict)
+
+  @@index([ventaId])
+  @@map("detalle_ventas")
+}
+
+// =====================================================================
+//  8. PAGOS
+//  Efectivo y Yape son los métodos reales del negocio.
+// =====================================================================
+
+model Pago {
+  id              Int        @id @default(autoincrement())
+  ventaId         Int
+  /// Monto recibido. No puede superar el saldo de la venta.
+  monto           Decimal    @db.Decimal(10, 2)
+  metodo          MetodoPago @default(EFECTIVO)
+  /// Referencia de Yape / transferencia (operación, voucher, N°_TRACE).
+  referencia      String?    @db.VarChar(60)
+  fecha           DateTime   @default(now()) @db.DateTime(3)
+  estado          EstadoPago @default(REGISTRADO)
+  /// Quién recibió el dinero: vendedor o repartidor.
+  recibidoPor     Usuario?   @relation("PagosRecibidos", fields: [recibidoPorId], references: [id], onDelete: SetNull)
+  recibidoPorId   Int?
+  observaciones   String?    @db.Text
+  creadoEn        DateTime   @default(now()) @db.DateTime(3)
+  anuladoEn       DateTime?  @db.DateTime(3)
+  motivoAnulacion String?    @db.VarChar(255)
+
+  venta     Venta             @relation(fields: [ventaId], references: [id], onDelete: Restrict)
+  historial HistorialEstado[]
+
+  @@index([ventaId])
+  @@index([metodo])
+  @@index([fecha])
+  @@map("pagos")
+}
+
+// =====================================================================
+//  9. ENTREGAS
+//  La diferencia entre las marcas de tiempo permite medir la atención
+//  y el seguimiento del pedido.
+// =====================================================================
+
+model Entrega {
+  id                Int           @id @default(autoincrement())
+  pedidoId          Int           @unique
+  repartidorId      Int
+  fechaAsignacion   DateTime      @default(now()) @db.DateTime(3)
+  horaSalida        DateTime?     @db.DateTime(3)
+  horaEntrega       DateTime?     @db.DateTime(3)
+  /// Tiempo de espera del repartidor, observado a la entrega.
+  minutosDemora     Int?          @db.Int
+  estado            EstadoEntrega @default(ASIGNADA)
+  /// Usuario que realizó la asignación del repartidor.
+  asignadoPor       Usuario?      @relation("EntregasAsignadas", fields: [asignadoPorId], references: [id], onDelete: SetNull)
+  asignadoPorId     Int?
+  bidonesEntregados Int           @default(0)
+  bidonesDevueltos  Int           @default(0)
+  montoRecibido     Decimal       @default(0) @db.Decimal(10, 2)
+  observaciones     String?       @db.Text
+  motivoNoEntrega   String?       @db.VarChar(200)
+  recibeFirma       Boolean       @default(false)
+  creadoEn          DateTime      @default(now()) @db.DateTime(3)
+  actualizadoEn     DateTime      @updatedAt @db.DateTime(3)
+
+  pedido           Pedido            @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+  repartidor       Repartidor        @relation(fields: [repartidorId], references: [id], onDelete: Restrict)
+  movimientosBidon MovimientoBidon[]
+
+  @@index([repartidorId])
+  @@index([estado])
+  @@map("entregas")
+}
+
+// =====================================================================
+//  10. CONTROL DE BIDONES (envases retornables)
+//  El saldo de un cliente se obtiene del historial de movimientos,
+//  no de una cifra digitada manualmente.
+// =====================================================================
+
+model MovimientoBidon {
+  id              Int                 @id @default(autoincrement())
+  /// Nulo solo en pérdidas internas y ajustes de inventario: un bidón que se
+  /// pierde en planta o una corrección de saldo no atribuible a un cliente.
+  clienteId       Int?
+  productoId      Int
+  /// El bidón corresponde a un producto retornable; el movimiento puede
+  /// originarse en un pedido (ENTREGA) o en una devolución de ruta.
+  pedidoId        Int?
+  entregaId       Int?
+  repartidorId    Int?
+  usuarioId       Int
+  tipo            TipoMovimientoBidon
+  cantidad        Int
+  /// Saldo del cliente ANTES y DESPUÉS del movimiento. Permite auditar
+  /// el saldo sin recalcular toda la historia.
+  saldoAnterior   Int                 @default(0)
+  saldoResultante Int                 @default(0)
+  fecha           DateTime            @default(now()) @db.DateTime(3)
+  observaciones   String?             @db.VarChar(255)
+
+  cliente    Cliente?    @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  producto   Producto    @relation(fields: [productoId], references: [id], onDelete: Restrict)
+  pedido     Pedido?     @relation(fields: [pedidoId], references: [id], onDelete: SetNull)
+  entrega    Entrega?    @relation(fields: [entregaId], references: [id], onDelete: SetNull)
+  repartidor Repartidor? @relation(fields: [repartidorId], references: [id], onDelete: SetNull)
+  usuario    Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  @@index([clienteId])
+  @@index([pedidoId])
+  @@index([tipo])
+  @@index([fecha])
+  @@map("movimientos_bidones")
+}
+
+// =====================================================================
+//  11. INVENTARIO POR MOVIMIENTOS
+//  El frontend NUNCA modifica stock sin un movimiento asociado.
+// =====================================================================
+
+model MovimientoInventario {
+  id                Int                      @id @default(autoincrement())
+  productoId        Int
+  usuarioId         Int
+  tipo              TipoMovimientoInventario
+  /// Cantidad con signo logico: ENTRADA suma, SALIDA resta, AJUSTE fija.
+  cantidad          Int
+  stockAnterior     Int
+  stockResultante   Int
+  /// Origen del movimiento: la trazabilidad exige que exista.
+  pedidoId          Int?
+  ventaId           Int?
+  movimientoBidonId Int?
+  /// Descripción del origen: "VENTA", "AJUSTE MANUAL", "COMPRA INICIAL", etc.
+  origen            String                   @db.VarChar(40)
+  fecha             DateTime                 @default(now()) @db.DateTime(3)
+  observaciones     String?                  @db.VarChar(255)
+
+  producto Producto @relation(fields: [productoId], references: [id], onDelete: Restrict)
+  usuario  Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  pedido   Pedido?  @relation(fields: [pedidoId], references: [id], onDelete: SetNull)
+  venta    Venta?   @relation(fields: [ventaId], references: [id], onDelete: SetNull)
+
+  @@index([productoId])
+  @@index([tipo])
+  @@index([fecha])
+  @@map("movimientos_inventario")
+}
+
+// =====================================================================
+//  12. HISTORIAL / AUDITORÍA  (nunca se elimina físicamente)
+//  Base del indicador "porcentaje de pedidos con trazabilidad completa".
+// =====================================================================
+
+model HistorialEstado {
+  id             Int                   @id @default(autoincrement())
+  /// Entidad afectada.
+  tipo           TipoRegistroHistorial
+  entidadId      Int
+  /// Código legible de la entidad (PED-000125, VEN-000045, CLI-000012).
+  codigo         String?               @db.VarChar(20)
+  estadoAnterior String?               @db.VarChar(30)
+  estadoNuevo    String?               @db.VarChar(30)
+  accion         AccionHistorial
+  descripcion    String                @db.VarChar(300)
+  observaciones  String?               @db.Text
+  /// Incidencia relevante del proceso (se usa para el análisis de errores).
+  incidencia     String?               @db.VarChar(200)
+  usuarioId      Int
+  fecha          DateTime              @default(now()) @db.DateTime(3)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  pedido  Pedido? @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  venta   Venta?  @relation(fields: [ventaId], references: [id], onDelete: Cascade)
+  pago    Pago?   @relation(fields: [pagoId], references: [id], onDelete: Cascade)
+
+  pedidoId Int?
+  ventaId  Int?
+  pagoId   Int?
+
+  @@index([tipo, entidadId])
+  @@index([codigo])
+  @@index([fecha])
+  @@map("historial_estados")
+}
+
+// =====================================================================
+//  13. EVIDENCIA PARA LA TESIS - VARIABLE INDEPENDIENTE
+// =====================================================================
+
+/// Bitácora de cada petición HTTP.
+/// Permite calcular: tiempo de respuesta (mediana y p95), rendimiento
+/// (transacciones por minuto) y porcentaje de solicitudes fallidas (5xx).
+model BitacoraHttp {
+  id              Int      @id @default(autoincrement())
+  metodo          String   @db.VarChar(10)
+  ruta            String   @db.VarChar(200)
+  status          Int
+  duracionMs      Int
+  /// 1 si la respuesta fue un error de servidor (5xx).
+  esErrorServidor Boolean  @default(false)
+  /// Tamaño de la carga procesada (nº de registros devueltos), para medir
+  /// rendimiento en consultas masivas.
+  registros       Int?
+  usuarioId       Int?
+  ip              String?  @db.VarChar(45)
+  fecha           DateTime @default(now()) @db.DateTime(3)
+
+  @@index([fecha])
+  @@index([ruta])
+  @@index([status])
+  @@map("bitacora_http")
+}
+
+/// Incidencias técnicas del sistema, para calcular el MTTR
+/// (tiempo medio de recuperación) de la dimensión Fiabilidad.
+model IncidenciaSistema {
+  id              Int       @id @default(autoincrement())
+  codigo          String    @unique @db.VarChar(20)
+  titulo          String    @db.VarChar(200)
+  descripcion     String?   @db.Text
+  /// Pasos para reproducir el problema. Es la evidencia que permite repetir
+  /// la incidencia durante la correccion y sustentar la nota de proceso.
+  pasosReproduccion String? @db.Text
+  modulo          String?   @db.VarChar(60)
+  /// Escala 1 (leve) a 4 (critico), alineada con la priorizacion de la
+  /// ficha de observacion del pretest.
+  severidad       Int       @default(3)
+  /// ABIERTA, EN_PROCESO, RESUELTA, DESCARTADA.
+  estado          String    @default("ABIERTA") @db.VarChar(20)
+  inicio          DateTime  @default(now()) @db.DateTime(3)
+  fin             DateTime? @db.DateTime(3)
+  /// Minutos efectivos entre inicio y fin (MTTR).
+  duracionMinutos Int?
+  /// Como se corrigio. Se conserva aunque la incidencia se descarte, porque
+  /// forma parte de la evidencia del postest.
+  solucion        String?   @db.Text
+  reportadoPor    Usuario?  @relation("IncidenciasReportadas", fields: [reportadoPorId], references: [id], onDelete: SetNull)
+  reportadoPorId  Int?
+  resueltoPor     Usuario?  @relation("IncidenciasResueltas", fields: [resueltoPorId], references: [id], onDelete: SetNull)
+  resueltoPorId   Int?
+
+  @@index([estado])
+  @@index([inicio])
+  @@index([modulo])
+  @@map("incidencias_sistema")
+}
+
+/// Registro de consultas de solo lectura (historial de envases, reportes,
+/// consolidado diario). Permite medir TPCDV y TPHE de forma objetiva.
+model LogConsulta {
+  id           Int      @id @default(autoincrement())
+  /// CONSULTA_HISTORIAL_BIDONES, CONSOLIDADO_DIARIO, REPORTE_VENTAS, etc.
+  tipoConsulta String   @db.VarChar(60)
+  descripcion  String?  @db.VarChar(200)
+  duracionMs   Int
+  registros    Int      @default(0)
+  fecha        DateTime @default(now()) @db.DateTime(3)
+  usuarioId    Int?
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@index([tipoConsulta])
+  @@index([fecha])
+  @@map("log_consultas")
+}
+
+/// Requisito funcional aprobado (dimensión Adecuación funcional).
+model RequisitoFuncional {
+  id           Int                @id @default(autoincrement())
+  codigo       String             @unique @db.VarChar(20)
+  descripcion  String             @db.VarChar(300)
+  modulo       String             @db.VarChar(50)
+  /// Procede del problema/objetivo de la tesis al que responde.
+  problema     String?            @db.VarChar(200)
+  dimension    DimensionIndicador @default(ADECUACION_FUNCIONAL)
+  /// El requisito fue levantado con la empresa y está en el alcance.
+  aprobado     Boolean            @default(true)
+  implementado Boolean            @default(false)
+  fecha        DateTime           @default(now()) @db.DateTime(3)
+
+  casos CasoPrueba[]
+
+  @@index([modulo])
+  @@map("requisitos_funcionales")
+}
+
+/// Caso de prueba funcional. Alimenta "% de casos de prueba superados"
+/// y "% de transacciones ejecutadas con el resultado esperado".
+model CasoPrueba {
+  id                Int              @id @default(autoincrement())
+  codigo            String           @unique @db.VarChar(20)
+  requisitoId       Int
+  descripcion       String           @db.VarChar(300)
+  /// Precondición y resultado esperado, útil para el anexo de la tesis.
+  pasos             String?          @db.Text
+  resultadoEsperado String           @db.VarChar(300)
+  critico           Boolean          @default(false)
+  estado            EstadoCasoPrueba @default(PENDIENTE)
+  fechaEjecucion    DateTime?        @db.DateTime(3)
+  duracionMs        Int?
+  mensajeError      String?          @db.Text
+  vecesEjecutado    Int              @default(0)
+
+  requisito RequisitoFuncional @relation(fields: [requisitoId], references: [id], onDelete: Cascade)
+
+  @@index([requisitoId])
+  @@index([estado])
+  @@map("casos_prueba")
+}
