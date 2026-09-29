@@ -1,10 +1,13 @@
 # Auditoría de consistencia con el prompt maestro
 
-Revisión del sistema existente frente a las especificaciones del proyecto, sin
-modificar el código. Registra qué coincide, qué difiere y qué se decide no
-cambiar, con la razón técnica.
+Revisión del sistema existente frente a las especificaciones del proyecto. La
+primera pasada no modificó el código: registró qué coincide, qué difiere y qué
+se decide no cambiar, con la razón técnica. Las secciones 3 y 4 reflejan el
+estado en esa fecha; la sección 6 registra las intervenciones posteriores que
+cerraron D5 y D10.
 
 Fecha: 2026-09-29
+Actualizado: 2026-09-29 — D5 y D10 resueltas; queda D7 como única brecha real.
 
 ---
 
@@ -24,6 +27,10 @@ Fecha: 2026-09-29
 desarrollo está corriendo, porque el motor de Prisma tiene bloqueado el
 archivo `query_engine-windows.dll.node`. No es un defecto del código. Para
 regenerar el cliente hay que detener el backend antes.
+
+Esta tabla es la línea base de la auditoría, medida antes de las
+intervenciones. La verificación hecha después de cerrarlas está en la
+sección 6.
 
 ---
 
@@ -151,10 +158,12 @@ no una carencia funcional.
 
 **Prompt §34:** pide pruebas de formularios, validaciones, navegación, errores
 de API y protección de rutas.
-**Sistema:** cero archivos de prueba en `frontend/`.
+**Sistema (en la fecha de la auditoría):** cero archivos de prueba en
+`frontend/`.
 
-**Estado: brecha real.** El backend tiene 85 pruebas de integración; el
-frontend no tiene ninguna. Es la mayor carencia del proyecto frente al prompt.
+**Estado: resuelta.** Ver sección 6.2: 11 archivos y 233 pruebas, y además
+cuatro defectos de las pantallas de Pagos y Entregas que las pruebas destaparon
+y que quedaron corregidos.
 
 ### D6. Sin ESLint ni Prettier
 
@@ -193,19 +202,25 @@ legible y no necesita fragmentarse.
 ### D10. Repositorio sin historial de commits
 
 **Prompt §43:** pide commits con mensajes conventional.
-**Sistema:** la rama `master` no tiene ningún commit; todo está sin versionar.
+**Sistema (en la fecha de la auditoría):** la rama `master` no tenía ningún
+commit; todo estaba sin versionar.
 
-**Estado: brecha real.** El trabajo existe pero no está registrado.
+**Estado: resuelta.** Ver sección 6.4: rama `main` con ocho commits
+conventional, agrupados por etapas.
 
 ---
 
 ## 4. Brechas reales a resolver
 
-Tres, en orden de prioridad:
+Eran tres, en orden de prioridad:
 
-1. **D5 — Pruebas de frontend.** Es lo que el prompt exige y no existe.
-2. **D10 — Historial de Git.** Todo el trabajo está sin versionar.
+1. **D5 — Pruebas de frontend.** Es lo que el prompt exige y no existía.
+2. **D10 — Historial de Git.** Todo el trabajo estaba sin versionar.
 3. **D7 — Exportación a PDF.**
+
+**Estado actual:** las dos primeras quedaron resueltas (sección 6). La única
+brecha real que sigue abierta es **D7 — Exportación a PDF**, de alcance
+conocido.
 
 Las diferencias D1, D2, D3, D4, D6, D8 y D9 son formales: el comportamiento
 del sistema cumple el prompt aunque la forma difiera. No justifican refactorizar
@@ -229,3 +244,80 @@ Se registra para que no se pierda en futuras revisiones:
 - Sesión en `sessionStorage` cuando el usuario no marca "recordarme".
 - Pruebas de integración reales contra base de datos, sin mocks de las reglas
   transaccionales.
+
+---
+
+## 6. Intervenciones posteriores a la auditoría
+
+Tras esta revisión se cerraron las dos brechas prioritarias. Todo el trabajo
+queda registrado en el historial de Git del repositorio.
+
+### 6.1 Verificación ejecutada después de las intervenciones
+
+| Comprobación | Comando | Resultado |
+|---|---|---|
+| Tipos del frontend | `npx tsc -b` | Sin errores |
+| Pruebas del frontend | `npx vitest run` | **233/233 pasan**, 11 archivos, 46.8 s |
+| Lint del frontend | `npm run lint` | Sin hallazgos |
+| Historial de Git | `git log --oneline` | 8 commits conventional en `main` |
+
+La suite del backend no se modificó: sigue en 85/85.
+
+### 6.2 D5 resuelta: pruebas de frontend
+
+Se añadieron 11 archivos de prueba con 233 casos, cubriendo lo que el prompt
+§34 pide: formularios y sus validaciones, navegación, errores de API y protección
+de rutas.
+
+| Archivo | Qué cubre |
+|---|---|
+| `App.test.tsx` | Protección de rutas por sesión y rol, ruta desconocida |
+| `services/http.test.ts` | Token, cabecera de autorización, envoltura de la API, normalización de errores, renovación ante 401, login |
+| `context/ProveedorSesion.test.tsx` | Estado inicial, restauración de sesión, token rechazado, fallo transitorio, inicio y cierre de sesión |
+| `hooks/index.test.tsx` | `useFormulario`: valores, envío y mapeo de errores del backend a cada campo |
+| `hooks/useListado.test.ts` | Carga inicial, búsqueda con retardo, paginación, orden y estabilidad de filtros |
+| `components/ui.test.tsx` | Botón, campo, selección, aviso y etiqueta |
+| `utils/formato.test.ts` | Importes, duraciones, fechas relativas y estados |
+| `pages/Clientes.test.tsx` | Listado, alta, edición, cambio de estado y filtros |
+| `pages/Pedidos.test.tsx` | Listado, autocompletado de cliente, líneas, importes, datos de entrega, registro, cambio de estado y ficha |
+| `pages/Entregas.test.tsx` | Listado, asignación y ficha de la entrega |
+| `pages/Pagos.test.tsx` | Resumen de cobranza, listado, permisos, registro y anulación |
+
+### 6.3 Defectos que las pruebas destaparon
+
+Las pruebas no fueron solo cobertura: al escribirlas aparecieron defectos
+reales, que se corrigieron.
+
+| Defecto | Corrección |
+|---|---|
+| El diálogo de anulación de pago se cerraba y perdía el motivo cuando el backend rechazaba la operación | El diálogo y el motivo se conservan ante el error |
+| «Anular pago» quedaba habilitado sin motivo y el backend respondía 400 | El botón se deshabilita mientras el motivo está vacío |
+| La pantalla de pagos pedía todas las ventas con saldo al montar, no al abrir el diálogo | Consulta perezosa al abrir el modal |
+| La venta seleccionada podía seguir siendo cobrable aunque ya no estuviera en el listado visible | La selección se descarta cuando la venta desaparece de los resultados |
+| Entregas cargaba la lista completa al montar y mantenía una selección que no derivaba del resultado | Consulta perezosa y selección derivada del listado |
+
+### 6.4 D10 resuelta: historial de Git
+
+La rama se renombró de `master` a `main` y se creó el historial inicial con ocho
+commits conventional, agrupados por etapas para que cada commit sea revisable
+por separado:
+
+| Commit | Contenido |
+|---|---|
+| `chore` | Configuración, manifiestos, lockfiles y herramientas |
+| `feat(backend)` | Esquema Prisma y sus cuatro migraciones |
+| `feat(backend)` | API REST completa: rutas, controladores, servicios, validadores y middlewares |
+| `feat(backend)` | Simulador de proceso del postest |
+| `test(backend)` | 85 pruebas de integración |
+| `feat(frontend)` | Aplicación e interfaz de gestión |
+| `test(frontend)` | 233 pruebas de frontend |
+| `docs` | Documentación y evidencias del postest |
+
+172 archivos versionados. `.env`, `node_modules/` y `dist/` quedan fuera por
+`.gitignore`, mientras que `.env.example` sí se versiona. El repositorio aún no
+tiene remoto configurado.
+
+### 6.5 Lo que queda
+
+**D7 — Exportación a PDF** sigue abierta: `reportes.controller.ts` solo genera
+CSV. Es la única brecha real pendiente frente al prompt.
