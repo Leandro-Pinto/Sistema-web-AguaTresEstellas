@@ -1,0 +1,59 @@
+@import 'tailwindcss';
+
+/*
+ * Paleta de la aplicación.
+ *
+ * El azul es el color de marca del agua embotellada; el resto son neutros
+ * para que la interfaz no compita con los estados de los datos, que son los
+ * que de verdad necesitan saltar a la vista en una pantalla de trabajo.
+ */
+@theme {
+  --color-marca-50: oklch(0.97 0.014 240);
+  --color-marca-100: oklch(0.93 0.032 240);
+  --color-marca-200: oklch(0.87 0.06 240);
+  --color-marca-300: oklch(0.78 0.098 240);
+  --color-marca-400: oklch(0.68 0.14 240);
+  --color-marca-500: oklch(0.6 0.17 240);
+  --color-marca-600: oklch(0.52 0.16 240);
+  --color-marca-700: oklch(0.44 0.13 240);
+  --color-marca-800: oklch(0.36 0.1 240);
+  --color-marca-900: oklch(0.28 0.075 240);
+  --color-marca-950: oklch(0.19 0.05 240);
+}
+
+html {
+  /* Evita el salto horizontal al aparecer/desaparecer la barra de scroll. */
+  scrollbar-gutter: stable;
+}
+
+body {
+  @apply bg-slate-100 text-slate-800 antialiased;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/*
+ * Números tabulares en todas las celdas numéricas.
+ *
+ * Las tablas de esta aplicación comparan columnas de importes y cantidades.
+ * Con la tipografía proporcional, el dígito "1" no ocupa lo mismo que el
+ * "8" y las cifras bailan de fila en fila, lo que dificulta leer totales.
+ */
+.tabla-numerica {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Foco visible y coherente en toda la aplicación. */
+:focus-visible {
+  @apply outline-2 outline-offset-2 outline-marca-600;
+}
+
+/* Respetar la preferencia de menos animación. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
