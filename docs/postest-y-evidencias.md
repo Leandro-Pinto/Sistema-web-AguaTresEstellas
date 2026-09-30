@@ -289,7 +289,8 @@ evidencias/
 │   ├── bidones.csv         Movimientos de envases
 │   ├── inventario.csv      Movimientos de stock
 │   └── tiempos-proceso.csv Indicadores por etapa
-└── suite-pruebas.txt       Salida de `npm test`
+├── suite-pruebas.txt          Salida de `npm test` (backend)
+└── suite-pruebas-frontend.txt Salida de `npx vitest run` (frontend)
 ```
 
 Los CSV corresponden a la llamada con `formato=csv` y al periodo
@@ -309,11 +310,19 @@ curl -H "Authorization: Bearer $TOKEN" \
 | `indicadores/sistema.json` | `GET /api/reportes/indicadores/sistema` |
 | `indicadores/comparativo.json` | `GET /api/reportes/indicadores/comparativo` |
 | `reportes-csv/*.csv` | `GET /api/reportes/{reporte}?formato=csv` |
-| `suite-pruebas.txt` | `npm test` |
+| `suite-pruebas.txt` | `npm test` (backend) |
+| `suite-pruebas-frontend.txt` | `npx vitest run` (frontend) |
 
 ## 10. Pruebas automatizadas
 
-Salida completa en [`evidencias/suite-pruebas.txt`](../evidencias/suite-pruebas.txt).
+Dos suites automatizadas, una por capa:
+
+| Evidencia | Suite | Cobertura |
+|---|---|---|
+| [`evidencias/suite-pruebas.txt`](../evidencias/suite-pruebas.txt) | Backend — `npm test` (Jest) | API y reglas de negocio, contra `DATABASE_URL_TEST` |
+| [`evidencias/suite-pruebas-frontend.txt`](../evidencias/suite-pruebas-frontend.txt) | Frontend — `npx vitest run` | Componentes, hooks, sesión, cliente HTTP y pantallas |
+
+### Backend: 85 pruebas en 6 archivos, todas en verde
 
 | Archivo | Cubre |
 |---|---|
@@ -332,7 +341,30 @@ recortado a 500. Ese recorte es invisible con pocas filas, así que la prueba
 tiene que superar el tope a propósito.
 
 Las pruebas se ejecutan contra `DATABASE_URL_TEST`, una base aparte. Ejecutar
-`npm test` no altera los datos del postest.
+`npm test` no altera los datos del postest. Para que la salida conserve los
+acentos sin corromperse, la captura se hace con la redirección del proceso
+(`cmd /c "npm test > archivo 2>&1"`), no pasándola por una tubería.
+
+### Frontend: 233 pruebas en 11 archivos, todas en verde
+
+| Archivo | Cubre |
+|---|---|
+| `App.test.tsx` | Protección de rutas por sesión y rol, ruta desconocida |
+| `services/http.test.ts` | Token, cabecera de autorización, envoltura de la API, errores, renovación ante 401, login |
+| `context/ProveedorSesion.test.tsx` | Restauración de sesión, token rechazado, fallo transitorio, inicio y cierre |
+| `hooks/index.test.tsx` | `useFormulario`: valores, envío y errores del backend por campo |
+| `hooks/useListado.test.ts` | Carga, búsqueda, paginación, orden y filtros |
+| `components/ui.test.tsx` | Botón, campo, selección, aviso y etiqueta |
+| `utils/formato.test.ts` | Importes, duraciones, fechas relativas y estados |
+| `pages/Clientes.test.tsx` | Listado, alta, edición, cambio de estado y filtros |
+| `pages/Pedidos.test.tsx` | Listado, autocompletado de cliente, líneas, importes, datos de entrega, registro y estados |
+| `pages/Entregas.test.tsx` | Listado, asignación y ficha de la entrega |
+| `pages/Pagos.test.tsx` | Resumen de cobranza, listado, permisos, registro y anulación |
+
+Estas pruebas se ejecutan sin red ni base de datos: el cliente HTTP se
+sustituye por un mock. Al escribirlas destaparon cuatro defectos reales de las
+pantallas de Pagos y Entregas, ya corregidos (detalle en la auditoría de
+consistencia, sección 6.3).
 
 ## 11. Cómo reproducir la medición
 
