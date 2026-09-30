@@ -119,6 +119,55 @@ describe('Reportes: descarga CSV', () => {
   });
 });
 
+describe('Reportes: descarga PDF', () => {
+  it('exporta un PDF con estructura válida y el detalle del periodo', async () => {
+    await sembrarOperacion(3);
+    const token = await iniciarSesion('admin');
+
+    const respuesta = await request(app)
+      .get('/api/reportes/ventas?formato=pdf')
+      .set(cabecera(token))
+      .expect(200);
+
+    expect(respuesta.headers['content-type']).toMatch(/application\/pdf/);
+    expect(respuesta.headers['content-disposition']).toMatch(/attachment; filename="ventas_.+\.pdf"/);
+    const cuerpo = respuesta.body as Buffer;
+    // Cabecera mágica, páginas declaradas y cierre del archivo.
+    expect(cuerpo.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+    expect(cuerpo.toString('latin1')).toContain('/Type /Page');
+    expect(cuerpo.subarray(-6).toString('latin1').trim()).toBe('%%EOF');
+    expect(cuerpo.length).toBeGreaterThan(1000);
+  });
+
+  it('no rompe cuando el periodo no tiene registros', async () => {
+    // Sin ventas sembradas el detalle está vacío; el PDF debe salir igual.
+    const token = await iniciarSesion('admin');
+    const respuesta = await request(app)
+      .get('/api/reportes/ventas?formato=pdf')
+      .set(cabecera(token))
+      .expect(200);
+
+    expect(respuesta.body.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+    expect(respuesta.body.toString('latin1')).toContain('%%EOF');
+  });
+
+  it('el resumen del reporte sin listas se exporta como indicadores', async () => {
+    await sembrarOperacion(2);
+    const token = await iniciarSesion('admin');
+
+    const respuesta = await request(app)
+      .get('/api/reportes/tiempos-proceso?formato=pdf')
+      .set(cabecera(token))
+      .expect(200);
+
+    expect(respuesta.headers['content-type']).toMatch(/application\/pdf/);
+    expect(respuesta.body.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+    // El metadato del documento se guarda sin comprimir: confirma que el PDF
+    // se generó con el título del reporte pedido.
+    expect(respuesta.body.toString('latin1')).toContain('(Reporte de tiempos proceso)');
+  });
+});
+
 describe('Reportes: totales del resumen', () => {
   /**
    * El detalle de los reportes viene recortado a 500 filas. Si el resumen
