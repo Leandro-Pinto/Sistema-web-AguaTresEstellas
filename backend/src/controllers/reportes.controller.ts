@@ -4,6 +4,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 import * as reportesService from '../services/reportes.service';
 import { normalizarFecha, rangoPorDefecto, resolverRango } from '../utils/fechas';
 import { responderCsv } from '../utils/exportar';
+import { responderPdf } from '../utils/pdf';
 import { prisma } from '../config/prisma';
 import type { MetodoPago } from '@prisma/client';
 
@@ -21,9 +22,9 @@ const entero = (valor?: string): number | undefined =>
   valor === undefined ? undefined : Number(valor);
 
 /**
- * Genera el reporte y responde en JSON o como descarga CSV según `formato`.
- * Todos los reportes comparten esta lógica para que la vista de la aplicación
- * y la exportación tengan exactamente los mismos datos.
+ * Genera el reporte y responde en JSON o como descarga (CSV, Excel o PDF)
+ * según `formato`. Todos los reportes comparten esta lógica para que la vista
+ * de la aplicación y la exportación tengan exactamente los mismos datos.
  */
 const entregarReporte = async (
   req: Request,
@@ -33,6 +34,9 @@ const entregarReporte = async (
 ) => {
   const { formato } = req.query as unknown as { formato?: string };
   const contenido = await ejecutar();
+  if (formato === 'pdf') {
+    return responderPdf(res, nombre, contenido);
+  }
   if (formato === 'csv' || formato === 'excel') {
     return responderCsv(res, nombre, contenido);
   }

@@ -31,7 +31,7 @@ const escaparCelda = (valor: unknown): string => {
  * Se reconoce por su método `toNumber` en lugar de por `instanceof`, para no
  * atar este archivo a una versión concreta del runtime de Prisma.
  */
-const esDecimal = (valor: unknown): valor is { toNumber(): number } =>
+export const esDecimal = (valor: unknown): valor is { toNumber(): number } =>
   typeof valor === 'object' &&
   valor !== null &&
   !(valor instanceof Date) &&
