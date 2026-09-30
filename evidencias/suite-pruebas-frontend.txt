@@ -1,242 +1,275 @@
 
  RUN  v5.0.2 C:/LEANDRO PINTO/TESIS/sistema-web/frontend
 
- ✓ src/utils/formato.test.ts > formato de importes > presenta el importe en soles con dos decimales 77ms
- ✓ src/utils/formato.test.ts > formato de importes > trata nulo y indefinido como cero en vez de mostrar "NaN" 3ms
- ✓ src/utils/formato.test.ts > formato de importes > respeta los decimales indicados en número 3ms
+ ✓ src/services/http.test.ts > gestión del token > guarda la sesión en localStorage cuando se pide recordar 18ms
+ ✓ src/services/http.test.ts > gestión del token > guarda la sesión en sessionStorage cuando no se pide recordar 3ms
+ ✓ src/services/http.test.ts > gestión del token > lee el token sin importar en qué almacén esté 3ms
+ ✓ src/services/http.test.ts > gestión del token > limpiar borra ambos almacenes 4ms
+ ✓ src/services/http.test.ts > gestión del token > al renovar el acceso, respeta el almacén de una sesión no recordada 3ms
+ ✓ src/services/http.test.ts > adjuntar la cabecera de autorización > envía el token como Bearer 25ms
+ ✓ src/services/http.test.ts > adjuntar la cabecera de autorización > no envía cabecera si no hay sesión 8ms
+ ✓ src/services/http.test.ts > adjuntar la cabecera de autorización > serializa los parámetros y omite los vacíos 11ms
+ ✓ src/services/http.test.ts > desenvuelve la envoltura de la API > devuelve directamente el campo datos 15ms
+ ✓ src/services/http.test.ts > desenvuelve la envoltura de la API > devuelve la paginación a partir de meta 6ms
+ ✓ src/services/http.test.ts > desenvuelve la envoltura de la API > sin meta, la paginación trae valores por defecto en vez de undefined 5ms
+ ✓ src/services/http.test.ts > normalización de errores > expone el código de negocio y los detalles por campo 9ms
+ ✓ src/services/http.test.ts > normalización de errores > clasifica un 422 como error de validación 4ms
+ ✓ src/services/http.test.ts > normalización de errores > clasifica un 401 como no autorizado y un 403 como sin permiso 11ms
+ ✓ src/services/http.test.ts > normalización de errores > un 5xx sin cuerpo no filtra el error técnico al usuario 3ms
+ ✓ src/services/http.test.ts > renovación del token al recibir un 401 > renueva una vez y reintenta la petición original 11ms
+ ✓ src/services/http.test.ts > renovación del token al recibir un 401 > si la renovación falla, limpia la sesión y avisa a la aplicación 4ms
+ ✓ src/services/http.test.ts > renovación del token al recibir un 401 > sin token de renovación, no intenta renovar 4ms
+ ✓ src/services/http.test.ts > renovación del token al recibir un 401 > una sola renovación atiende varias peticiones simultáneas 10ms
+ ✓ src/services/http.test.ts > login > envía el correo como email y el recordar al backend 4ms
+ ✓ src/services/http.test.ts > login > no intenta renovar la sesión al fallar el propio login 3ms
+ ✓ src/hooks/index.test.tsx > valores del formulario > parte de los valores iniciales 87ms
+ ✓ src/utils/formato.test.ts > formato de importes > presenta el importe en soles con dos decimales 109ms
+ ✓ src/utils/formato.test.ts > formato de importes > trata nulo y indefinido como cero en vez de mostrar "NaN" 7ms
+ ✓ src/utils/formato.test.ts > formato de importes > respeta los decimales indicados en número 4ms
  ✓ src/utils/formato.test.ts > formato de importes > agrega el símbolo de porcentaje separado por un espacio 2ms
- ✓ src/utils/formato.test.ts > formato de duraciones > expresa los minutos por debajo de una hora 2ms
+ ✓ src/utils/formato.test.ts > formato de duraciones > expresa los minutos por debajo de una hora 4ms
  ✓ src/utils/formato.test.ts > formato de duraciones > pasa a horas y minutos a partir de sesenta 3ms
- ✓ src/utils/formato.test.ts > formato de duraciones > nunca devuelve una duración negativa 3ms
- ✓ src/utils/formato.test.ts > formato de duraciones > trata nulo como cero 2ms
- ✓ src/utils/formato.test.ts > fechas relativas > describe los últimos minutos en minutos 3ms
- ✓ src/utils/formato.test.ts > fechas relativas > describe las últimas horas en horas 4ms
+ ✓ src/utils/formato.test.ts > formato de duraciones > nunca devuelve una duración negativa 2ms
+ ✓ src/utils/formato.test.ts > formato de duraciones > trata nulo como cero 3ms
+ ✓ src/utils/formato.test.ts > fechas relativas > describe los últimos minutos en minutos 5ms
+ ✓ src/utils/formato.test.ts > fechas relativas > describe las últimas horas en horas 7ms
  ✓ src/utils/formato.test.ts > fechas relativas > describe la última semana en días 2ms
  ✓ src/utils/formato.test.ts > fechas relativas > devuelve un guion para una fecha inválida 2ms
- ✓ src/utils/formato.test.ts > fechas relativas > devuelve un guion para nulo 1ms
- ✓ src/utils/formato.test.ts > campos de fecha > serializa una fecha en formato AAAA-MM-DD 2ms
+ ✓ src/utils/formato.test.ts > fechas relativas > devuelve un guion para nulo 6ms
+ ✓ src/utils/formato.test.ts > campos de fecha > serializa una fecha en formato AAAA-MM-DD 3ms
  ✓ src/utils/formato.test.ts > presentación de estados > traduce cada estado de pedido a su etiqueta en español 4ms
  ✓ src/utils/formato.test.ts > presentación de estados > traduce los estados de entrega y de venta 2ms
  ✓ src/utils/formato.test.ts > presentación de estados > un estado desconocido no rompe la pantalla 1ms
  ✓ src/utils/formato.test.ts > presentación de estados > traduce los métodos de pago 2ms
- ✓ src/utils/formato.test.ts > presentación de estados > un método desconocido se muestra tal cual 1ms
+ ✓ src/utils/formato.test.ts > presentación de estados > un método desconocido se muestra tal cual 3ms
  ✓ src/utils/formato.test.ts > utilidades varias > capitaliza el rol y reemplaza guiones bajos 2ms
- ✓ src/utils/formato.test.ts > utilidades varias > junta clases descartando las vacías 1ms
- ✓ src/services/http.test.ts > gestión del token > guarda la sesión en localStorage cuando se pide recordar 17ms
- ✓ src/services/http.test.ts > gestión del token > guarda la sesión en sessionStorage cuando no se pide recordar 3ms
- ✓ src/services/http.test.ts > gestión del token > lee el token sin importar en qué almacén esté 2ms
- ✓ src/services/http.test.ts > gestión del token > limpiar borra ambos almacenes 2ms
- ✓ src/services/http.test.ts > gestión del token > al renovar el acceso, respeta el almacén de una sesión no recordada 2ms
- ✓ src/services/http.test.ts > adjuntar la cabecera de autorización > envía el token como Bearer 19ms
- ✓ src/services/http.test.ts > adjuntar la cabecera de autorización > no envía cabecera si no hay sesión 3ms
- ✓ src/services/http.test.ts > adjuntar la cabecera de autorización > serializa los parámetros y omite los vacíos 4ms
- ✓ src/services/http.test.ts > desenvuelve la envoltura de la API > devuelve directamente el campo datos 8ms
- ✓ src/services/http.test.ts > desenvuelve la envoltura de la API > devuelve la paginación a partir de meta 4ms
- ✓ src/services/http.test.ts > desenvuelve la envoltura de la API > sin meta, la paginación trae valores por defecto en vez de undefined 3ms
- ✓ src/services/http.test.ts > normalización de errores > expone el código de negocio y los detalles por campo 5ms
- ✓ src/services/http.test.ts > normalización de errores > clasifica un 422 como error de validación 5ms
- ✓ src/services/http.test.ts > normalización de errores > clasifica un 401 como no autorizado y un 403 como sin permiso 11ms
- ✓ src/hooks/index.test.tsx > valores del formulario > parte de los valores iniciales 66ms
- ✓ src/hooks/index.test.tsx > valores del formulario > actualiza un campo sin tocar los demás 15ms
- ✓ src/services/http.test.ts > normalización de errores > un 5xx sin cuerpo no filtra el error técnico al usuario 4ms
- ✓ src/services/http.test.ts > renovación del token al recibir un 401 > renueva una vez y reintenta la petición original 6ms
- ✓ src/services/http.test.ts > renovación del token al recibir un 401 > si la renovación falla, limpia la sesión y avisa a la aplicación 3ms
- ✓ src/services/http.test.ts > renovación del token al recibir un 401 > sin token de renovación, no intenta renovar 3ms
- ✓ src/services/http.test.ts > renovación del token al recibir un 401 > una sola renovación atiende varias peticiones simultáneas 5ms
- ✓ src/services/http.test.ts > login > envía el correo como email y el recordar al backend 3ms
- ✓ src/services/http.test.ts > login > no intenta renovar la sesión al fallar el propio login 2ms
- ✓ src/hooks/useListado.test.ts > carga inicial > pide la primera página con los filtros indicados 103ms
- ✓ src/hooks/useListado.test.ts > carga inicial > devuelve una tabla vacía en vez de indefinido mientras carga 21ms
- ✓ src/hooks/index.test.tsx > valores del formulario > actualiza varios campos a la vez 20ms
- ✓ src/hooks/index.test.tsx > valores del formulario > reiniciar devuelve el formulario a su estado inicial 11ms
- ✓ src/hooks/index.test.tsx > valores del formulario > reiniciar acepta valores parciales para editar un registro 11ms
- ✓ src/hooks/index.test.tsx > envío correcto > marca enviando durante la operación y lo desmarca al terminar 9ms
- ✓ src/hooks/index.test.tsx > envío correcto > devuelve true si la acción termina bien 14ms
- ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > coloca el mensaje bajo el campo que reporta el backend 8ms
- ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > reduce un campo anidado a su último segmento 10ms
- ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > un error de un campo inexistente cae en general 7ms
- ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > un error sin detalles se muestra como mensaje general 5ms
- ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > conserva el primer error cuando dos detalles señalan el mismo campo 5ms
- ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > un fallo que no es de la API muestra un mensaje neutro 4ms
- ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > devuelve false y no deja enviando en true tras un fallo 8ms
- ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > al corregir un campo, su error desaparece 5ms
- ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > un envío nuevo limpia los errores del anterior 4ms
- ✓ src/context/ProveedorSesion.test.tsx > estado inicial sin token > termina cargando=false y sin autenticar, sin llamar al servidor 141ms
- ✓ src/context/ProveedorSesion.test.tsx > restauración de sesión con token válido > consulta el perfil y autentica 42ms
- ✓ src/context/ProveedorSesion.test.tsx > token que el servidor ya no reconoce > un 401 al pedir el perfil limpia la sesión y deja al usuario fuera 22ms
- ✓ src/context/ProveedorSesion.test.tsx > fallo transitorio al comprobar la sesión > un error que no es 401 no borra el token y explica la situación 22ms
- ✓ src/hooks/useListado.test.ts > búsqueda con retardo > no lanza una petición por cada tecla 454ms
- ✓ src/hooks/useListado.test.ts > paginación y orden > cambiar de página vuelve a pedir con el número nuevo 16ms
- ✓ src/hooks/useListado.test.ts > paginación y orden > al filtrar se vuelve a la primera página 21ms
- ✓ src/hooks/useListado.test.ts > paginación y orden > recargar vuelve a pedir los mismos datos 14ms
- ✓ src/hooks/useListado.test.ts > estabilidad de los filtros > un objeto de filtros nuevo en cada render no repite la petición 72ms
- ✓ src/hooks/useListado.test.ts > estabilidad de los filtros > un filtro de contenido distinto sí vuelve a pedir 12ms
- ✓ src/pages/Pagos.test.tsx > resumen de cobranza > muestra el total cobrado y una tarjeta por método 391ms
- ✓ src/components/ui.test.tsx > Boton > declara su propio tipo para no heredar el del formulario 484ms
- ✓ src/pages/Clientes.test.tsx > listado de clientes > muestra los clientes que devuelve la API 368ms
- ✓ src/pages/Entregas.test.tsx > listado de entregas > muestra el pedido, el cliente y el repartidor de cada entrega 450ms
- ✓ src/pages/Entregas.test.tsx > listado de entregas > una entrega sin repartidor lo dice en vez de dejar la celda vacía 107ms
- ✓ src/components/ui.test.tsx > Boton > se deshabilita mientras la operación está en vuelo 117ms
- ✓ src/pages/Pedidos.test.tsx > listado de pedidos > muestra código, cliente, total y estado 483ms
- ✓ src/pages/Pagos.test.tsx > resumen de cobranza > concuerda el número con el singular y el plural 124ms
- ✓ src/components/ui.test.tsx > Boton > la protección contra el doble envío depende de que se marque cargando 216ms
- ✓ src/components/ui.test.tsx > Boton > respeta un disabled explícito 21ms
- ✓ src/pages/Entregas.test.tsx > listado de entregas > una entrega que sigue en ruta no muestra fecha de entrega 94ms
- ✓ src/pages/Entregas.test.tsx > listado de entregas > la demora solo aparece cuando la hubo 91ms
- ✓ src/context/ProveedorSesion.test.tsx > inicio y cierre de sesión > entrar guarda los tokens y deja al usuario autenticado 504ms
- ✓ src/context/ProveedorSesion.test.tsx > inicio y cierre de sesión > salir borra la sesión aunque el servidor falle 110ms
- ✓ src/pages/Clientes.test.tsx > listado de clientes > un cliente inactivo se distingue de uno activo 110ms
- ✓ src/components/ui.test.tsx > Campo de formulario > enlaza la etiqueta con su input 26ms
- ✓ src/components/ui.test.tsx > Campo de formulario > anuncia el error y lo asocia al campo 30ms
- ✓ src/components/ui.test.tsx > Campo de formulario > muestra el texto de ayuda cuando no hay error 13ms
- ✓ src/components/ui.test.tsx > Campo de formulario > el error sustituye a la ayuda, no se muestran ambos 11ms
- ✓ src/components/ui.test.tsx > Campo de formulario > marca el campo como requerido en el HTML 12ms
- ✓ src/components/ui.test.tsx > Campo de formulario > el área de texto se comporta igual que la entrada 22ms
- ✓ src/components/ui.test.tsx > Seleccion > lista las opciones con su texto legible 54ms
- ✓ src/components/ui.test.tsx > Seleccion > el marcador es la primera opción vacía 44ms
- ✓ src/components/ui.test.tsx > Aviso > un error se anuncia como alerta y un éxito no 35ms
- ✓ src/components/ui.test.tsx > Aviso > permite cerrar el aviso 59ms
- ✓ src/components/ui.test.tsx > Etiqueta > refleja el texto del estado 5ms
- ✓ src/pages/Pagos.test.tsx > resumen de cobranza > pasa de histórico completo a rango seleccionado y acota la consulta 172ms
- ✓ src/pages/Clientes.test.tsx > listado de clientes > el repartidor no ve el botón de nuevo cliente 376ms
- ✓ src/pages/Clientes.test.tsx > listado de clientes > un estado vacío invita a registrar un cliente 81ms
- ✓ src/pages/Pedidos.test.tsx > listado de pedidos > señala los pedidos que requieren corrección 124ms
- ✓ src/pages/Pedidos.test.tsx > listado de pedidos > un pedido pendiente ofrece confirmar y cancelar 524ms
- ✓ src/pages/Entregas.test.tsx > listado de entregas > el filtro de estado ofrece el circuito completo de la entrega 461ms
- ✓ src/pages/Pagos.test.tsx > resumen de cobranza > no reconsulta el resumen al cambiar los filtros de la tabla 545ms
- ✓ src/App.test.tsx > protección de rutas > sin sesión, cualquier ruta protegida lleva al inicio de acceso 614ms
- ✓ src/pages/Pedidos.test.tsx > listado de pedidos > un pedido entregado no ofrece ninguna transición 135ms
- ✓ src/pages/Pedidos.test.tsx > listado de pedidos > un estado vacío invita a registrar el pedido del día 96ms
- ✓ src/pages/Pagos.test.tsx > listado de pagos > muestra venta, cliente, referencia, monto y quién recibió 131ms
- ✓ src/pages/Clientes.test.tsx > alta de cliente > abre el formulario con los campos obligatorios 345ms
- ✓ src/App.test.tsx > protección de rutas > con sesión, deja entrar a la ruta solicitada 111ms
- ✓ src/App.test.tsx > protección de rutas > un repartidor no accede a un módulo exclusivo del administrador 61ms
- ✓ src/pages/Entregas.test.tsx > listado de entregas > filtrar por estado se lo pregunta al backend 217ms
- ✓ src/pages/Pagos.test.tsx > listado de pagos > marca los pagos anulados 117ms
- ✓ src/App.test.tsx > protección de rutas > el mensaje de sin permisos nombra el rol del usuario 52ms
- ✓ src/App.test.tsx > protección de rutas > mientras verifica la sesión no muestra la pantalla solicitada 16ms
- ✓ src/App.test.tsx > protección de rutas > con sesión ya activa, la pantalla de acceso devuelve al usuario a su destino 70ms
- ✓ src/pages/Entregas.test.tsx > listado de entregas > el filtro de repartidor se arma con los repartidores activos 189ms
- ✓ src/pages/Pagos.test.tsx > listado de pagos > tolera un pago cuya venta ya no existe 117ms
- ✓ src/pages/Pagos.test.tsx > listado de pagos > un listado vacío explica desde dónde se registra un pago 68ms
- ✓ src/App.test.tsx > navegación de rutas desconocidas > una ruta inexistente lleva al tablero, no a una pantalla vacía 54ms
- ✓ src/App.test.tsx > navegación de rutas desconocidas > la raíz redirige al tablero con sesión iniciada 95ms
- ✓ src/App.test.tsx > navegación de rutas desconocidas > la raíz sin sesión lleva al acceso 87ms
- ✓ src/pages/Entregas.test.tsx > listado de entregas > el rango de fechas se envía como fechas, no como texto vacío 101ms
- ✓ src/pages/Entregas.test.tsx > listado de entregas > sin fechas escritas no viajan parámetros de fecha 53ms
- ✓ src/pages/Pagos.test.tsx > listado de pagos > manda los filtros de método, estado y fechas 462ms
- ✓ src/pages/Entregas.test.tsx > listado de entregas > la búsqueda espera a que se termine de escribir 597ms
- ✓ src/pages/Entregas.test.tsx > listado de entregas > sin coincidencias explica cómo crear la primera entrega 49ms
- ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > con un solo carácter no consulta al backend 988ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > al abrir se piden solo pedidos confirmados y en cantidad acotada 154ms
- ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > no se consulta el buscador al abrir la pantalla 185ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > los pedidos que ya tienen reparto no se ofrecen 163ms
- ✓ src/pages/Pagos.test.tsx > listado de pagos > la búsqueda llega al backend con retardo 624ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > sin pedidos que repartir el recuadro lo explica 137ms
- ✓ src/pages/Pagos.test.tsx > permisos > el vendedor cobra pero no puede anular 125ms
- ✓ src/pages/Pagos.test.tsx > permisos > el admin solo puede anular pagos registrados 121ms
- ✓ src/pages/Pagos.test.tsx > permisos > el repartidor no registra cobros 89ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > no se puede asignar sin elegir pedido y repartidor 367ms
- ✓ src/pages/Pagos.test.tsx > registro de pago > consulta las ventas con saldo solo al abrir el formulario 189ms
- ✓ src/pages/Clientes.test.tsx > alta de cliente > envía los datos escritos al backend 1983ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > elegir un pedido muestra su punto de entrega 223ms
- ✓ src/pages/Pagos.test.tsx > registro de pago > ofrece las ventas con saldo y exige elegir una 211ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > un pedido para recoger en tienda no se presenta como domicilio 204ms
- ✓ src/pages/Pagos.test.tsx > registro de pago > precarga el monto con el saldo de la venta elegida 293ms
- ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > seguir escribiendo vuelve a consultar con el término nuevo 1190ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > buscar en el recuadro vuelve a consultar con el término escrito 627ms
- ✓ src/pages/Pagos.test.tsx > registro de pago > envía el cobro con el monto, el método y la fecha elegidos 988ms
- ✓ src/pages/Clientes.test.tsx > alta de cliente > muestra el error del backend bajo el campo que lo produjo 1641ms
- ✓ src/pages/Pagos.test.tsx > registro de pago > avisa, cierra y recarga al registrar el cobro 340ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > cambiar la búsqueda retira el pedido elegido si ya no está en la lista 968ms
- ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > la ficha del cliente elegido sobrevive a limpiar el buscador 1454ms
- ✓ src/pages/Pagos.test.tsx > registro de pago > señala el campo cuando el servidor rechaza el monto 323ms
- ✓ src/pages/Pagos.test.tsx > registro de pago > muestra un error general cuando el servidor falla sin detalles 285ms
- ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > con dos caracteres muestra los candidatos 762ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > la elección se conserva si el pedido sigue en los resultados 817ms
- ✓ src/pages/Pagos.test.tsx > registro de pago > cancelar descarta la venta elegida 411ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > envía el pedido, el repartidor y las observaciones escritas 708ms
- ✓ src/pages/Clientes.test.tsx > alta de cliente > un conflicto de duplicado se muestra como aviso general 1880ms
- ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > elegir un cliente muestra su ficha y rellena la entrega 829ms
- ✓ src/pages/Pagos.test.tsx > registro de pago > no permite cobrar una venta que dejó de estar a la vista 750ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > sin observaciones el cuerpo lleva null y no una cadena vacía 306ms
- ✓ src/pages/Pagos.test.tsx > anulación de pago > muestra la venta y el saldo antes de anular 195ms
- ✓ src/pages/Clientes.test.tsx > alta de cliente > avisa antes de dejar enviar un RUC que no tiene once dígitos 556ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > al asignar avisa con el nombre del repartidor, cierra y recarga la tabla 380ms
- ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > cambiar de cliente libera el formulario 857ms
- ✓ src/pages/Pagos.test.tsx > anulación de pago > no deja anular sin motivo 660ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > un pedido que ya tenía reparto explica el rechazo y deja el diálogo abierto 321ms
- ✓ src/pages/Clientes.test.tsx > alta de cliente > un RUC de once dígitos no dispara el aviso 590ms
- ✓ src/pages/Clientes.test.tsx > alta de cliente > al cambiar a empresa pide la razón social en lugar de los nombres 231ms
- ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > dice cuando no encuentra a nadie 613ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > un repartidor que se dio de baja se explica sin perder lo escrito 600ms
- ✓ src/pages/Pedidos.test.tsx > líneas del pedido > avisa cuando no hay ningún producto agregado 135ms
- ✓ src/pages/Pagos.test.tsx > anulación de pago > manda el motivo y recarga al anular 741ms
- ✓ src/pages/Clientes.test.tsx > alta de cliente > cerrar el formulario sin guardar no registra nada 487ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > si el servidor no responde se muestra un mensaje que invite a reintentar 311ms
- ✓ src/pages/Clientes.test.tsx > edición y cambio de estado > el formulario de edición se rellena con los datos del cliente 253ms
- ✓ src/pages/Pedidos.test.tsx > líneas del pedido > agregar un producto lo incorpora con cantidad uno 579ms
- ✓ src/pages/Clientes.test.tsx > edición y cambio de estado > desactivar un cliente pide confirmación antes de actuar 147ms
- ✓ src/pages/Pagos.test.tsx > anulación de pago > mantiene el diálogo abierto si el servidor rechaza la anulación 736ms
- ✓ src/pages/Clientes.test.tsx > edición y cambio de estado > la confirmación explica que el historial se conserva 160ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > cerrar el diálogo descarta lo que se había elegido 761ms
- ✓ src/pages/Clientes.test.tsx > edición y cambio de estado > confirmar la desactivación la ejecuta 271ms
- ✓ src/pages/Pagos.test.tsx > anulación de pago > volver cierra sin anular 415ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > el diálogo y el filtro del listado ofrecen la misma gente 111ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > no se piden los candidatos hasta que se abre el diálogo 136ms
- ✓ src/pages/Clientes.test.tsx > edición y cambio de estado > cancelar la confirmación no desactiva al cliente 257ms
- ✓ src/pages/Clientes.test.tsx > filtros del listado > filtrar por tipo consulta al backend con el tipo elegido 125ms
- ✓ src/pages/Entregas.test.tsx > asignación de entrega > cerrar el diálogo no vuelve a pedir los candidatos 283ms
- ✓ src/pages/Pedidos.test.tsx > líneas del pedido > volver a agregar el mismo producto suma a la línea existente 1015ms
- ✓ src/pages/Entregas.test.tsx > ficha de la entrega > se abre nombrando el pedido al que pertenece 161ms
- ✓ src/pages/Clientes.test.tsx > filtros del listado > el buscador llega al backend con el término escrito 495ms
- ✓ src/pages/Entregas.test.tsx > ficha de la entrega > resume estado, salida, entrega y monto recibido 145ms
- ✓ src/pages/Entregas.test.tsx > ficha de la entrega > marca con un guion los horarios que aún no existen 146ms
- ✓ src/pages/Entregas.test.tsx > ficha de la entrega > detalla repartidor, contacto y estado del pedido 142ms
- ✓ src/pages/Pedidos.test.tsx > líneas del pedido > los botones de cantidad ajustan la línea 675ms
- ✓ src/pages/Entregas.test.tsx > ficha de la entrega > una entrega sin repartidor lo dice también en la ficha 126ms
- ✓ src/pages/Entregas.test.tsx > ficha de la entrega > cuenta los bidones entregados y devueltos 122ms
- ✓ src/pages/Entregas.test.tsx > ficha de la entrega > la demora, la firma y el motivo solo aparecen cuando existen 120ms
- ✓ src/pages/Entregas.test.tsx > ficha de la entrega > una entrega corriente no inventa demora, firma ni motivo 136ms
- ✓ src/pages/Entregas.test.tsx > ficha de la entrega > muestra las observaciones que dejó quien asignó el reparto 124ms
- ✓ src/pages/Pedidos.test.tsx > líneas del pedido > vaciar la cantidad quita la línea 539ms
- ✓ src/pages/Entregas.test.tsx > ficha de la entrega > lista los productos a entregar con su cantidad 145ms
- ✓ src/pages/Entregas.test.tsx > ficha de la entrega > una entrega cuyos productos no se conocen omite ese bloque 114ms
- ✓ src/pages/Entregas.test.tsx > ficha de la entrega > cerrar la ficha la devuelve al listado 216ms
- ✓ src/pages/Pedidos.test.tsx > líneas del pedido > avisa cuando la cantidad supera el stock disponible 955ms
- ✓ src/pages/Pedidos.test.tsx > líneas del pedido > superar el stock no bloquea el registro 1462ms
- ✓ src/pages/Pedidos.test.tsx > importes mostrados mientras se compone el pedido > el subtotal sale del catálogo y la cantidad de cada línea 1217ms
- ✓ src/pages/Pedidos.test.tsx > importes mostrados mientras se compone el pedido > el descuento se resta del total estimado 992ms
- ✓ src/pages/Pedidos.test.tsx > importes mostrados mientras se compone el pedido > un descuento mayor que el subtotal deja el total en cero, no en negativo 617ms
- ✓ src/pages/Pedidos.test.tsx > importes mostrados mientras se compone el pedido > aclara que el importe definitivo lo calcula el servidor 124ms
- ✓ src/pages/Pedidos.test.tsx > datos de entrega > a domicilio pide la dirección y la referencia 138ms
- ✓ src/pages/Pedidos.test.tsx > datos de entrega > en retiro no pide dirección: no hay a dónde deliver 252ms
- ✓ src/pages/Pedidos.test.tsx > registro del pedido > envía cliente, productos y entrega al backend 2051ms
- ✓ src/pages/Pedidos.test.tsx > registro del pedido > no envía el importe estimado: el total lo recalcula el servidor 1638ms
- ✓ src/pages/Pedidos.test.tsx > registro del pedido > los campos opcionales vacíos viajan como null, no como texto vacío 1153ms
- ✓ src/pages/Pedidos.test.tsx > registro del pedido > confirma en el mismo paso si se marca la casilla 1297ms
- ✓ src/pages/Pedidos.test.tsx > registro del pedido > la incidencia se registra tal como la reportó el cliente 2134ms
- ✓ src/pages/Pedidos.test.tsx > registro del pedido > la incidencia no marca el pedido por sí sola: eso es una decisión del vendedor 1639ms
- ✓ src/pages/Pedidos.test.tsx > registro del pedido > la marca de requiere corrección se envía al backend 1261ms
- ✓ src/pages/Pedidos.test.tsx > registro del pedido > muestra el código del pedido creado 1199ms
- ✓ src/pages/Pedidos.test.tsx > registro del pedido > un error del backend se sitúa en el campo que lo produjo 1167ms
- ✓ src/pages/Pedidos.test.tsx > registro del pedido > un error sin campo asociado se muestra como aviso general 1167ms
- ✓ src/pages/Pedidos.test.tsx > cambio de estado > confirma un pedido pendiente 206ms
- ✓ src/pages/Pedidos.test.tsx > cambio de estado > un pedido cancelado se reabre, y el botón lo dice 225ms
- ✓ src/pages/Pedidos.test.tsx > cambio de estado > un pedido en ruta ofrece "Entregar" solo donde corresponde 92ms
- ✓ src/pages/Pedidos.test.tsx > cambio de estado > explica que el cambio queda en el historial antes de aplicarlo 128ms
- ✓ src/pages/Pedidos.test.tsx > cambio de estado > cancelar exige un motivo 1394ms
- ✓ src/pages/Pedidos.test.tsx > cambio de estado > cancelar explica que el motivo queda en la bitácora 166ms
- ✓ src/pages/Pedidos.test.tsx > cambio de estado > volver no cambia nada 185ms
- ✓ src/pages/Pedidos.test.tsx > cambio de estado > un cambio rechazado se informa sin perder el listado 209ms
- ✓ src/pages/Pedidos.test.tsx > ficha del pedido > muestra el desglose con subtotal y total 192ms
- ✓ src/pages/Pedidos.test.tsx > ficha del pedido > enseña el historial de estados 156ms
- ✓ src/pages/Pedidos.test.tsx > ficha del pedido > un pedido sin historial lo dice, en lugar de mostrar un hueco 143ms
- ✓ src/pages/Pedidos.test.tsx > ficha del pedido > muestra la venta asociada y su saldo 184ms
- ✓ src/pages/Pedidos.test.tsx > ficha del pedido > si la ficha no se puede cargar, avisa y cierra el diálogo 189ms
+ ✓ src/utils/formato.test.ts > utilidades varias > junta clases descartando las vacías 3ms
+ ✓ src/hooks/useListado.test.ts > carga inicial > pide la primera página con los filtros indicados 128ms
+ ✓ src/hooks/useListado.test.ts > carga inicial > devuelve una tabla vacía en vez de indefinido mientras carga 18ms
+ ✓ src/hooks/index.test.tsx > valores del formulario > actualiza un campo sin tocar los demás 20ms
+ ✓ src/hooks/index.test.tsx > valores del formulario > actualiza varios campos a la vez 17ms
+ ✓ src/hooks/index.test.tsx > valores del formulario > reiniciar devuelve el formulario a su estado inicial 14ms
+ ✓ src/hooks/index.test.tsx > valores del formulario > reiniciar acepta valores parciales para editar un registro 19ms
+ ✓ src/hooks/index.test.tsx > envío correcto > marca enviando durante la operación y lo desmarca al terminar 13ms
+ ✓ src/hooks/index.test.tsx > envío correcto > devuelve true si la acción termina bien 19ms
+ ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > coloca el mensaje bajo el campo que reporta el backend 10ms
+ ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > reduce un campo anidado a su último segmento 15ms
+ ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > un error de un campo inexistente cae en general 11ms
+ ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > un error sin detalles se muestra como mensaje general 7ms
+ ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > conserva el primer error cuando dos detalles señalan el mismo campo 7ms
+ ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > un fallo que no es de la API muestra un mensaje neutro 6ms
+ ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > devuelve false y no deja enviando en true tras un fallo 6ms
+ ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > al corregir un campo, su error desaparece 6ms
+ ✓ src/hooks/index.test.tsx > mapeo de errores del backend a los campos > un envío nuevo limpia los errores del anterior 6ms
+ ✓ src/context/ProveedorSesion.test.tsx > estado inicial sin token > termina cargando=false y sin autenticar, sin llamar al servidor 118ms
+ ✓ src/context/ProveedorSesion.test.tsx > restauración de sesión con token válido > consulta el perfil y autentica 45ms
+ ✓ src/context/ProveedorSesion.test.tsx > token que el servidor ya no reconoce > un 401 al pedir el perfil limpia la sesión y deja al usuario fuera 26ms
+ ✓ src/hooks/useListado.test.ts > búsqueda con retardo > no lanza una petición por cada tecla 479ms
+ ✓ src/hooks/useListado.test.ts > paginación y orden > cambiar de página vuelve a pedir con el número nuevo 17ms
+ ✓ src/hooks/useListado.test.ts > paginación y orden > al filtrar se vuelve a la primera página 30ms
+ ✓ src/hooks/useListado.test.ts > paginación y orden > recargar vuelve a pedir los mismos datos 16ms
+ ✓ src/hooks/useListado.test.ts > estabilidad de los filtros > un objeto de filtros nuevo en cada render no repite la petición 76ms
+ ✓ src/hooks/useListado.test.ts > estabilidad de los filtros > un filtro de contenido distinto sí vuelve a pedir 19ms
+ ✓ src/components/ui.test.tsx > Boton > declara su propio tipo para no heredar el del formulario 536ms
+ ✓ src/context/ProveedorSesion.test.tsx > fallo transitorio al comprobar la sesión > un error que no es 401 no borra el token y explica la situación 25ms
+stderr | src/pages/Reportes.test.tsx > pantalla de reportes > muestra el reporte de ventas con su detalle
+In HTML, <tr> cannot be a child of <tr>.
+This will cause a hydration error.
 
- Test Files  11 passed (11)
-      Tests  233 passed (233)
-   Start at  19:46:17
-   Duration  42.93s (tests 48%, environment 38%, setup 7%, transform 4%, import 2%)
+  <Reportes>
+    <Pagina titulo="Reportes" descripcion="Consolidad..." acciones={<Fragment>}>
+      <div className="space-y-5">
+        <div>
+        <Tarjeta>
+        <div>
+        <Tarjeta titulo="Por método...">
+          <section className="overflow-h...">
+            <header>
+            <div className="p-4">
+              <TablaReporte columnas={[...]} filas={[...]}>
+                <Tabla columnas={[...]} filas={[...]} claveFila={function claveFila} renderFila={function renderFila}>
+                  <div className="overflow-x...">
+                    <table className="min-w-full...">
+                      <thead>
+                      <tbody className="divide-y d...">
+>                       <tr onClick={undefined} onKeyDown={undefined} tabIndex={undefined} className="">
+>                         <tr className="border-t border-slate-100">
+        ...
+
+
+ ✓ src/components/ui.test.tsx > Boton > se deshabilita mientras la operación está en vuelo 127ms
+ ✓ src/pages/Clientes.test.tsx > listado de clientes > muestra los clientes que devuelve la API 451ms
+ ✓ src/context/ProveedorSesion.test.tsx > inicio y cierre de sesión > entrar guarda los tokens y deja al usuario autenticado 560ms
+ ✓ src/context/ProveedorSesion.test.tsx > inicio y cierre de sesión > salir borra la sesión aunque el servidor falle 105ms
+ ✓ src/pages/Pagos.test.tsx > resumen de cobranza > muestra el total cobrado y una tarjeta por método 510ms
+ ✓ src/components/ui.test.tsx > Boton > la protección contra el doble envío depende de que se marque cargando 171ms
+ ✓ src/components/ui.test.tsx > Boton > respeta un disabled explícito 32ms
+ ✓ src/pages/Entregas.test.tsx > listado de entregas > muestra el pedido, el cliente y el repartidor de cada entrega 573ms
+ ✓ src/components/ui.test.tsx > Campo de formulario > enlaza la etiqueta con su input 32ms
+ ✓ src/components/ui.test.tsx > Campo de formulario > anuncia el error y lo asocia al campo 36ms
+ ✓ src/components/ui.test.tsx > Campo de formulario > muestra el texto de ayuda cuando no hay error 19ms
+ ✓ src/components/ui.test.tsx > Campo de formulario > el error sustituye a la ayuda, no se muestran ambos 19ms
+ ✓ src/components/ui.test.tsx > Campo de formulario > marca el campo como requerido en el HTML 18ms
+ ✓ src/pages/Pedidos.test.tsx > listado de pedidos > muestra código, cliente, total y estado 568ms
+ ✓ src/pages/Entregas.test.tsx > listado de entregas > una entrega sin repartidor lo dice en vez de dejar la celda vacía 136ms
+ ✓ src/pages/Pagos.test.tsx > resumen de cobranza > concuerda el número con el singular y el plural 120ms
+ ✓ src/components/ui.test.tsx > Campo de formulario > el área de texto se comporta igual que la entrada 32ms
+ ✓ src/components/ui.test.tsx > Seleccion > lista las opciones con su texto legible 66ms
+ ✓ src/pages/Pedidos.test.tsx > listado de pedidos > señala los pedidos que requieren corrección 145ms
+ ✓ src/pages/Entregas.test.tsx > listado de entregas > una entrega que sigue en ruta no muestra fecha de entrega 112ms
+ ✓ src/pages/Pagos.test.tsx > resumen de cobranza > pasa de histórico completo a rango seleccionado y acota la consulta 203ms
+ ✓ src/components/ui.test.tsx > Seleccion > el marcador es la primera opción vacía 50ms
+ ✓ src/components/ui.test.tsx > Aviso > un error se anuncia como alerta y un éxito no 38ms
+ ✓ src/components/ui.test.tsx > Aviso > permite cerrar el aviso 77ms
+ ✓ src/components/ui.test.tsx > Etiqueta > refleja el texto del estado 6ms
+ ✓ src/pages/Clientes.test.tsx > listado de clientes > un cliente inactivo se distingue de uno activo 135ms
+ ✓ src/pages/Reportes.test.tsx > pantalla de reportes > muestra el reporte de ventas con su detalle 1021ms
+ ✓ src/pages/Clientes.test.tsx > listado de clientes > el repartidor no ve el botón de nuevo cliente 483ms
+ ✓ src/pages/Clientes.test.tsx > listado de clientes > un estado vacío invita a registrar un cliente 95ms
+Not implemented: navigation to another Document
+ ✓ src/pages/Reportes.test.tsx > pantalla de reportes > descargar PDF lleva el formato correcto y el rango elegido 361ms
+ ✓ src/pages/Entregas.test.tsx > listado de entregas > la demora solo aparece cuando la hubo 129ms
+ ✓ src/pages/Pedidos.test.tsx > listado de pedidos > un pedido pendiente ofrece confirmar y cancelar 642ms
+ ✓ src/App.test.tsx > protección de rutas > sin sesión, cualquier ruta protegida lleva al inicio de acceso 763ms
+Not implemented: navigation to another Document
+ ✓ src/pages/Entregas.test.tsx > listado de entregas > el filtro de estado ofrece el circuito completo de la entrega 544ms
+ ✓ src/pages/Pagos.test.tsx > resumen de cobranza > no reconsulta el resumen al cambiar los filtros de la tabla 676ms
+ ✓ src/pages/Pedidos.test.tsx > listado de pedidos > un pedido entregado no ofrece ninguna transición 173ms
+ ✓ src/App.test.tsx > protección de rutas > con sesión, deja entrar a la ruta solicitada 131ms
+ ✓ src/App.test.tsx > protección de rutas > un repartidor no accede a un módulo exclusivo del administrador 67ms
+ ✓ src/pages/Clientes.test.tsx > alta de cliente > abre el formulario con los campos obligatorios 403ms
+ ✓ src/pages/Reportes.test.tsx > pantalla de reportes > descargar CSV pide el CSV, no el PDF 273ms
+ ✓ src/pages/Pagos.test.tsx > listado de pagos > muestra venta, cliente, referencia, monto y quién recibió 168ms
+ ✓ src/pages/Pedidos.test.tsx > listado de pedidos > un estado vacío invita a registrar el pedido del día 108ms
+ ✓ src/App.test.tsx > protección de rutas > el mensaje de sin permisos nombra el rol del usuario 53ms
+ ✓ src/App.test.tsx > protección de rutas > mientras verifica la sesión no muestra la pantalla solicitada 17ms
+ ✓ src/pages/Entregas.test.tsx > listado de entregas > filtrar por estado se lo pregunta al backend 264ms
+ ✓ src/pages/Pagos.test.tsx > listado de pagos > marca los pagos anulados 113ms
+ ✓ src/App.test.tsx > protección de rutas > con sesión ya activa, la pantalla de acceso devuelve al usuario a su destino 97ms
+ ✓ src/App.test.tsx > navegación de rutas desconocidas > una ruta inexistente lleva al tablero, no a una pantalla vacía 74ms
+ ✓ src/pages/Pagos.test.tsx > listado de pagos > tolera un pago cuya venta ya no existe 111ms
+ ✓ src/pages/Reportes.test.tsx > pantalla de reportes > un reporte sin exportación no ofrece botones de descarga 272ms
+ ✓ src/App.test.tsx > navegación de rutas desconocidas > la raíz redirige al tablero con sesión iniciada 98ms
+ ✓ src/App.test.tsx > navegación de rutas desconocidas > la raíz sin sesión lleva al acceso 85ms
+ ✓ src/pages/Entregas.test.tsx > listado de entregas > el filtro de repartidor se arma con los repartidores activos 217ms
+ ✓ src/pages/Pagos.test.tsx > listado de pagos > un listado vacío explica desde dónde se registra un pago 93ms
+ ✓ src/pages/Reportes.test.tsx > pantalla de reportes > un fallo de descarga se muestra como aviso 151ms
+ ✓ src/pages/Reportes.test.tsx > pantalla de reportes > el repartidor no ve los reportes exclusivos del administrador 69ms
+ ✓ src/pages/Entregas.test.tsx > listado de entregas > el rango de fechas se envía como fechas, no como texto vacío 122ms
+ ✓ src/pages/Entregas.test.tsx > listado de entregas > sin fechas escritas no viajan parámetros de fecha 43ms
+ ✓ src/pages/Pagos.test.tsx > listado de pagos > manda los filtros de método, estado y fechas 455ms
+ ✓ src/pages/Entregas.test.tsx > listado de entregas > la búsqueda espera a que se termine de escribir 566ms
+ ✓ src/pages/Entregas.test.tsx > listado de entregas > sin coincidencias explica cómo crear la primera entrega 65ms
+ ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > con un solo carácter no consulta al backend 1087ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > al abrir se piden solo pedidos confirmados y en cantidad acotada 170ms
+ ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > no se consulta el buscador al abrir la pantalla 168ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > los pedidos que ya tienen reparto no se ofrecen 160ms
+ ✓ src/pages/Pagos.test.tsx > listado de pagos > la búsqueda llega al backend con retardo 695ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > sin pedidos que repartir el recuadro lo explica 139ms
+ ✓ src/pages/Pagos.test.tsx > permisos > el vendedor cobra pero no puede anular 142ms
+ ✓ src/pages/Pagos.test.tsx > permisos > el admin solo puede anular pagos registrados 183ms
+ ✓ src/pages/Pagos.test.tsx > permisos > el repartidor no registra cobros 105ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > no se puede asignar sin elegir pedido y repartidor 421ms
+ ✓ src/pages/Pagos.test.tsx > registro de pago > consulta las ventas con saldo solo al abrir el formulario 226ms
+ ✓ src/pages/Clientes.test.tsx > alta de cliente > envía los datos escritos al backend 2271ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > elegir un pedido muestra su punto de entrega 264ms
+ ✓ src/pages/Pagos.test.tsx > registro de pago > ofrece las ventas con saldo y exige elegir una 237ms
+ ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > seguir escribiendo vuelve a consultar con el término nuevo 1207ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > un pedido para recoger en tienda no se presenta como domicilio 233ms
+ ✓ src/pages/Pagos.test.tsx > registro de pago > precarga el monto con el saldo de la venta elegida 344ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > buscar en el recuadro vuelve a consultar con el término escrito 735ms
+ ✓ src/pages/Pagos.test.tsx > registro de pago > envía el cobro con el monto, el método y la fecha elegidos 1066ms
+ ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > la ficha del cliente elegido sobrevive a limpiar el buscador 1534ms
+ ✓ src/pages/Clientes.test.tsx > alta de cliente > muestra el error del backend bajo el campo que lo produjo 1789ms
+ ✓ src/pages/Pagos.test.tsx > registro de pago > avisa, cierra y recarga al registrar el cobro 414ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > cambiar la búsqueda retira el pedido elegido si ya no está en la lista 1040ms
+ ✓ src/pages/Pagos.test.tsx > registro de pago > señala el campo cuando el servidor rechaza el monto 470ms
+ ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > con dos caracteres muestra los candidatos 915ms
+ ✓ src/pages/Pagos.test.tsx > registro de pago > muestra un error general cuando el servidor falla sin detalles 489ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > la elección se conserva si el pedido sigue en los resultados 1151ms
+ ✓ src/pages/Pagos.test.tsx > registro de pago > cancelar descarta la venta elegida 576ms
+ ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > elegir un cliente muestra su ficha y rellena la entrega 991ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > envía el pedido, el repartidor y las observaciones escritas 934ms
+ ✓ src/pages/Clientes.test.tsx > alta de cliente > un conflicto de duplicado se muestra como aviso general 2503ms
+ ✓ src/pages/Pagos.test.tsx > registro de pago > no permite cobrar una venta que dejó de estar a la vista 947ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > sin observaciones el cuerpo lleva null y no una cadena vacía 490ms
+ ✓ src/pages/Pagos.test.tsx > anulación de pago > muestra la venta y el saldo antes de anular 258ms
+ ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > cambiar de cliente libera el formulario 1037ms
+ ✓ src/pages/Clientes.test.tsx > alta de cliente > avisa antes de dejar enviar un RUC que no tiene once dígitos 801ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > al asignar avisa con el nombre del repartidor, cierra y recarga la tabla 505ms
+ ✓ src/pages/Pedidos.test.tsx > autocompletado de cliente > dice cuando no encuentra a nadie 796ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > un pedido que ya tenía reparto explica el rechazo y deja el diálogo abierto 447ms
+ ✓ src/pages/Pagos.test.tsx > anulación de pago > no deja anular sin motivo 1010ms
+ ✓ src/pages/Pedidos.test.tsx > líneas del pedido > avisa cuando no hay ningún producto agregado 266ms
+ ✓ src/pages/Clientes.test.tsx > alta de cliente > un RUC de once dígitos no dispara el aviso 950ms
+ ✓ src/pages/Clientes.test.tsx > alta de cliente > al cambiar a empresa pide la razón social en lugar de los nombres 387ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > un repartidor que se dio de baja se explica sin perder lo escrito 900ms
+ ✓ src/pages/Pedidos.test.tsx > líneas del pedido > agregar un producto lo incorpora con cantidad uno 888ms
+ ✓ src/pages/Pagos.test.tsx > anulación de pago > manda el motivo y recarga al anular 1161ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > si el servidor no responde se muestra un mensaje que invite a reintentar 441ms
+ ✓ src/pages/Clientes.test.tsx > alta de cliente > cerrar el formulario sin guardar no registra nada 718ms
+ ✓ src/pages/Clientes.test.tsx > edición y cambio de estado > el formulario de edición se rellena con los datos del cliente 382ms
+ ✓ src/pages/Clientes.test.tsx > edición y cambio de estado > desactivar un cliente pide confirmación antes de actuar 240ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > cerrar el diálogo descarta lo que se había elegido 960ms
+ ✓ src/pages/Pagos.test.tsx > anulación de pago > mantiene el diálogo abierto si el servidor rechaza la anulación 1100ms
+ ✓ src/pages/Clientes.test.tsx > edición y cambio de estado > la confirmación explica que el historial se conserva 281ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > el diálogo y el filtro del listado ofrecen la misma gente 185ms
+ ✓ src/pages/Pedidos.test.tsx > líneas del pedido > volver a agregar el mismo producto suma a la línea existente 1433ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > no se piden los candidatos hasta que se abre el diálogo 150ms
+ ✓ src/pages/Clientes.test.tsx > edición y cambio de estado > confirmar la desactivación la ejecuta 340ms
+ ✓ src/pages/Pagos.test.tsx > anulación de pago > volver cierra sin anular 538ms
+ ✓ src/pages/Entregas.test.tsx > asignación de entrega > cerrar el diálogo no vuelve a pedir los candidatos 437ms
+ ✓ src/pages/Clientes.test.tsx > edición y cambio de estado > cancelar la confirmación no desactiva al cliente 305ms
+ ✓ src/pages/Clientes.test.tsx > filtros del listado > filtrar por tipo consulta al backend con el tipo elegido 154ms
+ ✓ src/pages/Entregas.test.tsx > ficha de la entrega > se abre nombrando el pedido al que pertenece 257ms
+ ✓ src/pages/Pedidos.test.tsx > líneas del pedido > los botones de cantidad ajustan la línea 903ms
+ ✓ src/pages/Entregas.test.tsx > ficha de la entrega > resume estado, salida, entrega y monto recibido 204ms
+ ✓ src/pages/Clientes.test.tsx > filtros del listado > el buscador llega al backend con el término escrito 518ms
+ ✓ src/pages/Entregas.test.tsx > ficha de la entrega > marca con un guion los horarios que aún no existen 205ms
+ ✓ src/pages/Entregas.test.tsx > ficha de la entrega > detalla repartidor, contacto y estado del pedido 206ms
+ ✓ src/pages/Entregas.test.tsx > ficha de la entrega > una entrega sin repartidor lo dice también en la ficha 251ms
+ ✓ src/pages/Pedidos.test.tsx > líneas del pedido > vaciar la cantidad quita la línea 877ms
+ ✓ src/pages/Entregas.test.tsx > ficha de la entrega > cuenta los bidones entregados y devueltos 205ms
+ ✓ src/pages/Entregas.test.tsx > ficha de la entrega > la demora, la firma y el motivo solo aparecen cuando existen 163ms
+ ✓ src/pages/Entregas.test.tsx > ficha de la entrega > una entrega corriente no inventa demora, firma ni motivo 183ms
+ ✓ src/pages/Entregas.test.tsx > ficha de la entrega > muestra las observaciones que dejó quien asignó el reparto 156ms
+ ✓ src/pages/Entregas.test.tsx > ficha de la entrega > lista los productos a entregar con su cantidad 186ms
+ ✓ src/pages/Entregas.test.tsx > ficha de la entrega > una entrega cuyos productos no se conocen omite ese bloque 199ms
+ ✓ src/pages/Entregas.test.tsx > ficha de la entrega > cerrar la ficha la devuelve al listado 252ms
+ ✓ src/pages/Pedidos.test.tsx > líneas del pedido > avisa cuando la cantidad supera el stock disponible 1109ms
+ ✓ src/pages/Pedidos.test.tsx > líneas del pedido > superar el stock no bloquea el registro 1843ms
+ ✓ src/pages/Pedidos.test.tsx > importes mostrados mientras se compone el pedido > el subtotal sale del catálogo y la cantidad de cada línea 1782ms
+ ✓ src/pages/Pedidos.test.tsx > importes mostrados mientras se compone el pedido > el descuento se resta del total estimado 1308ms
+ ✓ src/pages/Pedidos.test.tsx > importes mostrados mientras se compone el pedido > un descuento mayor que el subtotal deja el total en cero, no en negativo 793ms
+ ✓ src/pages/Pedidos.test.tsx > importes mostrados mientras se compone el pedido > aclara que el importe definitivo lo calcula el servidor 157ms
+ ✓ src/pages/Pedidos.test.tsx > datos de entrega > a domicilio pide la dirección y la referencia 159ms
+ ✓ src/pages/Pedidos.test.tsx > datos de entrega > en retiro no pide dirección: no hay a dónde deliver 291ms
+ ✓ src/pages/Pedidos.test.tsx > registro del pedido > envía cliente, productos y entrega al backend 2507ms
+ ✓ src/pages/Pedidos.test.tsx > registro del pedido > no envía el importe estimado: el total lo recalcula el servidor 2081ms
+ ✓ src/pages/Pedidos.test.tsx > registro del pedido > los campos opcionales vacíos viajan como null, no como texto vacío 1561ms
+ ✓ src/pages/Pedidos.test.tsx > registro del pedido > confirma en el mismo paso si se marca la casilla 1591ms
+ ✓ src/pages/Pedidos.test.tsx > registro del pedido > la incidencia se registra tal como la reportó el cliente 2882ms
+ ✓ src/pages/Pedidos.test.tsx > registro del pedido > la incidencia no marca el pedido por sí sola: eso es una decisión del vendedor 2201ms
+ ✓ src/pages/Pedidos.test.tsx > registro del pedido > la marca de requiere corrección se envía al backend 1661ms
+ ✓ src/pages/Pedidos.test.tsx > registro del pedido > muestra el código del pedido creado 1560ms
+ ✓ src/pages/Pedidos.test.tsx > registro del pedido > un error del backend se sitúa en el campo que lo produjo 1586ms
+ ✓ src/pages/Pedidos.test.tsx > registro del pedido > un error sin campo asociado se muestra como aviso general 1441ms
+ ✓ src/pages/Pedidos.test.tsx > cambio de estado > confirma un pedido pendiente 286ms
+ ✓ src/pages/Pedidos.test.tsx > cambio de estado > un pedido cancelado se reabre, y el botón lo dice 290ms
+ ✓ src/pages/Pedidos.test.tsx > cambio de estado > un pedido en ruta ofrece "Entregar" solo donde corresponde 112ms
+ ✓ src/pages/Pedidos.test.tsx > cambio de estado > explica que el cambio queda en el historial antes de aplicarlo 204ms
+ ✓ src/pages/Pedidos.test.tsx > cambio de estado > cancelar exige un motivo 1781ms
+ ✓ src/pages/Pedidos.test.tsx > cambio de estado > cancelar explica que el motivo queda en la bitácora 207ms
+ ✓ src/pages/Pedidos.test.tsx > cambio de estado > volver no cambia nada 288ms
+ ✓ src/pages/Pedidos.test.tsx > cambio de estado > un cambio rechazado se informa sin perder el listado 287ms
+ ✓ src/pages/Pedidos.test.tsx > ficha del pedido > muestra el desglose con subtotal y total 226ms
+ ✓ src/pages/Pedidos.test.tsx > ficha del pedido > enseña el historial de estados 231ms
+ ✓ src/pages/Pedidos.test.tsx > ficha del pedido > un pedido sin historial lo dice, en lugar de mostrar un hueco 249ms
+ ✓ src/pages/Pedidos.test.tsx > ficha del pedido > muestra la venta asociada y su saldo 241ms
+ ✓ src/pages/Pedidos.test.tsx > ficha del pedido > si la ficha no se puede cargar, avisa y cierra el diálogo 248ms
+
+ Test Files  12 passed (12)
+      Tests  239 passed (239)
+   Start at  09:05:36
+   Duration  57.35s (environment 44%, tests 41%, setup 9%, transform 4%, import 2%)
 
