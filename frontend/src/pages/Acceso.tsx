@@ -40,107 +40,60 @@ export const PaginaAcceso = () => {
   }
 
   return (
-    <div className="flex min-h-dvh bg-slate-50">
-      {/* Panel de marca. Se oculta en móvil porque el formulario es lo
-          esencial y la pantalla es estrecha. */}
-      <div className="relative hidden w-1/2 flex-col justify-between bg-gradient-to-br from-marca-800 via-marca-700 to-marca-900 p-10 text-white lg:flex">
-        <Marca />
-        <div className="max-w-md">
-          <h2 className="text-2xl font-semibold leading-snug">
-            Sistema de gestión de ventas, pedidos y reparto
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-marca-100">
-            Agua purificada en bidones de 20 litros. Controle el circuito completo: registro del
-            pedido, venta, cobro, entrega y devolución de envases.
-          </p>
-          <ul className="mt-6 space-y-2 text-sm text-marca-100">
-            {[
-              'Trazabilidad de cada pedido, venta y entrega',
-              'Control de stock y saldos de bidones por cliente',
-              'Indicadores del proceso de ventas en tiempo real',
-            ].map((texto) => (
-              <li key={texto} className="flex items-start gap-2">
-                <svg
-                  className="mt-0.5 h-4 w-4 shrink-0 text-marca-300"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M20 6L9 17l-5-5"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                {texto}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <p className="text-xs text-marca-300">
-          Sistema de información para la tesis de grado — 2026
-        </p>
-      </div>
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-marca-50 px-4 py-12">
+      <Marca />
 
-      <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-1/2 lg:px-16">
-        <div className="mx-auto w-full max-w-sm">
-          <div className="lg:hidden">
-            <Marca compacta />
+      <div className="mt-8 w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
+        <h1 className="text-center text-lg font-semibold tracking-tight text-slate-900">
+          Iniciar sesión
+        </h1>
+
+        {aviso && (
+          <div className="mt-5">
+            <Aviso tipo="aviso" mensaje={aviso} alCerrar={limpiarAviso} />
           </div>
+        )}
 
-          <h1 className="mt-8 text-2xl font-semibold text-slate-900 lg:mt-0">Iniciar sesión</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Ingrese con las credenciales asignadas por el administrador.
-          </p>
+        <form
+          className="mt-6 space-y-5"
+          onSubmit={(evento) => {
+            evento.preventDefault()
+            acceder()
+          }}
+          noValidate
+        >
+          <Entrada
+            etiqueta="Correo electrónico"
+            type="email"
+            autoComplete="username"
+            required
+            autoFocus
+            placeholder="usuario@aguarespura.pe"
+            value={valores.correo}
+            error={errores.correo}
+            onChange={(evento) => cambiar('correo', evento.target.value)}
+          />
 
-          {aviso && (
-            <div className="mt-4">
-              <Aviso tipo="aviso" mensaje={aviso} alCerrar={limpiarAviso} />
-            </div>
-          )}
-
-          <form
-            className="mt-6 space-y-4"
-            onSubmit={(evento) => {
-              evento.preventDefault()
-              acceder()
-            }}
-            noValidate
-          >
+          <div className="relative">
             <Entrada
-              etiqueta="Correo electrónico"
-              type="email"
-              autoComplete="username"
+              etiqueta="Contraseña"
+              type={mostrarContrasena ? 'text' : 'password'}
+              autoComplete="current-password"
               required
-              autoFocus
-              placeholder="usuario@aguarespura.pe"
-              value={valores.correo}
-              error={errores.correo}
-              onChange={(evento) => cambiar('correo', evento.target.value)}
+              value={valores.contrasena}
+              error={errores.contrasena}
+              onChange={(evento) => cambiar('contrasena', evento.target.value)}
             />
-
-            <div className="relative">
-              <Entrada
-                etiqueta="Contraseña"
-                type={mostrarContrasena ? 'text' : 'password'}
-                autoComplete="current-password"
-                required
-                value={valores.contrasena}
-                error={errores.contrasena}
-                onChange={(evento) => cambiar('contrasena', evento.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => setMostrarContrasena((visible) => !visible)}
-                className="absolute right-2 top-[1.85rem] rounded p-1.5 text-slate-400 hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-slate-400"
-                aria-label={mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-              >
-                {mostrarContrasena ? (
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path
-                      d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.4 5.3A9.8 9.8 0 0112 5c5 0 9 4.5 9 7 0 .8-.7 2-1.9 3.2M6.3 6.3C4 8 2 10.5 2 12c0 2.5 4 7 9 7 1 0 2-.2 2.9-.5"
+            <button
+              type="button"
+              onClick={() => setMostrarContrasena((visible) => !visible)}
+              className="absolute right-2 top-[1.85rem] rounded p-1.5 text-slate-400 hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-slate-400"
+              aria-label={mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {mostrarContrasena ? (
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.4 5.3A9.8 9.8 0 0112 5c5 0 9 4.5 9 7 0 .8-.7 2-1.9 3.2M6.3 6.3C4 8 2 10.5 2 12c0 2.5 4 7 9 7 1 0 2-.2 2.9-.5"
                       stroke="currentColor"
                       strokeWidth="1.5"
                       strokeLinecap="round"
@@ -160,7 +113,7 @@ export const PaginaAcceso = () => {
               </button>
             </div>
 
-            <label className="flex items-center gap-2 text-sm text-slate-700">
+            <label className="flex items-center justify-between text-sm text-slate-600">
               <input
                 type="checkbox"
                 checked={valores.recordar}
@@ -183,32 +136,32 @@ export const PaginaAcceso = () => {
               {enviando ? 'Verificando…' : 'Ingresar'}
             </Boton>
           </form>
-
-          <p className="mt-8 text-center text-xs leading-relaxed text-slate-500">
-            ¿Olvidó su contraseña? Solicite el restablecimiento al administrador del sistema.
-          </p>
-        </div>
       </div>
+
+      <p className="mt-8 text-center text-xs text-slate-400">Tesis de grado · 2026</p>
     </div>
   )
 }
 
-const Marca = ({ compacta }: { compacta?: boolean }) => (
-  <div className="flex items-center gap-3">
+const Marca = () => (
+  <div className="flex flex-col items-center gap-2 text-center">
     <span
-      className={clases(
-        'flex items-center justify-center rounded-xl bg-white/15 font-semibold text-white ring-1 ring-white/25',
-        compacta ? 'h-10 w-10 text-sm' : 'h-12 w-12 text-lg',
-      )}
+      className="flex h-14 w-14 items-center justify-center rounded-xl bg-marca-700 text-white shadow-sm"
       aria-hidden="true"
     >
-      A3
+      <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M12 3s6 6.4 6 10.7a6 6 0 11-12 0C6 9.4 12 3 12 3z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+        <path d="M9 13.5a3 3 0 002.4 2.9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
     </span>
     <div>
-      <p className={clases('font-semibold', compacta ? 'text-slate-900' : 'text-white')}>
-        Agua Tres Estrellas
-      </p>
-      <p className={clases('text-xs', compacta ? 'text-slate-500' : 'text-marca-200')}>Pura</p>
+      <p className="font-semibold text-slate-900">Agua Tres Estrellas</p>
+      <p className="text-xs text-slate-500">Pura</p>
     </div>
   </div>
 )
