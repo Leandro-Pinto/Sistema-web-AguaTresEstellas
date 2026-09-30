@@ -596,19 +596,25 @@ export const reportes = {
   costoConsultas: () => http.get<FilaReporte[]>('/reportes/costo-consultas'),
 
   /**
-   * Descarga el CSV del reporte pedido. Va por `http.descargar` y no por la
-   * envoltura JSON: la respuesta es un archivo, no `{ exito, datos }`.
+   * Descarga el reporte pedido en el formato dado. Va por `http.descargar` y
+   * no por la envoltura JSON: la respuesta es un archivo, no `{ exito, datos }`.
    *
    * `params` se recibe armado por la pantalla porque no todos los reportes
    * usan las mismas claves: los de rango piden `fechaInicio`/`fechaFin`, el
    * consolidado diario solo `fecha`, y los filtrados repiten sus filtros.
    */
-  descargarCsv: (reporte: ClaveReporte, params: Record<string, string> = {}) =>
+  descargarReporte: (reporte: ClaveReporte, formato: 'csv' | 'pdf', params: Record<string, string> = {}) =>
     http.descargar(
       `/reportes/${reporte}`,
-      `reporte-${reporte}-${(params.fechaFin ?? params.fecha ?? new Date().toISOString().slice(0, 10))}.csv`,
-      { ...sinVacios({ ...params }), formato: 'csv' },
+      `reporte-${reporte}-${(params.fechaFin ?? params.fecha ?? new Date().toISOString().slice(0, 10))}.${formato}`,
+      { ...sinVacios({ ...params }), formato },
     ),
+
+  descargarCsv: (reporte: ClaveReporte, params: Record<string, string> = {}) =>
+    reportes.descargarReporte(reporte, 'csv', params),
+
+  descargarPdf: (reporte: ClaveReporte, params: Record<string, string> = {}) =>
+    reportes.descargarReporte(reporte, 'pdf', params),
 
   /**
    * Exportación de indicadores: la genera el backend en CSV y es exclusiva de

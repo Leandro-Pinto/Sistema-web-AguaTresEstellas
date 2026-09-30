@@ -33,7 +33,7 @@ interface DefinicionReporte {
   admin?: boolean
   /** Reportes que no aceptan un rango ni una fecha (costo de consultas). */
   sinFecha?: boolean
-  /** Reportes sin exportación CSV en el backend. */
+  /** Reportes sin exportación (CSV ni PDF) en el backend. */
   descargable?: boolean
   /**
    * Cuando es `true`, las claves de `resumen` se resuelven contra la raíz de la
@@ -457,7 +457,7 @@ const Reportes = () => {
   const [fecha, setFecha] = useState(hoy)
   const [filtro, setFiltro] = useState('')
 
-  const [descargando, setDescargando] = useState(false)
+  const [descargando, setDescargando] = useState<'csv' | 'pdf' | null>(null)
   const [aviso, setAviso] = useState<{ tipo: 'exito' | 'error'; mensaje: string } | null>(null)
 
   // El rango se envía siempre ordenado: si alguien invierte las fechas, el
@@ -528,19 +528,25 @@ const Reportes = () => {
   const periodo = cuerpo.periodo as { fechaInicio?: string; fechaFin?: string } | undefined
   const fechaInicioReal = periodo?.fechaInicio ?? (cuerpo.fecha as string | undefined)
 
-  const descargar = async () => {
-    setDescargando(true)
+  const descargar = async (formato: 'csv' | 'pdf') => {
+    setDescargando(formato)
     try {
-      await reportes.descargarCsv(definicion.clave, {
-        ...(definicion.usaRango ? { fechaInicio: rangoOrdenado.fechaInicio, fechaFin: rangoOrdenado.fechaFin } : {}),
+      const params = {
+        ...(definicion.usaRango
+          ? { fechaInicio: rangoOrdenado.fechaInicio, fechaFin: rangoOrdenado.fechaFin }
+          : {}),
         ...(definicion.usaRango ? {} : { fecha }),
         ...filtrosActivos,
+      }
+      await reportes.descargarReporte(definicion.clave, formato, params)
+      setAviso({
+        tipo: 'exito',
+        mensaje: `El reporte de ${definicion.nombre.toLowerCase()} se descargó en ${formato.toUpperCase()}.`,
       })
-      setAviso({ tipo: 'exito', mensaje: `El reporte de ${definicion.nombre.toLowerCase()} se descargó en CSV.` })
     } catch {
       setAviso({ tipo: 'error', mensaje: 'No se pudo descargar el reporte. Intente nuevamente.' })
     } finally {
-      setDescargando(false)
+      setDescargando(null)
     }
   }
 
@@ -550,9 +556,24 @@ const Reportes = () => {
       descripcion="Consolidados del periodo para la tesis: los datos los calcula el backend, aquí solo se presentan y descargan."
       acciones={
         definicion.descargable !== false && (
-          <Boton variante="secundario" onClick={descargar} cargando={descargando}>
-            Descargar CSV
-          </Boton>
+          <>
+            <Boton
+              variante="secundario"
+              onClick={() => void descargar('csv')}
+              cargando={descargando === 'csv'}
+              disabled={descargando !== null}
+            >
+              Descargar CSV
+            </Boton>
+            <Boton
+              variante="secundario"
+              onClick={() => void descargar('pdf')}
+              cargando={descargando === 'pdf'}
+              disabled={descargando !== null}
+            >
+              Descargar PDF
+            </Boton>
+          </>
         )
       }
     >
