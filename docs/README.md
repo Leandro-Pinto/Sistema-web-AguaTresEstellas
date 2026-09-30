@@ -32,5 +32,7 @@ sistema-web/
 
 ## Estado
 
-Suite de pruebas automatizadas: **85 pruebas en 6 archivos, todas en verde**
-(`cd backend && npm test`).
+Suites de pruebas automatizadas, todas en verde:
+
+- **Backend:** 88 pruebas en 6 archivos (`cd backend && npm test`).
+- **Frontend:** 239 pruebas en 12 archivos (`cd frontend && npx vitest run`).

@@ -4,10 +4,10 @@ Revisión del sistema existente frente a las especificaciones del proyecto. La
 primera pasada no modificó el código: registró qué coincide, qué difiere y qué
 se decide no cambiar, con la razón técnica. Las secciones 3 y 4 reflejan el
 estado en esa fecha; la sección 6 registra las intervenciones posteriores que
-cerraron D5 y D10.
+cerraron D5, D10 y D7.
 
 Fecha: 2026-09-29
-Actualizado: 2026-09-29 — D5 y D10 resueltas; queda D7 como única brecha real.
+Actualizado: 2026-09-30 — D5, D10 y D7 resueltas; no quedan brechas reales.
 
 ---
 
@@ -17,7 +17,7 @@ Actualizado: 2026-09-29 — D5 y D10 resueltas; queda D7 como única brecha real
 |---|---|---|
 | Tipos del backend | `npm run typecheck` | Sin errores |
 | Tipos de scripts/prisma/tests | `npm run typecheck:scripts` | Sin errores |
-| Suite de pruebas | `npm test` | **85/85 pasan**, 6 suites, 37.7 s |
+| Suite de pruebas | `npm test` | **88/88 pasan**, 6 suites, 56.3 s |
 | Compilación del frontend | `npm run build` | Correcta, 484 kB (130 kB gzip) |
 | Lint del frontend | `npm run lint` | Sin hallazgos |
 | Módulos de Clientes | CRUD completo por API | Verificado, incluye rechazo de duplicados |
@@ -161,7 +161,7 @@ de API y protección de rutas.
 **Sistema (en la fecha de la auditoría):** cero archivos de prueba en
 `frontend/`.
 
-**Estado: resuelta.** Ver sección 6.2: 11 archivos y 233 pruebas, y además
+**Estado: resuelta.** Ver sección 6.2: 12 archivos y 239 pruebas, y además
 cuatro defectos de las pantallas de Pagos y Entregas que las pruebas destaparon
 y que quedaron corregidos.
 
@@ -177,9 +177,10 @@ riesgo.
 ### D7. Sin exportación a PDF
 
 **Prompt §23:** pide PDF y Excel/CSV.
-**Sistema:** solo CSV (`reportes.controller.ts:36`).
+**Sistema (en la fecha de la auditoría):** solo CSV (`reportes.controller.ts:36`).
 
-**Estado: brecha real**, de alcance conocido.
+**Estado: resuelta.** Ver sección 6.6: exportación PDF con PDFKit y los mismos
+datos que la vista, pruebas en ambas suites y evidencia real en `evidencias/`.
 
 ### D8. Estructura de `docs/`
 
@@ -218,9 +219,8 @@ Eran tres, en orden de prioridad:
 2. **D10 — Historial de Git.** Todo el trabajo estaba sin versionar.
 3. **D7 — Exportación a PDF.**
 
-**Estado actual:** las dos primeras quedaron resueltas (sección 6). La única
-brecha real que sigue abierta es **D7 — Exportación a PDF**, de alcance
-conocido.
+**Estado actual:** las tres quedaron resueltas (sección 6). No queda ninguna
+brecha real frente al prompt.
 
 Las diferencias D1, D2, D3, D4, D6, D8 y D9 son formales: el comportamiento
 del sistema cumple el prompt aunque la forma difiera. No justifican refactorizar
@@ -249,7 +249,7 @@ Se registra para que no se pierda en futuras revisiones:
 
 ## 6. Intervenciones posteriores a la auditoría
 
-Tras esta revisión se cerraron las dos brechas prioritarias. Todo el trabajo
+Tras esta revisión se cerraron las tres brechas reales. Todo el trabajo
 queda registrado en el historial de Git del repositorio.
 
 ### 6.1 Verificación ejecutada después de las intervenciones
@@ -257,15 +257,20 @@ queda registrado en el historial de Git del repositorio.
 | Comprobación | Comando | Resultado |
 |---|---|---|
 | Tipos del frontend | `npx tsc -b` | Sin errores |
-| Pruebas del frontend | `npx vitest run` | **233/233 pasan**, 11 archivos, 46.8 s |
+| Pruebas del frontend | `npx vitest run` | **239/239 pasan**, 12 archivos, 57.4 s |
 | Lint del frontend | `npm run lint` | Sin hallazgos |
-| Historial de Git | `git log --oneline` | 8 commits conventional en `main` |
+| Tipos del backend | `npm run typecheck` | Sin errores |
+| Pruebas del backend | `npm test` | **88/88 pasan**, 6 suites, 56.3 s |
+| Descarga PDF real | `GET /api/reportes/ventas?formato=pdf` | PDF válido con 500 filas de detalle |
+| Historial de Git | `git log --oneline` | 12 commits conventional en `main` |
 
-La suite del backend no se modificó: sigue en 85/85.
+La suite del backend pasó de 85 a 88 casos con las tres pruebas de exportación
+PDF; la del frontend, de 233 a 239 con las seis pruebas de la pantalla de
+Reportes.
 
 ### 6.2 D5 resuelta: pruebas de frontend
 
-Se añadieron 11 archivos de prueba con 233 casos, cubriendo lo que el prompt
+Se añadieron 12 archivos de prueba con 239 casos, cubriendo lo que el prompt
 §34 pide: formularios y sus validaciones, navegación, errores de API y protección
 de rutas.
 
@@ -282,6 +287,7 @@ de rutas.
 | `pages/Pedidos.test.tsx` | Listado, autocompletado de cliente, líneas, importes, datos de entrega, registro, cambio de estado y ficha |
 | `pages/Entregas.test.tsx` | Listado, asignación y ficha de la entrega |
 | `pages/Pagos.test.tsx` | Resumen de cobranza, listado, permisos, registro y anulación |
+| `pages/Reportes.test.tsx` | Despliegue de reportes, formato y filtros de la descarga CSV y PDF, reportes sin exportación |
 
 ### 6.3 Defectos que las pruebas destaparon
 
@@ -313,11 +319,53 @@ por separado:
 | `test(frontend)` | 233 pruebas de frontend |
 | `docs` | Documentación y evidencias del postest |
 
+Con el cierre de D7 (sección 6.6) se añadieron cinco commits más:
+
+| Commit | Contenido |
+|---|---|
+| `feat(backend)` | Exportación a PDF de todos los reportes (`utils/pdf.ts`) |
+| `test(backend)` | Tres pruebas de la descarga PDF y suite regenerada |
+| `feat(frontend)` | Botón de descarga en PDF en la pantalla de Reportes |
+| `test(frontend)` | Seis pruebas de la pantalla de Reportes y suite regenerada |
+| `docs` | Auditoría completa, documentación del postest y evidencias PDF reales |
+
+En total son **17 commits conventional** en `main`.
+
 172 archivos versionados. `.env`, `node_modules/` y `dist/` quedan fuera por
 `.gitignore`, mientras que `.env.example` sí se versiona. El repositorio aún no
 tiene remoto configurado.
 
-### 6.5 Lo que queda
+### 6.5 D7 resuelta: exportación a PDF
 
-**D7 — Exportación a PDF** sigue abierta: `reportes.controller.ts` solo genera
-CSV. Es la única brecha real pendiente frente al prompt.
+**Prompt §23** pide que los reportes se exporten en PDF y Excel/CSV. El sistema
+ya tenía CSV y Excel (CSV con BOM), con las dos suites en verde; faltaba el PDF.
+
+Se añadió `backend/src/utils/pdf.ts`, que compone el documento con PDFKit y las
+fuentes estándar Helvetica (cubren los acentos del español sin archivos de
+fuente). El PDF no es una sola tabla: reproduce el **resumen y todas las listas**
+de cada reporte en secciones, con tablas de columnas proporcionales, paginación,
+encabezado y pie de página por página, y números alineados a la derecha. El
+controlador `entregarReporte` responde el mismo contenido en JSON, CSV o PDF
+según `formato`; la pantalla de Reportes ofrece los tres botones de descarga
+(CSV y PDF) y conserva el rango y los filtros del periodo que se está mirando.
+
+Garantías verificadas:
+
+| Comprobación | Resultado |
+|---|---|
+| `formato=pdf` devuelve `application/pdf`, nombre `reporte_<clave>_<fecha>.pdf` y un PDF con `%PDF-`, páginas y `%%EOF` | 3 pruebas nuevas en `tests/reportes.test.ts` |
+| El PDF no rompe cuando el periodo no tiene registros | Probado |
+| El reporte sin listas (tiempos de proceso) exporta sus indicadores | Probado |
+| La descarga en la interfaz envía `formato=csv` o `formato=pdf` y mantiene el rango | 6 pruebas nuevas en `pages/Reportes.test.tsx` |
+| Descarga real | `GET /api/reportes/ventas?formato=pdf`: PDF válido con el detalle del periodo |
+
+Los seis PDF de muestra generados con datos del postest quedan en `evidencias/`
+(`reporte-*.pdf`).
+
+### 6.6 Resumen final
+
+No quedan brechas reales frente al prompt maestro. Las diferencias D1, D2, D3,
+D4, D6, D8 y D9 siguen siendo formales y, como se explica en sus secciones, no
+justifican refactorizar lo que funciona. El sistema queda con **88 pruebas de
+integración y 239 pruebas de interfaz**, todas en verde, y **17 commits
+conventional** en `main`.

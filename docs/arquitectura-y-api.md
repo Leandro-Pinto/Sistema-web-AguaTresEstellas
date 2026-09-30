@@ -32,7 +32,7 @@ aplicación, sin escribir directamente en la base.
 | Controladores | `src/controllers/` | Traducen la petición y la respuesta HTTP. |
 | Servicios | `src/services/` | Reglas de negocio y acceso a datos. |
 | Middlewares | `src/middlewares/` | Autenticación, autorización, validación, bitácora y errores. |
-| Utilidades | `src/utils/` | Fechas, exportación CSV, dinero. |
+| Utilidades | `src/utils/` | Fechas, exportación CSV y PDF, dinero. |
 | Configuración | `src/config/` | Variables de entorno y cliente de Prisma. |
 
 ### Middlewares de la cadena
@@ -243,7 +243,7 @@ Prefijo: `/api`. Excepción: la salud pública responde en `/salud`.
 | GET | `/reportes/indicadores/{proceso,sistema,comparativo,pretest,periodo}` | Autenticado |
 | GET | `/reportes/indicadores/exportar` | Administrador |
 
-Los reportes aceptan `formato=csv` para descargarse.
+Los reportes aceptan `formato=csv` o `formato=pdf` para descargarse (sección 7).
 
 ## 6. Forma de las respuestas
 
@@ -259,7 +259,7 @@ Toda respuesta JSON comparte la misma envoltura:
 { "exito": false, "mensaje": "No se encontró el pedido", "codigo": "NO_ENCONTRADO" }
 ```
 
-Con `?formato=csv` la respuesta es el archivo, no la envoltura.
+Con `?formato=csv` o `?formato=pdf` la respuesta es el archivo, no la envoltura.
 
 ### Reportes con resumen y listas
 
@@ -331,11 +331,16 @@ sistema y la comparación. Cuando un valor del pretest no se ha medido, viaja
 como `null` y la interfaz lo muestra como «sin dato» en vez de como cero: un 0
 inventado se lee como una medición, y no lo es.
 
-## 7. Exportación CSV
+## 7. Exportación CSV y PDF
 
-`?formato=csv` devuelve el archivo como adjunto, con BOM y separador `;`, que es
-lo que Excel en español abre sin pasos extra.
+Los reportes se descargan con `?formato=csv` o `?formato=pdf`. En ambos casos la
+respuesta es un archivo adjunto con cabecera `Content-Disposition
+attachment`, y el nombre empieza por el prefijo del reporte y termina con la
+fecha-hora de generación.
 
+### CSV
+
+- Con BOM y separador `;`, que es lo que Excel en español abre sin pasos extra.
 - Si el reporte tiene listas, se exporta **la más extensa**, que es el detalle
   que se está viendo en pantalla. Los cuadros resumen no se cuelan en el
   archivo.
@@ -344,8 +349,25 @@ lo que Excel en español abre sin pasos extra.
 - Los objetos anidados se aplanan con notación de punto: `cliente.nombre`.
 - Los importes de Prisma se escriben como número. No se desarman en sus
   atributos internos.
-- `diario` y `costo-consultas` no admiten CSV; la interfaz no les ofrece el
-  botón de descarga.
+
+### PDF
+
+A diferencia del CSV, el PDF no exporta una sola tabla: reproduce el **resumen
+y todas las listas** del reporte en secciones, para que sea legible impreso y
+equivale a lo que el usuario ve en pantalla.
+
+- Se genera en memoria con PDFKit y las fuentes estándar Helvetica, cuya
+  codificación cubre los acentos del español sin depender de archivos de
+  fuente.
+- Cada lista se dibuja como una tabla de columnas proporcionales, con los
+  importes y conteos alineados a la derecha.
+- El documento pagina automáticamente: repite encabezado de tabla, título de
+  reporte y banda superior en cada página, y lleva pie de página con fecha y
+  «página X de Y».
+- Si el periodo no tiene registros, la sección dice «Sin registros en el
+  periodo.» en lugar de imprimir una tabla vacía.
+- `diario` y `costo-consultas` no admiten exportación; la interfaz no les
+  ofrece botón de descarga.
 
 ## 8. Registro y observabilidad
 

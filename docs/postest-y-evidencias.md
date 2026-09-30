@@ -289,12 +289,19 @@ evidencias/
 │   ├── bidones.csv         Movimientos de envases
 │   ├── inventario.csv      Movimientos de stock
 │   └── tiempos-proceso.csv Indicadores por etapa
+├── reporte-ventas.pdf        Reporte de ventas completo (resumen y listas)
+├── reporte-pedidos.pdf       Reporte de pedidos completo
+├── reporte-pagos.pdf         Reporte de pagos completo
+├── reporte-entregas.pdf      Reporte de entregas completo
+├── reporte-inventario.pdf    Reporte de inventario completo
+├── reporte-clientes.pdf      Reporte de clientes completo
 ├── suite-pruebas.txt          Salida de `npm test` (backend)
 └── suite-pruebas-frontend.txt Salida de `npx vitest run` (frontend)
 ```
 
-Los CSV corresponden a la llamada con `formato=csv` y al periodo
-2026-08-31 a 2026-09-30, con el administrador como usuario. Se generan con:
+Los CSV y PDF corresponden a la llamada con `formato=csv` o `formato=pdf` y al
+periodo 2026-08-31 a 2026-09-30, con el administrador como usuario. Se generan
+con:
 
 ```bash
 curl -H "Authorization: Bearer $TOKEN" \
@@ -310,6 +317,7 @@ curl -H "Authorization: Bearer $TOKEN" \
 | `indicadores/sistema.json` | `GET /api/reportes/indicadores/sistema` |
 | `indicadores/comparativo.json` | `GET /api/reportes/indicadores/comparativo` |
 | `reportes-csv/*.csv` | `GET /api/reportes/{reporte}?formato=csv` |
+| `reporte-*.pdf` | `GET /api/reportes/{reporte}?formato=pdf` |
 | `suite-pruebas.txt` | `npm test` (backend) |
 | `suite-pruebas-frontend.txt` | `npx vitest run` (frontend) |
 
@@ -322,7 +330,7 @@ Dos suites automatizadas, una por capa:
 | [`evidencias/suite-pruebas.txt`](../evidencias/suite-pruebas.txt) | Backend — `npm test` (Jest) | API y reglas de negocio, contra `DATABASE_URL_TEST` |
 | [`evidencias/suite-pruebas-frontend.txt`](../evidencias/suite-pruebas-frontend.txt) | Frontend — `npx vitest run` | Componentes, hooks, sesión, cliente HTTP y pantallas |
 
-### Backend: 85 pruebas en 6 archivos, todas en verde
+### Backend: 88 pruebas en 6 archivos, todas en verde
 
 | Archivo | Cubre |
 |---|---|
@@ -330,10 +338,16 @@ Dos suites automatizadas, una por capa:
 | `pedidos.test.ts` | Alta de pedido, transiciones de estado, historial, listado y conteo. |
 | `ventas-pagos.test.ts` | Alta y anulación de venta, alta y anulación de pago. |
 | `entregas-bidones.test.ts` | Asignación, recorrido, saldos de envases, aislamiento del repartidor. |
-| `reportes.test.ts` | Forma de las respuestas, descarga CSV, totales del resumen y control de acceso. |
+| `reportes.test.ts` | Forma de las respuestas, descarga CSV y PDF, totales del resumen y control de acceso. |
 | `salud-catalogo.test.ts` | Salud del servicio, catálogo, inventario y alertas. |
 
-**85 pruebas en 6 archivos, todas en verde.**
+**88 pruebas en 6 archivos, todas en verde.**
+
+Las tres últimas pruebas comprueban la descarga PDF: que el archivo empiece por
+`%PDF-`, que tenga `/Type /Page`, que termine en `%%EOF` y que el nombre siga el
+patrón `reporte_<clave>_<fecha>.pdf`; que un periodo sin registros genere el PDF
+igual sin romper; y que el reporte sin listas (`tiempos-proceso`) exporte sus
+indicadores con el título asignado.
 
 Dos de ellas merecen mención: crean 520 filas reales para comprobar que los
 totales del resumen siguen contando el periodo completo y no el detalle
@@ -345,7 +359,7 @@ Las pruebas se ejecutan contra `DATABASE_URL_TEST`, una base aparte. Ejecutar
 acentos sin corromperse, la captura se hace con la redirección del proceso
 (`cmd /c "npm test > archivo 2>&1"`), no pasándola por una tubería.
 
-### Frontend: 233 pruebas en 11 archivos, todas en verde
+### Frontend: 239 pruebas en 12 archivos, todas en verde
 
 | Archivo | Cubre |
 |---|---|
@@ -360,6 +374,7 @@ acentos sin corromperse, la captura se hace con la redirección del proceso
 | `pages/Pedidos.test.tsx` | Listado, autocompletado de cliente, líneas, importes, datos de entrega, registro y estados |
 | `pages/Entregas.test.tsx` | Listado, asignación y ficha de la entrega |
 | `pages/Pagos.test.tsx` | Resumen de cobranza, listado, permisos, registro y anulación |
+| `pages/Reportes.test.tsx` | Despliegue de reportes, descarga CSV y PDF con rango y filtros, avisos de fallo, reportes sin exportación |
 
 Estas pruebas se ejecutan sin red ni base de datos: el cliente HTTP se
 sustituye por un mock. Al escribirlas destaparon cuatro defectos reales de las
