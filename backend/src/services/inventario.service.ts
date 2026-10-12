@@ -4,10 +4,12 @@ import {
   AccionHistorial,
   TipoRegistroHistorial,
 } from '@prisma/client';
+import type { OrigenDato } from '@prisma/client';
 import { config, prisma } from '../config';
 import { ErrorConflicto, ErrorNoEncontrado, ErrorReglaNegocio } from '../utils/errors';
 import { construirPaginacion } from '../utils/paginacion';
 import { registrarHistorial } from './historial.service';
+import { origenDe } from './origen-dato';
 import {
   listarMovimientosInventarioSchema,
   type MovimientoInventarioInput,
@@ -21,11 +23,20 @@ export interface AplicarMovimientoInput {
   tipo: TipoMovimientoInventario;
   cantidad: number;
   usuarioId: number;
+  /**
+   * Motivo del movimiento dentro del proceso (`VENTA`, `COMPRA`, `AJUSTE`).
+   *
+   * No es lo mismo que la procedencia del dato, que va en `procedencia`: aquí
+   * se responde "por qué se movió el stock" y en el otro campo "quién lo
+   * pidió". Confundirlos dejaría un movimiento del simulador con motivo `REAL`.
+   */
   origen: string;
   observaciones?: string | null;
   pedidoId?: number | null;
   ventaId?: number | null;
   movimientoBidonId?: number | null;
+  /** Procedencia del dato que provoca el movimiento. Por defecto, `REAL`. */
+  procedencia?: OrigenDato;
 }
 
 /**
@@ -123,6 +134,10 @@ export const aplicarMovimientoInventario = async (
       descripcion: `Movimiento de inventario ${entrada.tipo} de ${entrada.cantidad} unidad(es) en ${producto.nombre}`,
       observaciones: entrada.observaciones ?? null,
       usuarioId: entrada.usuarioId,
+      // El rastro hereda la procedencia de quien lo provocó. Sin esto, un
+      // movimiento provocado por una venta simulada quedaría registrado como
+      // real y la trazabilidad mostraría una operación que no ocurrió.
+      origen: origenDe({ origen: entrada.procedencia }),
     },
     tx,
   );

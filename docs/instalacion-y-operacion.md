@@ -15,18 +15,26 @@ servidor accesible desde `127.0.0.1:3306` con el usuario configurado.
 
 ### 2.1 Base de datos
 
-Crear la base de datos de trabajo y la de pruebas. Son dos bases separadas a
-propósito: ejecutar las pruebas nunca debe tocar los datos del postest.
+Crear la base de datos de trabajo, la de pruebas y la de demostración. Son tres
+bases separadas a propósito: ejecutar las pruebas nunca debe tocar los datos
+reales, y el simulador nunca debe poder escribirlos.
 
 ```sql
 CREATE DATABASE agua_tres_estrellas CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE DATABASE agua_tres_estrellas_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE agua_tres_estrellas_demo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE USER 'agua_app'@'localhost' IDENTIFIED BY 'AguaTresEstrellas2026';
 GRANT ALL PRIVILEGES ON agua_tres_estrellas.* TO 'agua_app'@'localhost';
 GRANT ALL PRIVILEGES ON agua_tres_estrellas_test.* TO 'agua_app'@'localhost';
+GRANT ALL PRIVILEGES ON agua_tres_estrellas_demo.* TO 'agua_app'@'localhost';
 FLUSH PRIVILEGES;
 ```
+
+El nombre de la base tiene que coincidir con el entorno: `demo` exige que
+termine en `_demo` y `test` en `_test`. Esa comprobación se hace al arrancar la
+aplicación (`backend/src/config/env.ts`) y es lo que impide que el simulador
+acabe escribiendo sobre la base real.
 
 ### 2.2 Backend
 
@@ -46,7 +54,11 @@ curl http://localhost:4000/salud
 ```
 
 > La ruta de salud es `/salud`, **sin** el prefijo `/api`. El prefijo se
-> aplica al resto de la API.
+> aplica al resto de la API. Comprueba la base con un `SELECT 1`: responde
+> `200` si todo funciona y **`503`** si el proceso está vivo pero la base de
+> datos no responde, con `codigo: "BASE_NO_DISPONIBLE"`. Si `curl` no devuelve
+> nada, el proceso no está; si devuelve 503, revise que MariaDB esté corriendo
+> y que `DATABASE_URL` apunte a la base correcta.
 
 ### 2.3 Frontend
 
@@ -70,12 +82,30 @@ VITE_API_URL=http://localhost:4000/api
 Todas están documentadas con su valor por defecto en `backend/.env.example`.
 El archivo `.env` no se sube al repositorio.
 
+### Entorno
+
+| Variable | Por defecto | Para qué sirve |
+|---|---|---|
+| `ENTORNO` | — (**obligatoria**) | `prod`, `demo` o `test`. Decide qué base se admite y qué datos leen los indicadores. |
+
+Es la variable que separa lo real de lo inventado:
+
+| Entorno | Para qué sirve | Qué leen los reportes |
+|---|---|---|
+| `prod` | Operación real de la empresa. | Solo `REAL`. Es el único válido para una medición. |
+| `demo` | Demostraciones. | `SIMULADO` por omisión, y `REAL` si se pide. La interfaz muestra una cinta de advertencia. |
+| `test` | Pruebas automatizadas. | Solo `REAL`, contra `DATABASE_URL_TEST`. |
+
+Sin `ENTORNO` la aplicación no arranca, a propósito: es mejor no levantarla que
+levantarla creyendo que apunta a la base correcta.
+
 ### Base de datos
 
 | Variable | Para qué sirve |
 |---|---|
-| `DATABASE_URL` | Base de trabajo. La usan la aplicación y el simulador. |
+| `DATABASE_URL` | Base del entorno declarado. La usan la aplicación y el simulador. |
 | `DATABASE_URL_TEST` | Base de pruebas. La usa la suite de Jest. |
+| `DATABASE_URL_DEMO` | Base de demostración, documentada en `.env.example` para no tener que construir la URL a mano. |
 
 ### Servidor
 
@@ -120,7 +150,7 @@ que miden varios de los casos de prueba.
 | `npm run typecheck` | Verifica tipos de `src/`. |
 | `npm run typecheck:scripts` | Verifica tipos de `scripts/`, `prisma/` y `tests/`. |
 | `npm run seed` | Carga los datos iniciales. Es idempotente. |
-| `npm run simular` | Genera el histórico del postest. Ver [postest-y-evidencias.md](postest-y-evidencias.md). |
+| `npm run simular` | Genera el conjunto de demostración. Solo con `ENTORNO="demo"`. Ver [datos-de-demostracion.md](datos-de-demostracion.md). |
 | `npm test` | Suite de pruebas. |
 | `npm run test:cubrimiento` | Suite con reporte de cobertura. |
 | `npm run prisma:studio` | Interfaz visual de la base. |
@@ -170,16 +200,26 @@ explícito en lugar de dejar la entrega sin responsible.
 3. `npm run dev` en `frontend/`.
 4. Abrir `http://localhost:5173`.
 
-### Antes de una demostración o una medición
+### Antes de una demostración
 
 ```bash
 cd backend
 npm test                                  # confirmar que nada se rompió
+
+# Requiere ENTORNO="demo" y una base terminada en _demo.
 npm run simular -- --limpiar --dias=30 --pedidosPorDia=45 --semilla=2026
 ```
 
 La semilla fija hace que dos ejecuciones con los mismos parámetros produzcan el
-mismo histórico, requisito para que el postest sea reproducible.
+mismo conjunto, requisito para que una demostración sea repetible. Los datos que
+genera son `SIMULADO` y no sirven como resultado de la tesis.
+
+### Antes de una medición real
+
+1. Poner `ENTORNO="prod"` y `DATABASE_URL` apuntando a la base de la operación.
+2. Correr `npm test` para confirmar que nada se rompió.
+3. **No** correr `npm run simular`: el proceso se detendrá solo.
+4. Capturar los reportes sin pasar `origen`, y guardarlos en `evidencias-reales/`.
 
 ## 7. Resolución de problemas
 
@@ -213,8 +253,15 @@ DATABASE_URL="mysql://..." npx prisma generate
 ### La suite falla al arrancar
 
 La suite aplica migraciones y ejecuta el seed sobre `DATABASE_URL_TEST` antes
-de correr. Si la base de pruebas no existe, el mensaje lo dice; crearla según
-la sección 2.1.
+de correr, con `ENTORNO="test"` forzado en `tests/setup-env.ts` y en
+`tests/global-setup.ts`. Si la base de pruebas no existe, el mensaje lo dice;
+crearla según la sección 2.1.
+
+### `Falta la variable ENTORNO en el archivo .env`
+
+La aplicación no arranca sin `ENTORNO`. Es deliberado: define qué base se admite
+y qué datos pueden leer los indicadores. Copiar `ENTORNO=prod` de
+`.env.example` y ajustarlo según el uso.
 
 ### Un enum rechazado con 422
 
@@ -227,10 +274,12 @@ actualizar la lista del selector en `frontend/src/pages/Reportes.tsx`.
 1. Compilar ambos: `npm run build` en `backend/` y en `frontend/`.
 2. Servir `frontend/dist` con un servidor estático.
 3. Levantar el backend con `npm start`, que usa `NODE_ENV=production`.
-4. Sustituir `JWT_SECRET` y `JWT_REFRESH_SECRET` por cadenas aleatorias de al
+4. Definir `ENTORNO="prod"` y comprobar que `DATABASE_URL` apunta a la base de la
+   operación real.
+5. Sustituir `JWT_SECRET` y `JWT_REFRESH_SECRET` por cadenas aleatorias de al
    menos 64 caracteres.
-5. Poner `CORS_ORIGIN` con el dominio real del frontend.
-6. Restringir el usuario de base de datos: en producción no necesita
+6. Poner `CORS_ORIGIN` con el dominio real del frontend.
+7. Restringir el usuario de base de datos: en producción no necesita
    privilegios sobre otras bases.
 
 El backend ya incluye `helmet`, `compression`, `cors` y un limitador de

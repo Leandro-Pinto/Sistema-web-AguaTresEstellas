@@ -1,6 +1,7 @@
 import { http } from './http'
 import type {
   CambiosUsuario,
+  Envoltura,
   ClaveReporte,
   Cliente,
   ClienteDetalle,
@@ -30,6 +31,7 @@ import type {
   ProductoFormulario,
   ProductoVendido,
   Repartidor,
+  RegistroLineaBase,
   ResumenTablero,
   Rol,
   SaldoBidon,
@@ -81,6 +83,39 @@ export interface DatosPerfil {
   apellidos?: string
   telefono?: string | null
   email?: string
+}
+
+/**
+ * `GET /salud`: público y sin sesión.
+ *
+ * Se consulta una sola vez al montar la aplicación para saber si lo que se
+ * está viendo son datos reales o de demostración. La cinta que rotula la
+ * demostración se apoya en el entorno que declara el servidor, no en una
+ * variable del frontend: así no se puede mostrar sin que el backend lo diga.
+ *
+ * Va fuera del prefijo `/api` porque el backend monta la salud en la raíz,
+ * donde la consulta un monitor externo que no conoce la API de negocio. Ese
+ * endpoint responde 503 si la base de datos no está disponible, así que aquí
+ * cualquier respuesta distinta de 200 devuelve `null`, y una cinta que no se
+ * pudo leer es lo mismo que no tener cinta.
+ */
+export interface SaludSistema {
+  estado: string
+  baseDeDatos: string
+  entorno: 'prod' | 'demo' | 'test'
+  version: string
+  horaServidor: string
+}
+
+export const consultarSalud = async (): Promise<SaludSistema | null> => {
+  try {
+    const respuesta = await fetch('/salud')
+    if (!respuesta.ok) return null
+    const cuerpo = (await respuesta.json()) as Envoltura<SaludSistema>
+    return cuerpo.datos ?? null
+  } catch {
+    return null
+  }
 }
 
 export const auth = {
@@ -551,15 +586,23 @@ export const reportes = {
   indicadoresSistema: (fechaInicio?: string, fechaFin?: string) =>
     http.get<IndicadoresSistema>('/reportes/indicadores/sistema', { params: rango(fechaInicio, fechaFin) }),
   /**
-   * Comparativa pretest/postest. Es `POST` porque acepta la ficha del pretest
-   * en el cuerpo; sin ella, el servidor usa su línea base configurada.
+   * Comparativa postest contra la línea base del pretest.
+   *
+   * No admite parámetros: los nueve valores los fija el administrador desde
+   * esta misma pantalla y el servidor los lee de la tabla guardada. Una sola
+   * fuente evita que la tabla muestre unos números mientras en el registro
+   * figuran otros. Si nunca se registró, `antes` llega en `null` y la
+   * pantalla escribe "sin dato".
    */
-  comparativo: (fechaInicio?: string, fechaFin?: string, pretest?: Partial<ParametrosPretest>) =>
-    http.post<ComparativoIndicadores>('/reportes/indicadores/comparativo', {
-      ...(pretest ? { pretest } : {}),
-      ...rango(fechaInicio, fechaFin),
+  comparativo: (fechaInicio?: string, fechaFin?: string) =>
+    http.get<ComparativoIndicadores>('/reportes/indicadores/comparativo', {
+      params: rango(fechaInicio, fechaFin),
     }),
-  pretest: () => http.get<ParametrosPretest>('/reportes/indicadores/pretest'),
+  /** Línea base guardada y su procedencia; `registrada: false` si aún no existe. */
+  pretest: () => http.get<RegistroLineaBase>('/reportes/indicadores/pretest'),
+  /** Reservado al administrador: reemplaza la línea base guardada. */
+  guardarPretest: (valores: ParametrosPretest) =>
+    http.put<RegistroLineaBase>('/reportes/indicadores/pretest', valores),
   periodoPorDefecto: () => http.get<{ fechaInicio: string; fechaFin: string }>('/reportes/indicadores/periodo'),
 
   // Los reportes comparten el rango de fechas; cada uno añade sus propios

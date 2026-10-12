@@ -704,18 +704,42 @@ export interface IndicadoresSistema {
 /**
  * Ficha del pretest.
  *
- * Los porcentajes llegan en `null` mientras no se cargue el conteo observado
- * en el proceso manual. Se conservan así a propósito: inventar una cifra de
- * línea base sería falsear la comparación.
+ * El pretest se midió sobre el proceso manual con la ficha de observación de la
+ * tesis y lo analiza el investigador fuera del sistema. Aquí no hay ninguna
+ * línea base guardada: el backend devuelve un objeto vacío y todos los campos
+ * son opcionales. Lo que se escriba en la pantalla es una transcripción de esa
+ * ficha, no un dato del sistema, por eso no se persiste ni se precarga.
+ *
+ * Un campo ausente o `null` se muestra como "sin dato". Nunca como 0: un cero
+ * sería un tiempo medido de cero, que es una afirmación distinta de "no se
+ * midió".
  */
 export interface ParametrosPretest {
-  tiempoRegistroMin: number | null
-  tiempoProcesamientoVentaMin: number | null
-  tiempoConfirmacionAsignacionMin: number | null
-  porcentajePedidosCorrectos: number | null
-  porcentajeVentasCorrectas: number | null
-  porcentajePedidosAtendidos: number | null
-  porcentajeTrazabilidadCompleta: number | null
+  tiempoRegistroMin?: number | null
+  tiempoProcesamientoVentaMin?: number | null
+  tiempoConfirmacionAsignacionMin?: number | null
+  porcentajePedidosCorrectos?: number | null
+  porcentajeVentasCorrectas?: number | null
+  porcentajeVentasConErrores?: number | null
+  porcentajePedidosAtendidos?: number | null
+  porcentajePedidosConErrores?: number | null
+  porcentajeTrazabilidadCompleta?: number | null
+}
+
+/**
+ * Línea base del pretest guardada en el sistema.
+ *
+ * Los nueve valores más la procedencia que los hace auditable: quién los
+ * transcribió de la ficha de observación y cuándo. `registrada: false`
+ * significa que todavía no se midió el proceso manual, que es distinto de
+ * haberlo medido y obtenido cero.
+ */
+export interface RegistroLineaBase extends ParametrosPretest {
+  registrada: boolean
+  creadoPor: string | null
+  creadoEn: string | null
+  actualizadoPor: string | null
+  actualizadoEn: string | null
 }
 
 export interface ComparacionIndicador {
@@ -726,16 +750,24 @@ export interface ComparacionIndicador {
   variacionPorcentual: number | null
 }
 
+/**
+ * Las nueve filas del comparativo, una por indicador del proceso de ventas.
+ *
+ * Incluye los dos indicadores de «con errores», que también se midieron en el
+ * pretest y deben aparecer en la comparación.
+ */
 export interface ComparativoIndicadores {
   pretest: ParametrosPretest
   postest: IndicadoresProceso
   sistema: IndicadoresSistema
   comparacion: {
     tiempoPromedioRegistro: ComparacionIndicador
-    tiempoPromedioProcesamientoVenta: ComparacionIndicador
-    tiempoPromedioConfirmacionYAsignacion: ComparacionIndicador
     porcentajePedidosRegistradosCorrectamente: ComparacionIndicador
+    porcentajePedidosConErroresDeRegistro: ComparacionIndicador
+    tiempoPromedioProcesamientoVenta: ComparacionIndicador
     porcentajeVentasProcesadasCorrectamente: ComparacionIndicador
+    porcentajeVentasConErrores: ComparacionIndicador
+    tiempoPromedioConfirmacionYAsignacion: ComparacionIndicador
     porcentajePedidosAtendidosCorrectamente: ComparacionIndicador
     porcentajePedidosConTrazabilidadCompleta: ComparacionIndicador
   }

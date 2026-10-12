@@ -1,10 +1,15 @@
 /**
  * Pruebas de salud del sistema y del catálogo.
  *
- * La salud pública sirve a un monitor sin credenciales, así que no debe tocar
- * la base de datos. La salud completa sí expone recuentos y por eso exige
- * sesión de administrador: es la diferencia entre un endpoint público y uno
+ * La salud pública sirve a un monitor sin credenciales y comprueba que la base
+ * responda con un `SELECT 1`: si no responde, el endpoint devuelve 503 en vez
+ * de 200. La salud completa sí expone recuentos y por eso exige sesión de
+ * administrador: es la diferencia entre un endpoint de disponibilidad y uno
  * que filtra información.
+ *
+ * La pública declara además el entorno y el nombre de la base: el frontend usa
+ * el entorno para rotular "DATOS DE DEMOSTRACION", y una cinta que se pudiera
+ * desactivar sin dejar rastro no valdría como garantía.
  */
 import request from 'supertest';
 import {
@@ -16,11 +21,12 @@ import {
   limpiarOperativo,
   stockDe,
 } from './helpers';
+import { prisma } from '../src/config/prisma';
 
 afterAll(cerrarPrisma);
 
 describe('GET /salud', () => {
-  it('responde sin credenciales y sin consultar la base de datos', async () => {
+  it('responde sin credenciales y comprueba que la base responda', async () => {
     const respuesta = await request(app).get('/salud').expect(200);
 
     expect(respuesta.body.exito).toBe(true);
@@ -28,9 +34,35 @@ describe('GET /salud', () => {
       estado: 'OK',
       version: expect.any(String),
       entorno: 'test',
+      baseDeDatos: expect.stringMatching(/_test$/),
+      horaServidor: expect.any(String),
     });
-    // Si tocara Prisma, desde aquí no se podría distinguir de un fallo de red.
-    expect(respuesta.body.datos.baseDatos).toBeUndefined();
+    // Solo el nombre de la base, nunca credenciales ni estado interno.
+    expect(typeof respuesta.body.datos.baseDeDatos).toBe('string');
+    expect(typeof respuesta.body.datos.latenciaBaseMs).toBe('number');
+  });
+
+  it('devuelve 503 cuando el proceso vive pero la base no responde', async () => {
+    const consulta = jest
+      .spyOn(prisma, '$queryRaw')
+      .mockRejectedValueOnce(new Error('sin conexión con MariaDB'));
+
+    const respuesta = await request(app).get('/salud').expect(503);
+
+    expect(respuesta.body).toMatchObject({
+      exito: false,
+      codigo: 'BASE_NO_DISPONIBLE',
+      mensaje: expect.stringContaining('base de datos'),
+      datos: {
+        estado: 'SIN_BASE',
+        // El entorno sigue viajando: sin él la cinta de demostración no se
+        // puede mostrar, y el fallo de la base no la desactiva.
+        entorno: 'test',
+        baseDeDatos: expect.stringMatching(/_test$/),
+      },
+    });
+
+    consulta.mockRestore();
   });
 });
 
@@ -58,11 +90,13 @@ describe('GET /salud/completa', () => {
 
     const datos = respuesta.body.datos;
     expect(datos.estado).toBe('OK');
-    expect(datos.baseDatos).toMatchObject({
+    expect(datos.entorno).toBe('test');
+    expect(datos.baseDeDatos).toMatchObject({
       conectado: true,
+      nombre: expect.stringMatching(/_test$/),
       servidor: 'MariaDB/MySQL',
     });
-    expect(typeof datos.baseDatos.latenciaMs).toBe('number');
+    expect(typeof datos.baseDeDatos.latenciaMs).toBe('number');
     expect(datos.registros).toEqual(
       expect.objectContaining({
         pedidos: expect.any(Number),

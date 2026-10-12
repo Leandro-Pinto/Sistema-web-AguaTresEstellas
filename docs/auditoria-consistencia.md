@@ -17,8 +17,8 @@ Actualizado: 2026-09-30 — D5, D10 y D7 resueltas; no quedan brechas reales.
 |---|---|---|
 | Tipos del backend | `npm run typecheck` | Sin errores |
 | Tipos de scripts/prisma/tests | `npm run typecheck:scripts` | Sin errores |
-| Suite de pruebas | `npm test` | **88/88 pasan**, 6 suites, 56.3 s |
-| Compilación del frontend | `npm run build` | Correcta, 484 kB (130 kB gzip) |
+| Suite de pruebas | `npm test` | **113/113 pasan**, 8 suites |
+| Compilación del frontend | `npm run build` | Correcta, 487 kB (131 kB gzip) |
 | Lint del frontend | `npm run lint` | Sin hallazgos |
 | Módulos de Clientes | CRUD completo por API | Verificado, incluye rechazo de duplicados |
 | Módulos de Productos e Inventario | Movimiento de stock por API | Verificado, autorización por rol comprobada |
@@ -161,7 +161,7 @@ de API y protección de rutas.
 **Sistema (en la fecha de la auditoría):** cero archivos de prueba en
 `frontend/`.
 
-**Estado: resuelta.** Ver sección 6.2: 12 archivos y 239 pruebas, y además
+**Estado: resuelta.** Ver sección 6.2: 14 archivos y 246 pruebas, y además
 cuatro defectos de las pantallas de Pagos y Entregas que las pruebas destaparon
 y que quedaron corregidos.
 
@@ -180,7 +180,8 @@ riesgo.
 **Sistema (en la fecha de la auditoría):** solo CSV (`reportes.controller.ts:36`).
 
 **Estado: resuelta.** Ver sección 6.6: exportación PDF con PDFKit y los mismos
-datos que la vista, pruebas en ambas suites y evidencia real en `evidencias/`.
+datos que la vista, pruebas en ambas suites y archivos de muestra en
+`demo-simulado/`.
 
 ### D8. Estructura de `docs/`
 
@@ -257,20 +258,23 @@ queda registrado en el historial de Git del repositorio.
 | Comprobación | Comando | Resultado |
 |---|---|---|
 | Tipos del frontend | `npx tsc -b` | Sin errores |
-| Pruebas del frontend | `npx vitest run` | **239/239 pasan**, 12 archivos, 57.4 s |
+| Pruebas del frontend | `npx vitest run` | **246/246 pasan**, 14 archivos |
 | Lint del frontend | `npm run lint` | Sin hallazgos |
 | Tipos del backend | `npm run typecheck` | Sin errores |
-| Pruebas del backend | `npm test` | **88/88 pasan**, 6 suites, 56.3 s |
+| Pruebas del backend | `npm test` | **113/113 pasan**, 8 suites |
 | Descarga PDF real | `GET /api/reportes/ventas?formato=pdf` | PDF válido con 500 filas de detalle |
 | Historial de Git | `git log --oneline` | 12 commits conventional en `main` |
 
-La suite del backend pasó de 85 a 88 casos con las tres pruebas de exportación
-PDF; la del frontend, de 233 a 239 con las seis pruebas de la pantalla de
-Reportes.
+La suite del backend pasó de 88 a 103 casos al añadir `tests/origen-datos.test.ts`
+(separación de datos reales y simulados), a 112 con
+`tests/linea-base-pretest.test.ts` (línea base del pretest) y a 113 con la
+prueba del 503 de `/salud`; la del frontend, de 239 a 242 con las tres pruebas
+de la cinta de demostración y a 246 con las cuatro de la pantalla de
+Indicadores.
 
 ### 6.2 D5 resuelta: pruebas de frontend
 
-Se añadieron 12 archivos de prueba con 239 casos, cubriendo lo que el prompt
+Se añadieron 14 archivos de prueba con 246 casos, cubriendo lo que el prompt
 §34 pide: formularios y sus validaciones, navegación, errores de API y protección
 de rutas.
 
@@ -288,6 +292,8 @@ de rutas.
 | `pages/Entregas.test.tsx` | Listado, asignación y ficha de la entrega |
 | `pages/Pagos.test.tsx` | Resumen de cobranza, listado, permisos, registro y anulación |
 | `pages/Reportes.test.tsx` | Despliegue de reportes, formato y filtros de la descarga CSV y PDF, reportes sin exportación |
+| `pages/Indicadores.test.tsx` | Comparación pretest/postest, transcripción y guardado de la línea base, procedencia, fallo de guardado |
+| `components/Layout.test.tsx` | Cinta de datos de demostración: aparece con `demo`, no con `prod`, y no se afirma nada si la salud no responde |
 
 ### 6.3 Defectos que las pruebas destaparon
 
@@ -311,13 +317,13 @@ por separado:
 | Commit | Contenido |
 |---|---|
 | `chore` | Configuración, manifiestos, lockfiles y herramientas |
-| `feat(backend)` | Esquema Prisma y sus cuatro migraciones |
+| `feat(backend)` | Esquema Prisma y sus cinco migraciones |
 | `feat(backend)` | API REST completa: rutas, controladores, servicios, validadores y middlewares |
-| `feat(backend)` | Simulador de proceso del postest |
+| `feat(backend)` | Simulador del proceso de ventas (entorno `demo`, datos `SIMULADO`) |
 | `test(backend)` | 85 pruebas de integración |
 | `feat(frontend)` | Aplicación e interfaz de gestión |
 | `test(frontend)` | 233 pruebas de frontend |
-| `docs` | Documentación y evidencias del postest |
+| `docs` | Documentación y datos de demostración |
 
 Con el cierre de D7 (sección 6.6) se añadieron cinco commits más:
 
@@ -327,7 +333,7 @@ Con el cierre de D7 (sección 6.6) se añadieron cinco commits más:
 | `test(backend)` | Tres pruebas de la descarga PDF y suite regenerada |
 | `feat(frontend)` | Botón de descarga en PDF en la pantalla de Reportes |
 | `test(frontend)` | Seis pruebas de la pantalla de Reportes y suite regenerada |
-| `docs` | Auditoría completa, documentación del postest y evidencias PDF reales |
+| `docs` | Auditoría completa y documentación del conjunto de demostración |
 
 En total son **17 commits conventional** en `main`.
 
@@ -359,13 +365,15 @@ Garantías verificadas:
 | La descarga en la interfaz envía `formato=csv` o `formato=pdf` y mantiene el rango | 6 pruebas nuevas en `pages/Reportes.test.tsx` |
 | Descarga real | `GET /api/reportes/ventas?formato=pdf`: PDF válido con el detalle del periodo |
 
-Los seis PDF de muestra generados con datos del postest quedan en `evidencias/`
-(`reporte-*.pdf`).
+Los seis PDF de muestra se generaron con datos simulados, no con una medición
+real, así que están en `demo-simulado/` (`reporte-*.pdf`). Formato y maquetación
+son los que se usarán con datos reales; ver
+[`datos-de-demostracion.md`](datos-de-demostracion.md).
 
 ### 6.6 Resumen final
 
 No quedan brechas reales frente al prompt maestro. Las diferencias D1, D2, D3,
 D4, D6, D8 y D9 siguen siendo formales y, como se explica en sus secciones, no
-justifican refactorizar lo que funciona. El sistema queda con **88 pruebas de
-integración y 239 pruebas de interfaz**, todas en verde, y **17 commits
+justifican refactorizar lo que funciona. El sistema queda con **113 pruebas de
+integración y 246 pruebas de interfaz**, todas en verde, y **17 commits
 conventional** en `main`.

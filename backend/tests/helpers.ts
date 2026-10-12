@@ -43,7 +43,9 @@ export const cabecera = (token: string) => ({ Authorization: `Bearer ${token}` }
 /**
  * Elimina los datos operativos para que cada prueba empiece desde el mismo
  * punto. Se respeta el orden de claves foráneas: primero los hijos, después
- * los padres. El catálogo y los usuarios del seed sobreviven.
+ * los padres. El catálogo y los usuarios del seed sobreviven, pero la línea
+ * base del pretest no: la escribe el investigador y una prueba no debe
+ * heredarla de la anterior.
  *
  * Después de borrar, el stock de cada producto se recalcula a partir del
  * último movimiento que quede. Sin este paso, una prueba que agote el
@@ -62,6 +64,7 @@ export const limpiarOperativo = async (): Promise<void> => {
     prisma.historialEstado.deleteMany(),
     prisma.bitacoraHttp.deleteMany(),
     prisma.logConsulta.deleteMany(),
+    prisma.lineaBasePretest.deleteMany(),
   ]);
 
   // Los movimientos de inventario se conservan: son el historial real del

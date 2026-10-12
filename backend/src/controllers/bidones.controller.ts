@@ -3,6 +3,7 @@ import { responder } from '../middlewares/respuesta';
 import { asyncHandler } from '../utils/asyncHandler';
 import * as bidonesService from '../services/bidones.service';
 import * as reportesService from '../services/reportes.service';
+import { origenSolicitado } from '../services/origen-dato';
 import {
   listarSaldosBidonesSchema,
   type ListarMovimientosBidonQuery,
@@ -10,6 +11,10 @@ import {
   type MovimientoBidonInput,
 } from '../validators/operaciones.validator';
 import type { z } from 'zod';
+
+/** Origen pedido en la query, sin validar: lo valida `origenSolicitado`. */
+const origenPedido = (req: Request): string | undefined =>
+  (req.query as unknown as { origen?: string }).origen;
 
 export const saldoCliente = asyncHandler(async (req: Request, res: Response) => {
   const { clienteId } = req.params as unknown as { clienteId: string };
@@ -55,12 +60,18 @@ export const listarMovimientos = asyncHandler(async (req: Request, res: Response
 export const historialCliente = asyncHandler(async (req: Request, res: Response) => {
   const { clienteId } = req.params as unknown as { clienteId: string };
   const { productoId } = req.query as unknown as { productoId?: string };
+  const { origen, nota } = origenSolicitado(origenPedido(req));
   const resultado = await reportesService.consultaHistorialBidones(
     Number(clienteId),
     req.usuario!.id,
     productoId ? Number(productoId) : undefined,
+    origen,
   );
-  return responder(res, resultado, 'Historial de bidones del cliente obtenido');
+  return responder(
+    res,
+    resultado,
+    `Historial de bidones del cliente obtenido${nota ? `. ${nota}` : ''}`,
+  );
 });
 
 export const listarHistorial = asyncHandler(async (req: Request, res: Response) => {
@@ -68,9 +79,11 @@ export const listarHistorial = asyncHandler(async (req: Request, res: Response) 
     clienteId: string;
     productoId?: string;
   };
+  const { origen, nota } = origenSolicitado(origenPedido(req));
   const resultado = await bidonesService.historialBidonesCliente(
     Number(clienteId),
     productoId ? Number(productoId) : undefined,
+    origen,
   );
-  return responder(res, resultado, 'Historial de bidones obtenido');
+  return responder(res, resultado, `Historial de bidones obtenido${nota ? `. ${nota}` : ''}`);
 });

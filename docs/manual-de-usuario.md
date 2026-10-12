@@ -20,6 +20,11 @@ reposición la hace el administrador desde **Usuarios**.
 
 Al ingresar por primera vez, el sistema exige cambiar la contraseña temporal.
 
+> **Si ve una cinta de «DATOS DE DEMOSTRACIÓN» arriba**, el sistema está corriendo
+> en el entorno `demo` y todo lo que muestra lo generó el simulador. Ninguna de
+> esas cifras sirve como resultado de la tesis. Para trabajar con la operación
+> real hay que arrancar con `ENTORNO="prod"`.
+
 ---
 
 ## Administrador
@@ -37,7 +42,7 @@ mínimo y alertas de envases. Es la primera pantalla al entrar.
   del flujo está el pedido.
 - **Ver detalle** con los ítems, el historial completo de cambios de estado y
   las marcas de tiempo de cada etapa. El historial es la evidencia de la
-  trazabilidad que mide el postest.
+  trazabilidad que mide la tesis.
 - **Cambiar estado** respetando la secuencia. El sistema no permite, por
   ejemplo, pasar de `PENDIENTE` a `ENTREGADO`: salta etapas y destruye la
   medición de tiempos.
@@ -135,7 +140,8 @@ de la pantalla. El consolidado diario y el costo de consultas no se descargan.
 ### Indicadores
 
 - **Recepción y registro**, **procesamiento y control**, **atención y
-  seguimiento** y **complementarios**: los indicadores del postest.
+  seguimiento** y **complementarios**: los indicadores del proceso de ventas
+  medidos sobre los datos del periodo.
 - **Adecuación funcional**: requisitos implementados y casos de prueba
   superados.
 - **Eficiencia y desempeño**: tiempos de respuesta y peticiones por minuto,
@@ -144,9 +150,23 @@ de la pantalla. El consolidado diario y el costo de consultas no se descargan.
 - **Comparación pretest/postest**: muestra el antes, el después y la variación.
   Los valores del pretest que todavía no se han medido aparecen como «sin
   dato», nunca como cero.
-- Los parámetros del pretest se editan desde la misma pantalla.
+- **La línea base del pretest se transcribe una sola vez** desde la ficha de
+  observación del proceso manual y queda guardada con el nombre de quien la
+  registró y la fecha. Si se corrige, se conserva tanto la versión original
+  como quién la corrigió. Solo el administrador puede modificarla; el resto de
+  los perfiles la consulta.
 - **Exportar indicadores** produce el CSV consolidado. Es exclusivo del
   administrador.
+
+### La cinta de demostración
+
+Cuando la aplicación arranca en el entorno `demo`, una cinta fija en la parte
+superior dice **DATOS DE DEMOSTRACIÓN**. Está ahí porque las cifras que se están
+viendo las generó el simulador y no sirven como resultado de la tesis.
+
+Si alguien guarda una captura de una pantalla con esa cinta arriba, el
+documento queda marcado como demostración sin que nadie tenga que adivinarlo.
+En el entorno `prod` la cinta no aparece.
 
 ### Evidencia
 

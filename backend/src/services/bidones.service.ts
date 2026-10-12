@@ -1,8 +1,15 @@
 import { Prisma, AccionHistorial, TipoRegistroHistorial } from '@prisma/client';
+import type { OrigenDato } from '@prisma/client';
 import { config, prisma } from '../config';
 import { ErrorNoEncontrado, ErrorReglaNegocio } from '../utils/errors';
 import { construirPaginacion } from '../utils/paginacion';
 import { registrarHistorial } from './historial.service';
+import {
+  filtroOrigenPorPedido,
+  origenDe,
+  ORIGEN_POR_DEFECTO,
+  type OpcionesOrigen,
+} from './origen-dato';
 import { aplicarMovimientoInventario } from './inventario.service';
 import {
   listarSaldosBidonesSchema,
@@ -99,6 +106,7 @@ export const registrarMovimientoBidon = async (
   entrada: MovimientoBidonInput,
   usuarioId: number,
   tx: ClienteTx = prisma,
+  opciones?: OpcionesOrigen,
 ) => {
   const producto = await tx.producto.findUnique({
     where: { id: entrada.productoId },
@@ -173,6 +181,7 @@ export const registrarMovimientoBidon = async (
           origen: 'DEVOLUCION BIDON',
           observaciones: entrada.observaciones ?? null,
           pedidoId: trazabilidad.pedidoId,
+          procedencia: origenDe(opciones),
         },
         tx,
       );
@@ -202,6 +211,7 @@ export const registrarMovimientoBidon = async (
             origen: 'PERDIDA INTERNA',
             observaciones: entrada.observaciones ?? null,
             pedidoId: null,
+            procedencia: origenDe(opciones),
           },
           tx,
         );
@@ -257,6 +267,7 @@ export const registrarMovimientoBidon = async (
         observaciones: entrada.observaciones ?? null,
         usuarioId,
         pedidoId: trazabilidad.pedidoId ?? undefined,
+        origen: origenDe(opciones),
       },
       tx,
     );
@@ -269,16 +280,27 @@ export const registrarMovimientoBidon = async (
  * Historial de bidones de un cliente con su saldo actual.
  * Alimenta el indicador "tiempo promedio de consulta del historial de
  * envases" (TPHE): el servicio de reportes mide y registra esta consulta.
+ *
+ * El origen se filtra como en los reportes de inventario: por el pedido que
+ * origina el movimiento. Salir de aquí sin filtro mostraría en la misma pantalla
+ * saldos reales y simulados juntos, que es la confusión que la separación de
+ * datos viene a impedir.
  */
-export const historialBidonesCliente = async (clienteId: number, productoId?: number) => {
+export const historialBidonesCliente = async (
+  clienteId: number,
+  productoId?: number,
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
+) => {
   const cliente = await prisma.cliente.findUnique({
     where: { id: clienteId },
     select: { id: true, nombre: true, telefono: true, direccion: true, activo: true },
   });
   if (!cliente) throw new ErrorNoEncontrado('Cliente');
 
+  const soloDelOrigen = filtroOrigenPorPedido(origen);
+
   const movimientos = await prisma.movimientoBidon.findMany({
-    where: { clienteId, ...(productoId ? { productoId } : {}) },
+    where: { clienteId, ...(productoId ? { productoId } : {}), ...soloDelOrigen },
     orderBy: { fecha: 'desc' },
     include: {
       producto: { select: { id: true, nombre: true } },
@@ -290,7 +312,7 @@ export const historialBidonesCliente = async (clienteId: number, productoId?: nu
 
   const saldos = await prisma.movimientoBidon.groupBy({
     by: ['productoId', 'tipo'],
-    where: { clienteId, ...(productoId ? { productoId } : {}) },
+    where: { clienteId, ...(productoId ? { productoId } : {}), ...soloDelOrigen },
     _sum: { cantidad: true },
   });
 

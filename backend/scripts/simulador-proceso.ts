@@ -41,6 +41,7 @@
  * ============================================================================
  */
 
+import { config, SUFIJO_BASE_DEMO } from '../src/config/env';
 import { prisma } from '../src/config/prisma';
 import * as pedidosService from '../src/services/pedidos.service';
 import * as ventasService from '../src/services/ventas.service';
@@ -73,6 +74,9 @@ const POR_DEFECTO = {
   horaCierre: 18,
 } as const;
 
+/** Línea horizontal con la que se delimita cada bloque de salida. */
+const separador = '='.repeat(64);
+
 /** Stock al que se repone el inventario al inicio de cada jornada. */
 const STOCK_OBJETIVO = 900;
 /** Por debajo de este stock se reabastece antes de empezar el día. */
@@ -80,6 +84,15 @@ const STOCK_MINIMO = 400;
 
 /** Valores admitidos en `unidadMedida` que representan un envase retornable. */
 const UNIDAD_BIDON = 'BIDON';
+
+/**
+ * Todo lo que genera el simulador queda marcado como SIMULADO.
+ *
+ * Se pasa a los servicios reales en lugar de marcar las filas al final: si una
+ * venta o un pago quedara sin marcar, los indicadores lo leerían como evidencia
+ * del postest. Por eso la marca viaja desde la primera escritura.
+ */
+const ORIGEN = { origen: 'SIMULADO' } as const;
 
 const leerOpciones = (argv: string[]): Opciones => {
   const opciones: Opciones = {
@@ -148,18 +161,21 @@ const leerOpciones = (argv: string[]): Opciones => {
 
 const mostrarAyuda = (): void => {
   process.stdout.write(`
-Simulador del proceso de ventas - Agua Tres Estrellas Pura
+ Simulador del proceso de ventas - Agua Tres Estrellas Pura (DATOS DE DEMOSTRACION)
 
-  Genera un histórico de pedidos, ventas, pagos y entregas usando los
-  servicios reales del sistema, y devuelve los indicadores del postest.
+  Genera pedidos, ventas, pagos y entregas usando los servicios reales del
+  sistema. Es una herramienta de demostracion y de pruebas de carga: sus datos
+  se marcan como SIMULADO y nunca pueden confundirse con la operacion real.
+
+  Solo corre con ENTORNO="demo" y una base de datos terminada en "${SUFIJO_BASE_DEMO}".
 
 Opciones
-  --dias=N                  Días a simular hacia atrás desde hoy       (${POR_DEFECTO.dias})
+  --dias=N                  Días a generar hacia atrás desde hoy       (${POR_DEFECTO.dias})
   --pedidosPorDia=N         Pedidos promedio por jornada              (${POR_DEFECTO.pedidosPorDia})
   --fechaInicio=AAAA-MM-DD  Primer día del periodo
   --fechaFin=AAAA-MM-DD     Último día del periodo
   --semilla=N               Semilla del azar; misma semilla, mismos datos (${POR_DEFECTO.semilla})
-  --limpiar                 Borra los datos operativos antes de simular
+  --limpiar                 Borra los datos operativos. Pide confirmación escrita
   --sinIndicadores          No imprime el resumen de indicadores al final
   --ayuda                   Muestra este mensaje
 
@@ -492,6 +508,7 @@ const simularPedido = async (
       confirmar: false,
     },
     catalogo.vendedorId,
+    ORIGEN,
   );
 
   await retrocesos.pedido(pedido.id, { recibidoEn, registradoEn });
@@ -502,7 +519,7 @@ const simularPedido = async (
   const descartar = async (instante: Date, motivo: string): Promise<void> => {
     const marca = await retrocesos.marcaHistorial();
     try {
-      await pedidosService.cambiarEstadoPedido(pedido.id, 'CANCELADO', catalogo.adminId, { motivo });
+      await pedidosService.cambiarEstadoPedido(pedido.id, 'CANCELADO', catalogo.adminId, { motivo, ...ORIGEN });
     } catch {
       // Si el estado no admite el paso, se deja constancia y se cuenta igual.
     }
@@ -525,6 +542,7 @@ const simularPedido = async (
     await pedidosService.cambiarEstadoPedido(pedido.id, 'CONFIRMADO', catalogo.vendedorId, {
       observaciones: null,
       motivo: null,
+      ...ORIGEN,
     });
     await retrocesos.pedido(pedido.id, { confirmadoEn });
     await retrocesos.historial(marcaConfirmacion, confirmadoEn);
@@ -536,6 +554,7 @@ const simularPedido = async (
     const venta = await ventasService.crearVenta(
       { pedidoId: pedido.id, descuento: 0, observaciones: null },
       catalogo.vendedorId,
+      ORIGEN,
     );
 
     await retrocesos.venta(venta.id, { fecha: ventaCreadaEn, creadoEn: ventaCreadaEn });
@@ -580,6 +599,7 @@ const simularPedido = async (
           fecha: ventaCreadaEn,
         },
         catalogo.vendedorId,
+        ORIGEN,
       );
       await retrocesos.historial(marcaCobro, ventaCreadaEn);
     }
@@ -591,7 +611,7 @@ const simularPedido = async (
     // procesadas correctamente debe ser capaz de detectar.
     if (azar.chance(0.95)) {
       const emitidaEn = new Date(ventaCreadaEn.getTime() + MINUTOS(azar.entero(2, 90)));
-      await ventasService.emitirConstancia(venta.id, catalogo.vendedorId);
+      await ventasService.emitirConstancia(venta.id, catalogo.vendedorId, ORIGEN);
       await retrocesos.venta(venta.id, { constanciaEmitidaEn: emitidaEn });
     }
 
@@ -603,6 +623,7 @@ const simularPedido = async (
     const entrega = await entregasService.registrarEntrega(
       { pedidoId: pedido.id, repartidorId: repartidor.id, observaciones: null },
       repartidor.usuarioId,
+      ORIGEN,
     );
 
     await prisma.entrega.update({
@@ -619,6 +640,7 @@ const simularPedido = async (
       entrega.id,
       { estado: 'EN_RUTA', horaSalida: salidaEn },
       repartidor.usuarioId,
+      ORIGEN,
     );
     const enRutaEn = new Date(salidaEn.getTime() + MINUTOS(azar.entero(20, 180)));
     await retrocesos.pedido(pedido.id, { enRutaEn });
@@ -636,6 +658,7 @@ const simularPedido = async (
           motivoNoEntrega: azar.elegir(MOTIVOS_NO_ENTREGA),
         },
         repartidor.usuarioId,
+        ORIGEN,
       );
       await prisma.entrega.update({
         where: { id: entrega.id },
@@ -691,6 +714,7 @@ const simularPedido = async (
         devoluciones,
       },
       repartidor.usuarioId,
+      ORIGEN,
     );
 
     if (cobraPendiente) {
@@ -705,6 +729,7 @@ const simularPedido = async (
           fecha: entregadoEn,
         },
         repartidor.usuarioId,
+        ORIGEN,
       );
       await retrocesos.historial(marcaPago, entregadoEn);
     }
@@ -843,7 +868,6 @@ const ejecutar = async (opciones: Opciones): Promise<void> => {
     Math.round((fechaFin.getTime() - fechaInicio.getTime()) / 86400000) + 1,
   );
 
-  const separador = '='.repeat(64);
   process.stdout.write(`\n${separador}\n`);
   process.stdout.write('SIMULADOR DEL PROCESO DE VENTAS - Agua Tres Estrellas Pura\n');
   process.stdout.write(`${separador}\n`);
@@ -957,6 +981,12 @@ const ejecutar = async (opciones: Opciones): Promise<void> => {
     process.stdout.write('INDICADORES DEL POSTEST (variable dependiente)\n');
     process.stdout.write(`${separador}\n`);
     process.stdout.write(`${JSON.stringify(indicadores, null, 2)}\n`);
+    if (config.entorno === 'demo') {
+      process.stdout.write(
+        '\n  Recordatorio: estos datos son SIMULADOS y estan excluidos de los indicadores\n' +
+          '  del postest. Para mostrarlos debe desactivar el filtro de origen.\n',
+      );
+    }
   }
 
   process.stdout.write('\nSimulacion completada.\n');
@@ -965,6 +995,97 @@ const ejecutar = async (opciones: Opciones): Promise<void> => {
 // ============================================================================
 //  Punto de entrada
 // ============================================================================
+
+/**
+ * Confirma por escrito, en la consola, que la base a la que se va a apuntar es
+ * la de demostración.
+ *
+ * `--limpiar` borra pedidos, ventas, pagos y entregas. Es irreversible, así que
+ * no se deja en manos de un `--sí` que nadie puede ver en el historial: exige
+ * que alguien escriba el nombre de la base en el teclado.
+ */
+const exigirConfirmacion = async (opciones: Opciones): Promise<void> => {
+  if (!opciones.limpiar) return;
+  const confirmacion = 'SI BORRAR ' + config.baseDeDatos.toUpperCase();
+  process.stdout.write(
+    `\n${separador}\n` +
+      `  --limpiar VA A BORRAR PEDIDOS, VENTAS, PAGOS Y ENTREGAS.\n` +
+      `  Base de datos afectada: ${config.baseDeDatos}\n` +
+      `${separador}\n` +
+      `  Escriba exactamente: ${confirmacion}\n\n` +
+      '  De otro modo la operación se cancela.\n\n> ',
+  );
+  const respuesta = await leerEntrada();
+  if (respuesta.trim() !== confirmacion) {
+    throw new Error('Confirmación incorrecta. No se borró nada y la simulación se cancela.');
+  }
+  process.stdout.write('Confirmación aceptada. Procediendo con el borrado.\n');
+};
+
+/** Lee una línea de la entrada estándar sin dependencias externas. */
+const leerEntrada = (): Promise<string> =>
+  new Promise((resolver) => {
+    const interfaz: NodeJS.ReadStream = process.stdin;
+    let acumulado = '';
+    const retirar = () => {
+      interfaz.removeListener('data', alDato);
+      interfaz.removeListener('end', alDato);
+    };
+    const alDato = (fragmento: Buffer | string) => {
+      acumulado += String(fragmento);
+      const corte = acumulado.indexOf('\n');
+      if (corte === -1) return;
+      retirar();
+      interfaz.pause();
+      resolver(acumulado.slice(0, corte));
+    };
+    interfaz.setEncoding('utf8');
+    interfaz.on('data', alDato);
+    interfaz.on('end', () => {
+      retirar();
+      resolver(acumulado);
+    });
+    interfaz.resume();
+  });
+
+/**
+ * El simulador solo puede correr contra la base de demostración.
+ *
+ * Es la barrera que impide que un histórico sintético se mezcle con los datos
+ * de la operación real. Si el entorno no es `demo` o el nombre de la base no
+ * termina en `_demo`, el proceso se detiene antes de escribir nada.
+ *
+ * No hay forma de saltarse la comprobación, ni por línea de comandos ni por
+ * variable de entorno. Una barrera que se puede desactivar con un argumento no
+ * protege nada: basta con que alguien pase el argumento equivocado una vez, en
+ * producción, para que el histórico de la empresa quede contaminado con datos
+ * inventados. El coût de tener que preparar la base `_demo` se paga una sola
+ * vez, al montar la demostración.
+ */
+const verificarEntornoDemo = (): void => {
+  const problemas: string[] = [];
+
+  if (config.entorno !== 'demo') {
+    problemas.push(`ENTORNO="${config.entorno}" y el simulador exige ENTORNO="demo".`);
+  }
+  if (!config.baseDeDatos.endsWith(SUFIJO_BASE_DEMO)) {
+    problemas.push(
+      `la base "${config.baseDeDatos}" no termina en "${SUFIJO_BASE_DEMO}", que es el nombre reservado a la demostración.`,
+    );
+  }
+
+  if (problemas.length === 0) {
+    process.stdout.write(`Entorno de demostración verificado: ${config.baseDeDatos}\n`);
+    return;
+  }
+
+  const detalle = problemas.map((problema) => `  - ${problema}`).join('\n');
+  throw new Error(
+    `El simulador se detiene para no escribir sobre datos que no son de demostración.\n${detalle}\n\n` +
+      'Para levantar la demostración: cree una base terminada en "_demo", exporte\n' +
+      'DATABASE_URL apuntando a ella y defina ENTORNO="demo" en el .env.',
+  );
+};
 
 const principal = async (): Promise<void> => {
   try {
@@ -975,6 +1096,8 @@ const principal = async (): Promise<void> => {
       return;
     }
 
+    verificarEntornoDemo();
+    await exigirConfirmacion(opciones);
     await ejecutar(opciones);
   } catch (error) {
     const mensaje = error instanceof Error ? error.message : String(error);

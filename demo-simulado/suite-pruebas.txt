@@ -1,0 +1,307 @@
+
+> agua-tres-estrellas-backend@1.0.0 test
+> jest
+
+PASS tests/salud-catalogo.test.ts (6.945 s)
+  GET /salud
+    √ responde sin credenciales y comprueba que la base responda (217 ms)
+    √ devuelve 503 cuando el proceso vive pero la base no responde (34 ms)
+  GET /salud/completa
+    √ exige sesión (61 ms)
+    √ rechaza a quien no es administrador (438 ms)
+    √ devuelve el diagnóstico completo al administrador (321 ms)
+  Catálogo de productos
+    √ lista el catálogo sembrado con su stock (357 ms)
+    √ el inventario distingue el nivel de stock y alerta de reposición (323 ms)
+    √ el administrador puede registrar una entrada de inventario (359 ms)
+    √ rechaza una entrada de cantidad negativa (335 ms)
+
+PASS tests/linea-base-pretest.test.ts
+  Línea base vacía
+    √ se declara como no registrada y no rellena valores (506 ms)
+    √ el comparativo responde «sin dato» en lugar de un cero inventado (436 ms)
+  Registro de la ficha
+    √ guarda la ficha con autor y fecha (398 ms)
+    √ acepta campos vacío: no medido es distinto de cero (379 ms)
+    √ la comparación usa exactamente lo guardado (471 ms)
+    √ una corrección reemplaza la fila en lugar de acumular líneas base (445 ms)
+  Control de la escritura
+    √ rechaza un porcentaje fuera de rango (385 ms)
+    √ rechaza un campo desconocido en lugar de ignorarlo (373 ms)
+    √ un vendedor puede consultarla pero no modificarla (361 ms)
+
+PASS tests/origen-datos.test.ts (13.061 s)
+  Simulador: barrera de entorno
+    √ se detiene si el entorno no es demo (1684 ms)
+    √ se detiene si el entorno es test (1710 ms)
+    √ se detiene si la base de datos no es la de demostración (1213 ms)
+    √ no ofrece ninguna bandera para saltarse la comprobación (1660 ms)
+  Indicadores y reportes: solo datos reales por omisión
+    √ los indicadores del proceso ignoran los pedidos simulados (820 ms)
+    √ el reporte de pedidos ignora los pedidos simulados (741 ms)
+    √ el reporte de ventas ignora las ventas simuladas (643 ms)
+    √ el consolidado diario ignora lo simulado (579 ms)
+    √ no sirve datos simulados aunque se pidan, fuera del entorno demo (682 ms)
+    √ rechaza un origen que no existe en el catálogo (350 ms)
+  Procedencia de los registros operativos
+    √ la API marca como REAL lo que crea por su cuenta (395 ms)
+    √ un cliente no puede declarar su propio pedido como simulado (386 ms)
+    √ el historial hereda la procedencia del registro que documenta (172 ms)
+  Tablas sin columna de origen: se filtran por el pedido que las causó
+    √ el historial de envases no mezcla saldos de las dos procedencias (544 ms)
+    √ rechaza un origen desconocido en este reporte (317 ms)
+
+PASS tests/entregas-bidones.test.ts (12.252 s)
+  POST /api/entregas/entregas
+    √ asigna el repartidor y lleva el pedido a ASIGNADO (895 ms)
+    √ no permite asignar dos veces el mismo pedido (668 ms)
+    √ exige que el pedido esté confirmado (447 ms)
+    √ rechaza un repartidor inexistente (438 ms)
+  PUT /api/entregas/entregas/:id
+    √ lleva la entrega a ENTREGADA y el pedido a ENTREGADO (874 ms)
+    √ no permite cerrar la entrega sin haber salido a ruta (534 ms)
+    √ registra la salida a ruta con su marca de tiempo (607 ms)
+    √ exige motivo cuando la entrega no se realizó (667 ms)
+    √ rechaza una transición de entrega imposible (557 ms)
+  Saldos de bidones
+    √ la entrega registra los bidones a nombre del cliente (668 ms)
+    √ la devolución reduce el saldo y repone el inventario (733 ms)
+    √ rechaza devolver más bidones de los que el cliente tiene (680 ms)
+    √ rechaza control de bidones sobre un producto no retornable (314 ms)
+    √ rechaza registrar una pérdida sin explicación (314 ms)
+    √ la pérdida interna descuenta del stock sin adeudarlo a un cliente (343 ms)
+    √ el saldo total de la empresa cuadra con la suma por cliente (737 ms)
+  Aislamiento del repartidor
+    √ el repartidor solo ve las entregas de su ficha (839 ms)
+    √ el repartidor puede actualizar su propia entrega (881 ms)
+
+PASS tests/ventas-pagos.test.ts (11.042 s)
+  POST /api/ventas
+    √ genera la venta y descuenta el stock del inventario (666 ms)
+    √ no permite una segunda venta para el mismo pedido (566 ms)
+    √ no permite vender un pedido sin confirmar (506 ms)
+    √ no permite vender un pedido cancelado (529 ms)
+    √ rechaza la venta cuando no hay stock suficiente (486 ms)
+    √ impide que el repartidor registre ventas (756 ms)
+  POST /api/ventas/:id/anular
+    √ anula la venta, repone el stock y deja constancia del motivo (579 ms)
+    √ rechaza anular dos veces la misma venta (669 ms)
+    √ exige el motivo de la anulación (472 ms)
+  POST /api/pagos
+    √ registra un pago parcial y reduce el saldo (542 ms)
+    √ rechaza un pago mayor al saldo pendiente (492 ms)
+    √ rechaza un pago de cero o negativo (493 ms)
+    √ completa la venta cuando el pago cancela el saldo total (556 ms)
+    √ acepta el pago en el mismo paso de la venta (510 ms)
+    √ no permite pagos sobre una venta anulada (798 ms)
+    √ el administrador anula un pago y el saldo vuelve a abrirse (830 ms)
+    √ el vendedor no puede anular un pago (522 ms)
+
+  console.log
+    prisma:error 
+    Invalid `prisma.pedido.groupBy()` invocation in
+    C:\LEANDRO PINTO\TESIS\sistema-web\backend\src\services\reportes.service.ts:197:23
+    
+      194   },
+      195 }),
+      196 prisma.pedido.groupBy({ by: ['estado'], where, _count: { _all: true } }),
+    → 197 prisma.pedido.groupBy({
+            select: {
+              _count: {
+                select: {
+                  _all: true
+                }
+              },
+              canal: true
+            },
+            by: [
+              "canal"
+            ],
+            where: {
+              registradoEn: {
+                gte: new Date("2026-09-07T05:00:00.000Z"),
+                lte: new Date("2026-10-07T05:00:00.000Z")
+              },
+              origen: "REAL",
+              estado: "NO_EXISTE"
+                      ~~~~~~~~~~~
+            }
+          })
+    
+    Invalid value for argument `estado`. Expected EstadoPedido.
+
+      at Object.zc (node_modules/@prisma/internals/src/logger.ts:13:11)
+          at async Promise.all (index 2)
+
+  console.log
+    prisma:error 
+    Invalid `prisma.pedido.findMany()` invocation in
+    C:\LEANDRO PINTO\TESIS\sistema-web\backend\src\services\reportes.service.ts:175:23
+    
+      172 };
+      173 
+      174 const [pedidos, porEstado, porCanal, tiempos] = await Promise.all([
+    → 175   prisma.pedido.findMany({
+              where: {
+                registradoEn: {
+                  gte: new Date("2026-09-07T05:00:00.000Z"),
+                  lte: new Date("2026-10-07T05:00:00.000Z")
+                },
+                origen: "REAL",
+                estado: "NO_EXISTE"
+                        ~~~~~~~~~~~
+              },
+              orderBy: {
+                registradoEn: "desc"
+              },
+              take: 500,
+              select: {
+                id: true,
+                codigo: true,
+                estado: true,
+                canal: true,
+                total: true,
+                recibidoEn: true,
+                registradoEn: true,
+                confirmadoEn: true,
+                asignadoEn: true,
+                entregadoEn: true,
+                requiereCorreccion: true,
+                cliente: {
+                  select: {
+                    id: true,
+                    nombre: true,
+                    documento: true
+                  }
+                },
+                entrega: {
+                  select: {
+                    repartidor: {
+                      select: {
+                        nombre: true
+                      }
+                    },
+                    horaEntrega: true
+                  }
+                },
+                venta: {
+                  select: {
+                    numero: true
+                  }
+                }
+              }
+            })
+    
+    Invalid value for argument `estado`. Expected EstadoPedido.
+
+      at Object.zc (node_modules/@prisma/internals/src/logger.ts:13:11)
+          at async Promise.all (index 0)
+
+  console.log
+    prisma:error 
+    Invalid `prisma.pedido.groupBy()` invocation in
+    C:\LEANDRO PINTO\TESIS\sistema-web\backend\src\services\reportes.service.ts:196:23
+    
+      193     venta: { select: { numero: true } },
+      194   },
+      195 }),
+    → 196 prisma.pedido.groupBy({
+            select: {
+              _count: {
+                select: {
+                  _all: true
+                }
+              },
+              estado: true
+            },
+            by: [
+              "estado"
+            ],
+            where: {
+              registradoEn: {
+                gte: new Date("2026-09-07T05:00:00.000Z"),
+                lte: new Date("2026-10-07T05:00:00.000Z")
+              },
+              origen: "REAL",
+              estado: "NO_EXISTE"
+                      ~~~~~~~~~~~
+            }
+          })
+    
+    Invalid value for argument `estado`. Expected EstadoPedido.
+
+      at Object.zc (node_modules/@prisma/internals/src/logger.ts:13:11)
+          at async Promise.all (index 1)
+
+PASS tests/reportes.test.ts (10.663 s)
+  Reportes: forma de la respuesta
+    √ devuelve el detalle de ventas anidado como lo espera la tabla (978 ms)
+    √ rechaza un estado de pedido que no existe en el catálogo (1180 ms)
+  Reportes: descarga CSV
+    √ exporta el detalle y no el primer cuadro resumen (1297 ms)
+    √ exporta los indicadores en dos columnas cuando el reporte no tiene listas (760 ms)
+    √ indica que no hay registros en vez de devolver un archivo vacío (366 ms)
+  Reportes: descarga PDF
+    √ exporta un PDF con estructura válida y el detalle del periodo (945 ms)
+    √ no rompe cuando el periodo no tiene registros (364 ms)
+    √ el resumen del reporte sin listas se exporta como indicadores (726 ms)
+  Reportes: totales del resumen
+    √ cuenta todos los pedidos del periodo, no los del recorte (677 ms)
+    √ el porcentaje de entregas se calcula sobre el total real (901 ms)
+  Reportes: control de acceso
+    √ reserva el costo de consultas al administrador (661 ms)
+    √ exige sesión para cualquier reporte (42 ms)
+  Reportes: costo de consultas
+    √ registra la duración de la consulta más reciente (738 ms)
+
+PASS tests/pedidos.test.ts (6.772 s)
+  POST /api/pedidos
+    √ registra un pedido con código y marcas de tiempo (544 ms)
+    √ confirma en el mismo paso cuando se solicita (432 ms)
+    √ rechaza un pedido sin productos (328 ms)
+    √ rechaza una fecha de recepción futura (351 ms)
+    √ rechaza un descuento mayor al subtotal (326 ms)
+    √ impide que el repartidor registre pedidos (318 ms)
+  PATCH /api/pedidos/:id/estado
+    √ avanza por las etapas válidas (402 ms)
+    √ no permite saltar de PENDIENTE a ENTREGADO (393 ms)
+    √ rechaza repetir el estado actual (437 ms)
+    √ exige motivo para cancelar (472 ms)
+    √ devuelve 404 para un pedido inexistente (305 ms)
+  Historial del pedido
+    √ registra cada cambio de estado con usuario y fecha (430 ms)
+  Listado y conteo de pedidos
+    √ cuenta por estado (438 ms)
+    √ respeta la paginación (548 ms)
+
+PASS tests/auth.test.ts (6.259 s)
+  POST /api/auth/login
+    √ inicia sesión con credenciales válidas y devuelve ambos tokens (366 ms)
+    √ registra el último acceso del usuario (266 ms)
+    √ rechaza una contraseña incorrecta sin revelar si el correo existe (281 ms)
+    √ bloquea la cuenta tras superar los intentos permitidos (1321 ms)
+    √ valida el formato del correo antes de tocar la base de datos (22 ms)
+  GET /api/auth/perfil
+    √ devuelve el perfil con su rol (304 ms)
+    √ rechaza la petición sin token (27 ms)
+    √ rechaza un token con firma inválida (24 ms)
+  POST /api/auth/refresh
+    √ emite un token de acceso nuevo a partir del de renovación (306 ms)
+    √ rechaza un token de acceso usado como token de renovación (285 ms)
+  Autorización por rol
+    √ impide al vendedor anular una venta (exclusivo del administrador) (282 ms)
+    √ impide al repartidor crear usuarios (271 ms)
+    √ impide al vendedor registrar movimientos de inventario (279 ms)
+    √ permite al administrador usar los módulos restringidos (335 ms)
+    √ permite al repartidor consultar su propia ruta (312 ms)
+    √ impide a un vendedor consultar la ruta del repartidor (277 ms)
+  Rutas inexistentes
+    √ responde 404 con un mensaje claro (285 ms)
+  Aislamiento de los datos operativos
+    √ la limpieza no borra el catálogo sembrado (70 ms)
+
+Test Suites: 8 passed, 8 total
+Tests:       113 passed, 113 total
+Snapshots:   0 total
+Time:        72.164 s
+Ran all test suites.

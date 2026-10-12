@@ -177,6 +177,8 @@ const construirUrl = (ruta: string, params?: OpcionesPeticion['params']): string
   return `${url.pathname}${url.search}`
 }
 
+
+
 /**
  * renovación en curso, compartida entre peticiones.
  *

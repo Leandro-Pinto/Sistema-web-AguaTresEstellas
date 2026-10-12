@@ -1,14 +1,21 @@
-# Postest y evidencias
+# Datos de demostración (`SIMULADO`)
 
-Este documento explica cómo se generó el histórico de la medición, con qué
-parámetros, qué indicadores produjo y qué archivo respalda cada cifra.
+> **Nada de lo que hay en `demo-simulado/` es evidencia de la tesis.**
+>
+> Todos los archivos de esa carpeta salieron del simulador, no de la operación
+> real de la empresa. Sirven para demostrar cómo se ve el sistema con datos y
+> para ensayar las consultas, y no pueden citarse como resultado del postest.
+> La evidencia que sí cuenta se guarda en [`../evidencias-reales/`](../evidencias-reales/).
+
+Este documento explica cómo se generó ese conjunto, con qué parámetros, qué
+indicadores produce y qué archivo respalda cada cifra.
 
 ---
 
 ## 1. Por qué un simulador y no datos a mano
 
 Los indicadores que sostiene la tesis se calculan con las marcas de tiempo que
-el sistema escribe en cada cambio de estado. Para que la medición sea
+el sistema escribe en cada cambio de estado. Para que una demostración sea
 reproducible y comparable con el pretest, el histórico tiene que generarse con la
 misma lógica de negocio que usa la aplicación: si se insertaran filas
 directamente en la base, los tiempos medidos serían los que el script
@@ -23,9 +30,36 @@ La excepción es que, tras cada paso, el simulador ajusta las columnas de fecha 
 instante simulado. Sin eso, todo el histórico quedaría con la fecha del día en
 que se ejecuta y los tiempos de proceso serían cero.
 
-## 2. Ejecución
+## 2. La barrera que impide confundirlo con una medición
+
+Todo lo que el simulador escribe queda marcado `SIMULADO` en la columna `origen`
+del pedido, la venta, el pago, la entrega, el historial y los movimientos de
+inventario. La marca viaja desde la primera escritura: si una venta quedara sin
+marcar, los indicadores la leerían como evidencia de una medición real.
+
+Sobre esa marca hay tres reglas, en `backend/src/services/origen-dato.ts`:
+
+| Regla | Dónde se aplica |
+|---|---|
+| Los indicadores y reportes leen `REAL` por omisión | `indicadores.service.ts`, `reportes.service.ts` |
+| Solo el entorno `demo` puede pedir `SIMULADO` de forma explícita | `origenSolicitado()` |
+| El simulador no arranca fuera de `demo` | `scripts/simulador-proceso.ts` |
+
+La tercera no tiene excepción: no hay bandera ni variable de entorno que la
+desactive. El proceso se detiene antes de escribir nada si `ENTORNO` no es `demo`
+o si el nombre de la base no termina en `_demo`.
+
+Además, cuando se pide `origen=SIMULADO` en un entorno que no lo permite, la
+petición no falla en silencio: se corrige al origen permitido y el mensaje de la
+respuesta explica por qué.
+
+## 3. Ejecución
 
 ```bash
+# 1. Preparar el entorno de demostración en backend/.env
+#    ENTORNO="demo"
+#    DATABASE_URL="mysql://.../agua_tres_estrellas_demo"
+
 cd backend
 npm run simular -- --limpiar --dias=30 --pedidosPorDia=45 --semilla=2026
 ```
@@ -39,15 +73,15 @@ npm run simular -- --limpiar --dias=30 --pedidosPorDia=45 --semilla=2026
 | `--fechaInicio=AAAA-MM-DD` | — | Primer día del periodo. |
 | `--fechaFin=AAAA-MM-DD` | — | Último día del periodo. |
 | `--semilla=N` | `20260928` | Semilla del azar. |
-| `--limpiar` | — | Borra los datos operativos antes de simular. |
+| `--limpiar` | — | Borra los datos operativos antes de simular. Pide escribir el nombre de la base. |
 | `--sinIndicadores` | — | No imprime el resumen de indicadores. |
 | `--ayuda` | — | Muestra la ayuda. |
 
 ### Sobre la semilla
 
 `--semilla` fija el azar: dos ejecuciones con los mismos parámetros producen el
-mismo histórico, pedido por pedido. Sin ella, cada corrida daría cifras
-distintas y el postest no sería defendible ante una diferencia de un punto.
+mismo conjunto, pedido por pedido. Sin ella, cada corrida daría cifras
+distintas y una demostración no sería repetible ante una diferencia de un punto.
 
 ### Sobre `--limpiar`
 
@@ -55,10 +89,11 @@ Borra pedidos, ventas, pagos, entregas y movimientos antes de empezar. El
 catálogo, los usuarios, los repartidores, los clientes y el inventario base
 sobreviven: son el punto de partida, no el resultado.
 
-Conviene usarlo siempre que se cambie un parámetro, porque si no la corrida
-anterior se acumula y los indicadores mezclan dos periodos.
+Pide escribir `SI BORRAR AGUA_TRES_ESTRELLAS_DEMO` en la consola, porque es una
+operación irreversible. Conviene usarlo siempre que se cambie un parámetro: si
+no, la corrida anterior se acumula y los indicadores mezclan dos periodos.
 
-## 3. Ejecución registrada
+## 4. Ejecución registrada
 
 | Parámetro | Valor |
 |---|---|
@@ -83,12 +118,12 @@ anterior se acumula y los indicadores mezclan dos periodos.
 Los 57 pedidos cancelados y los 67 con error de registro son deliberados: el
 simulador los genera con una probabilidad baja para que los indicadores de
 corrección y de trazabilidad no salgan en 100 % por construcción, lo que los
-haría incomparables con el pretest.
+haría incomparables con una medición real.
 
-## 4. Indicadores del postest
+## 5. Indicadores del conjunto simulado
 
 Periodo 2026-08-31 a 2026-09-30. Archivo que los respalda:
-[`evidencias/indicadores/proceso.json`](../evidencias/indicadores/proceso.json).
+[`../demo-simulado/indicadores/proceso.json`](../demo-simulado/indicadores/proceso.json).
 
 ### Muestra
 
@@ -139,7 +174,7 @@ Periodo 2026-08-31 a 2026-09-30. Archivo que los respalda:
 
 ### Eficiencia por repartidor
 
-Archivo: [`evidencias/reportes-csv/entregas.csv`](../evidencias/reportes-csv/entregas.csv).
+Archivo: [`../demo-simulado/reportes-csv/entregas.csv`](../demo-simulado/reportes-csv/entregas.csv).
 
 | Repartidor | Zona | Entregas | Demora promedio |
 |---|---|---:|---:|
@@ -170,10 +205,10 @@ periodo completo:
 | Inventario | Movimientos coherentes | 1.885 |
 | Inventario | Actualización correcta del stock | 100 % |
 
-## 5. De dónde salen los tiempos
+## 6. De dónde salen los tiempos
 
-Los tiempos del postest no salen del azar sino de los retardos que el simulador
-programa en cada etapa, en `scripts/simulador-proceso.ts`:
+Los tiempos no salen del azar sino de los retardos que el simulador programa en
+cada etapa, en `scripts/simulador-proceso.ts`:
 
 | Etapa | Retardo desde la anterior |
 |---|---|
@@ -186,20 +221,19 @@ programa en cada etapa, en `scripts/simulador-proceso.ts`:
 | Demora registrada en la entrega | 0 a 45 min |
 
 **Estos valores son un supuesto, no una medición.** Reflejan una jornada de
-distribución cualquiera; los de la empresa real se registran tomando el tiempo
-en cada etapa. Si la observación en campo dio otros valores, se cambian estas
-líneas y se vuelve a simular: el indicador se recalcula solo.
+distribución cualquiera. Los tiempos de la empresa real se registran tomando el
+tiempo en cada etapa; si la observación en campo dio otros valores, se cambian
+estas líneas y se vuelve a simular: el indicador se recalcula solo.
 
 Con los valores actuales, el tiempo de registro (10,11 min) es el intervalo
 entre que el cliente pide y que alguien anota el pedido, no el tiempo que tarda
-la persona en escribirlo. Conviene tenerlo presente al interpretar la
-comparación.
+la persona en escribirlo. Conviene tenerlo presente al interpretarlo.
 
-## 6. Comparación con el pretest
+## 7. Comparación con el pretest
 
-Archivo: [`evidencias/indicadores/comparativo.json`](../evidencias/indicadores/comparativo.json).
+Archivo: [`../demo-simulado/indicadores/comparativo.json`](../demo-simulado/indicadores/comparativo.json).
 
-| Indicador | Pretest | Postest | Variación |
+| Indicador | Pretest | Simulado | Variación |
 |---|---:|---:|---:|
 | Tiempo promedio de registro | 5 min | 10,11 min | +102,2 % |
 | Tiempo de procesamiento de la venta | 10 min | 15,24 min | +52,4 % |
@@ -209,26 +243,30 @@ Archivo: [`evidencias/indicadores/comparativo.json`](../evidencias/indicadores/c
 | Pedidos atendidos correctamente | sin dato | 89,52 % | — |
 | Pedidos con trazabilidad completa | sin dato | 95,02 % | — |
 
-### Dos advertencias sobre esta tabla
+**Los tres tiempos de la columna izquierda son marcadores de posición, no la
+medición del proceso manual.** La aplicación no los precarga: hay que transcribirlos
+de la ficha de observación en la pantalla **Indicadores** y guardarlos. Desde
+entonces quedan en la tabla `linea_base_pretest`, con el nombre de quien los
+transcribió y la fecha, y la comparación los lee de ahí. El archivo JSON de esta
+carpeta se capturó con los marcadores puestos a mano, justo antes de que la
+línea base pasara a guardarse.
 
-**Los tiempos del pretest son marcadores de posición.** En
-`src/services/indicadores.service.ts`, `PRETEST_BASE` trae 5, 10 y 8 minutos
-como valores por defecto para que la comparación se pueda ver antes de cargar la
-medición real. Hasta que se registren las mediciones del pretest, **esta tabla
-no sostiene ninguna conclusión**: con esos números el postest parece peor en las
-tres dimensiones, pero eso dice más de los marcadores que del sistema.
+**Los porcentajes están en `null` a propósito.** No se midieron, y un 0 ahí se
+leería como «ningún pedido se registraba bien antes», que es una afirmación que
+nadie puede sostener. La interfaz los muestra como «sin dato» en vez de como
+cero.
 
-**Los porcentajes del pretest están en `null` a propósito.** No se midieron, y un
-0 ahí se leería como «ningún pedido se registraba bien antes», que es una
-afirmación que nadie puede sostener. La interfaz los muestra como «sin dato» en
-vez de como cero.
+Mientras esos marcadores no se reemplacen por la medición real, esta tabla no
+sostiene ninguna conclusión: el postest parece peor en las tres dimensiones, pero
+eso dice más de los marcadores que del sistema.
 
-Los valores reales del pretest se cargan desde la pantalla **Indicadores**, en el
-apartado de parámetros del pretest.
+El comparativo actual añade además dos filas —`% de pedidos con errores de
+registro` y `% de ventas con errores`— que la ficha también mide: se quedan fuera
+de esta captura porque se incorporaron al servicio después de tomarla.
 
-## 7. Adecuación funcional
+## 8. Adecuación funcional
 
-Archivo: [`evidencias/indicadores/comparativo.json`](../evidencias/indicadores/comparativo.json).
+Archivo: [`../demo-simulado/indicadores/comparativo.json`](../demo-simulado/indicadores/comparativo.json).
 
 | Indicador | Valor |
 |---|---|
@@ -240,15 +278,15 @@ en estado `PENDIENTE` porque su ejecución es una etapa de la medición y no
 corresponde al seed inventarla.
 
 **El 0 % no significa que los casos fallen: significa que aún no se ejecutaron.**
-La suite automatizada del proyecto tiene 83 pruebas en verde, pero son pruebas de
+La suite automatizada del proyecto tiene 101 pruebas en verde, pero son pruebas de
 integración de la API y no están mapeadas caso a caso con los `CP-01` a `CP-18`.
 Para que este indicador refleje la medición, hay que registrar el resultado de
 ejecutar cada caso y cargar su `estado`, `fechaEjecucion` y, si falló, el
 mensaje de error.
 
-## 8. Eficiencia y fiabilidad del sistema
+## 9. Eficiencia y fiabilidad del sistema
 
-Archivo: [`evidencias/indicadores/sistema.json`](../evidencias/indicadores/sistema.json).
+Archivo: [`../demo-simulado/indicadores/sistema.json`](../demo-simulado/indicadores/sistema.json).
 
 Estos indicadores se calculan a partir de `bitacora_http`, la tabla donde el
 propio sistema registra cada petición atendida.
@@ -272,14 +310,14 @@ ruta son válidos como muestra del comportamiento del sistema, pero el volumen
 total y el rendimiento sostenido por minuto requieren un periodo de uso real
 antes de citarlos en la tesis.
 
-## 9. Archivos de evidencia
+## 10. Archivos de esta carpeta
 
 ```
-evidencias/
+demo-simulado/
 ├── indicadores/
-│   ├── proceso.json        Indicadores del proceso del periodo medido
+│   ├── proceso.json        Indicadores del proceso del periodo simulado
 │   ├── sistema.json        Eficiencia, fiabilidad y adecuación funcional
-│   └── comparativo.json    Pretest, postest y su comparación
+│   └── comparativo.json    Pretest, postest simulado y su comparación
 ├── reportes-csv/
 │   ├── ventas.csv          500 ventas del periodo
 │   ├── pedidos.csv         500 pedidos
@@ -305,7 +343,7 @@ con:
 
 ```bash
 curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:4000/api/reportes/ventas?fechaInicio=2026-08-31&fechaFin=2026-09-30&formato=csv" \
+  "http://localhost:4000/api/reportes/ventas?fechaInicio=2026-08-31&fechaFin=2026-09-30&formato=csv&origen=SIMULADO" \
   -o ventas.csv
 ```
 
@@ -313,24 +351,28 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 | Archivo | Origen |
 |---|---|
-| `indicadores/proceso.json` | `GET /api/reportes/indicadores/proceso` |
+| `indicadores/proceso.json` | `GET /api/reportes/indicadores/proceso?origen=SIMULADO` |
 | `indicadores/sistema.json` | `GET /api/reportes/indicadores/sistema` |
-| `indicadores/comparativo.json` | `GET /api/reportes/indicadores/comparativo` |
-| `reportes-csv/*.csv` | `GET /api/reportes/{reporte}?formato=csv` |
-| `reporte-*.pdf` | `GET /api/reportes/{reporte}?formato=pdf` |
+| `indicadores/comparativo.json` | `GET /api/reportes/indicadores/comparativo?origen=SIMULADO` |
+| `reportes-csv/*.csv` | `GET /api/reportes/{reporte}?formato=csv&origen=SIMULADO` |
+| `reporte-*.pdf` | `GET /api/reportes/{reporte}?formato=pdf&origen=SIMULADO` |
 | `suite-pruebas.txt` | `npm test` (backend) |
 | `suite-pruebas-frontend.txt` | `npx vitest run` (frontend) |
 
-## 10. Pruebas automatizadas
+El parámetro `origen=SIMULADO` es obligatorio aquí: sin él, los reportes leen
+`REAL` y no devuelven nada, porque en la base de demostración todas las filas
+operativas son sintéticas.
+
+## 11. Pruebas automatizadas
 
 Dos suites automatizadas, una por capa:
 
 | Evidencia | Suite | Cobertura |
 |---|---|---|
-| [`evidencias/suite-pruebas.txt`](../evidencias/suite-pruebas.txt) | Backend — `npm test` (Jest) | API y reglas de negocio, contra `DATABASE_URL_TEST` |
-| [`evidencias/suite-pruebas-frontend.txt`](../evidencias/suite-pruebas-frontend.txt) | Frontend — `npx vitest run` | Componentes, hooks, sesión, cliente HTTP y pantallas |
+| [`../demo-simulado/suite-pruebas.txt`](../demo-simulado/suite-pruebas.txt) | Backend — `npm test` (Jest) | API y reglas de negocio, contra `DATABASE_URL_TEST` |
+| [`../demo-simulado/suite-pruebas-frontend.txt`](../demo-simulado/suite-pruebas-frontend.txt) | Frontend — `npx vitest run` | Componentes, hooks, sesión, cliente HTTP y pantallas |
 
-### Backend: 88 pruebas en 6 archivos, todas en verde
+### Backend: 113 pruebas en 8 archivos, todas en verde
 
 | Archivo | Cubre |
 |---|---|
@@ -340,26 +382,38 @@ Dos suites automatizadas, una por capa:
 | `entregas-bidones.test.ts` | Asignación, recorrido, saldos de envases, aislamiento del repartidor. |
 | `reportes.test.ts` | Forma de las respuestas, descarga CSV y PDF, totales del resumen y control de acceso. |
 | `salud-catalogo.test.ts` | Salud del servicio, catálogo, inventario y alertas. |
+| `origen-datos.test.ts` | Barrera del simulador y separación de datos reales y simulados. |
+| `linea-base-pretest.test.ts` | Línea base del pretest: lectura, escritura, procedencia y validación. |
 
-**88 pruebas en 6 archivos, todas en verde.**
+`origen-datos.test.ts` es la que protege esta carpeta: comprueba que el simulador
+se detiene fuera del entorno `demo`, que no existe bandera para saltarlo, que
+los indicadores y los reportes ignoran las filas `SIMULADO`, que el historial de
+envases no mezcla saldos de las dos procedencias y que un cliente no puede
+declarar su propio pedido como simulado.
 
-Las tres últimas pruebas comprueban la descarga PDF: que el archivo empiece por
-`%PDF-`, que tenga `/Type /Page`, que termine en `%%EOF` y que el nombre siga el
-patrón `reporte_<clave>_<fecha>.pdf`; que un periodo sin registros genere el PDF
-igual sin romper; y que el reporte sin listas (`tiempos-proceso`) exporte sus
-indicadores con el título asignado.
+`linea-base-pretest.test.ts` es la que protege la comparación: comprueba que una
+línea base vacía responde «sin dato» y no cero, que lo guardado es lo que
+aparece en el comparativo, que una corrección reemplaza la fila sin duplicarla,
+que las claves mal escritas se rechazan con 422 y que un vendedor no puede
+modificar la referencia contra la que se interpreta todo el postest.
 
-Dos de ellas merecen mención: crean 520 filas reales para comprobar que los
-totales del resumen siguen contando el periodo completo y no el detalle
-recortado a 500. Ese recorte es invisible con pocas filas, así que la prueba
-tiene que superar el tope a propósito.
+En `salud-catalogo.test.ts` está la prueba del 503: un proceso vivo con la base
+caída no puede responder `200`, porque un monitor lo leería como «todo bien».
 
-Las pruebas se ejecutan contra `DATABASE_URL_TEST`, una base aparte. Ejecutar
-`npm test` no altera los datos del postest. Para que la salida conserve los
-acentos sin corromperse, la captura se hace con la redirección del proceso
-(`cmd /c "npm test > archivo 2>&1"`), no pasándola por una tubería.
+Las pruebas de PDF crean 520 filas reales para comprobar que los totales del
+resumen siguen contando el periodo completo y no el detalle recortado a 500. Ese
+recorte es invisible con pocas filas, así que la prueba tiene que superar el
+tope a propósito.
 
-### Frontend: 239 pruebas en 12 archivos, todas en verde
+Las pruebas se ejecutan contra `DATABASE_URL_TEST`, una base aparte, con
+`ENTORNO="test"`. Ejecutar `npm test` no altera los datos de producción ni los
+de demostración. Para que la salida conserve los acentos sin corromperse, la
+captura se hace con la redirección del proceso
+(`cmd /c "npm test > archivo 2>&1"`), no pasándola por una tubería; en el
+frontend se añade `--reporter=verbose` para que salga el detalle de cada una de
+las 246 pruebas en lugar del resumen.
+
+### Frontend: 246 pruebas en 14 archivos, todas en verde
 
 | Archivo | Cubre |
 |---|---|
@@ -375,13 +429,15 @@ acentos sin corromperse, la captura se hace con la redirección del proceso
 | `pages/Entregas.test.tsx` | Listado, asignación y ficha de la entrega |
 | `pages/Pagos.test.tsx` | Resumen de cobranza, listado, permisos, registro y anulación |
 | `pages/Reportes.test.tsx` | Despliegue de reportes, descarga CSV y PDF con rango y filtros, avisos de fallo, reportes sin exportación |
+| `pages/Indicadores.test.tsx` | Lectura de la comparación, transcripción de la línea base, procedencia y fallo de guardado |
+| `components/Layout.test.tsx` | Cinta de datos de demostración según lo que declara `/salud` |
 
 Estas pruebas se ejecutan sin red ni base de datos: el cliente HTTP se
 sustituye por un mock. Al escribirlas destaparon cuatro defectos reales de las
 pantallas de Pagos y Entregas, ya corregidos (detalle en la auditoría de
 consistencia, sección 6.3).
 
-## 11. Cómo reproducir la medición
+## 12. Cómo reproducir el conjunto de demostración
 
 ```bash
 cd backend
@@ -389,24 +445,27 @@ cd backend
 # 1. Verificar que nada se rompió.
 npm test
 
-# 2. Regenerar el histórico con los mismos parámetros.
+# 2. Levantar el entorno de demostración en .env y regenerar el conjunto.
+#    ENTORNO="demo"
+#    DATABASE_URL="mysql://.../agua_tres_estrellas_demo"
 npm run simular -- --limpiar --dias=30 --pedidosPorDia=45 --semilla=2026
 
 # 3. Levantar el servidor y capturar los reportes.
 npm run dev
 ```
 
-Los pasos 1 y 2 dejan el sistema en el estado en que se tomaron las evidencias.
-El paso 3 se hace aparte porque `npx prisma generate` y la suite necesitan
-acceso al binario del cliente de Prisma, que se bloquea si el servidor está
-corriendo.
+Los pasos 1 y 2 dejan el sistema en el estado en que se tomaron los archivos de
+esta carpeta. El paso 3 se hace aparte porque `npx prisma generate` y la suite
+necesitan acceso al binario del cliente de Prisma, que se bloquea si el servidor
+está corriendo.
 
-## 12. Qué falta para cerrar la medición
+## 13. Qué falta para cerrar la medición real
 
 Estas tareas dependen de datos que el sistema no puede inventar:
 
-1. **Medir el pretest en la empresa** y cargar los tres tiempos reales y los
-   cuatro porcentajes. Sin eso, la comparación no es concluyente.
+1. **Medir el pretest en la empresa** y transcribir los nueve valores de la ficha
+   de observación a la línea base del sistema. Sin eso, la comparación no es
+   concluyente.
 2. **Ejecutar los 18 casos de prueba** y registrar el resultado de cada uno, para
    que el indicador de adecuación funcional deje de marcar 0 %.
 3. **Registrar los tiempos reales por etapa** y, si difieren de los supuestos,
@@ -414,3 +473,5 @@ Estas tareas dependen de datos que el sistema no puede inventar:
 4. **Usar el sistema durante un periodo definido** antes de citar los
    indicadores de eficiencia y fiabilidad, que ahora reflejan una sesión de
    verificación.
+5. **Capturar la evidencia sobre la base real** y guardarla en
+   `evidencias-reales/`, con los reportes pedidos sin `origen=SIMULADO`.

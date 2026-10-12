@@ -2,7 +2,13 @@ import { useMemo, useState } from 'react'
 import { reportes } from '@/services/api'
 import { usePeticion } from '@/hooks'
 import { useAutenticacion } from '@/context/autenticacion'
-import type { ComparacionIndicador, IndicadoresProceso, IndicadoresSistema, ParametrosPretest } from '@/types/dominio'
+import type {
+  ComparacionIndicador,
+  IndicadoresProceso,
+  IndicadoresSistema,
+  ParametrosPretest,
+  RegistroLineaBase,
+} from '@/types/dominio'
 import { Aviso, Boton, Cargador, Entrada, Error_, Etiqueta, Pagina, Tarjeta } from '@/components/ui'
 import { clases, duracion, fechaHora, numero, paraCampoFecha, porcentaje } from '@/utils/formato'
 
@@ -223,21 +229,66 @@ const indicadoresSistema = (d: IndicadoresSistema): Indicador[] => [
   },
 ]
 
-/** Fila de la tabla pretest/postest. */
+/**
+ * Etiqueta de cada fila del comparativo.
+ *
+ * Son los nueve indicadores del proceso de ventas, en el orden en que aparecen
+ * en la matriz de la tesis. Cada clave es el nombre exacto que devuelve el
+ * backend; una clave que no esté aquí se muestra con su nombre crudo para que
+ * el desajuste sea visible en lugar de silencioso.
+ */
 const etiquetaComparacion: Record<string, string> = {
   tiempoPromedioRegistro: 'Tiempo de registro del pedido',
-  tiempoPromedioProcesamientoVenta: 'Tiempo de procesamiento de la venta',
-  tiempoPromedioConfirmacionYAsignacion: 'Confirmación y asignación',
   porcentajePedidosRegistradosCorrectamente: 'Pedidos registrados correctamente',
+  porcentajePedidosConErroresDeRegistro: 'Pedidos con errores de registro',
+  tiempoPromedioProcesamientoVenta: 'Tiempo de procesamiento de la venta',
   porcentajeVentasProcesadasCorrectamente: 'Ventas procesadas correctamente',
+  porcentajeVentasConErrores: 'Ventas con errores de registro',
+  tiempoPromedioConfirmacionYAsignacion: 'Confirmación y asignación',
   porcentajePedidosAtendidosCorrectamente: 'Pedidos atendidos correctamente',
   porcentajePedidosConTrazabilidadCompleta: 'Pedidos con trazabilidad completa',
 }
 
+/**
+ * Convierte lo que escribe el usuario en un número, o en `null` si dejó el
+ * campo vacío.
+ *
+ * `Number('')` es 0, no «sin dato». Si se usara tal cual, borrar un campo para
+ * escribir «no medido» acabaría registrando un cero, que el comparativo leería
+ * como un tiempo de proceso manual igual a cero.
+ */
+const numeroODatoVacio = (bruto: string): number | null => (bruto.trim() === '' ? null : Number(bruto))
+
+/**
+ * Los nueve valores de la ficha, sin la procedencia.
+ *
+ * El registro guardado trae además autor y fechas. Esa información se
+ * muestra y no se reenvía: al guardar solo se manda la medición, porque
+ * registrar quién lo hizo es tarea del servidor y no de esta pantalla.
+ */
+const comoBorrador = (registro: RegistroLineaBase): ParametrosPretest => ({
+  tiempoRegistroMin: registro.tiempoRegistroMin ?? null,
+  tiempoProcesamientoVentaMin: registro.tiempoProcesamientoVentaMin ?? null,
+  tiempoConfirmacionAsignacionMin: registro.tiempoConfirmacionAsignacionMin ?? null,
+  porcentajePedidosCorrectos: registro.porcentajePedidosCorrectos ?? null,
+  porcentajeVentasCorrectas: registro.porcentajeVentasCorrectas ?? null,
+  porcentajeVentasConErrores: registro.porcentajeVentasConErrores ?? null,
+  porcentajePedidosAtendidos: registro.porcentajePedidosAtendidos ?? null,
+  porcentajePedidosConErrores: registro.porcentajePedidosConErrores ?? null,
+  porcentajeTrazabilidadCompleta: registro.porcentajeTrazabilidadCompleta ?? null,
+})
+
+/**
+ * Contenido de la columna "pretest".
+ *
+ * `antes === null` significa que no se transcribió ese dato de la ficha de
+ * observación. Se escribe "sin dato" y no 0: un cero afirmaría que el proceso
+ * manual tomó cero minutos, que es una medición distinta de no haber medido.
+ */
 const celdaComparacion = (c: ComparacionIndicador) => {
   if (c.antes === null) {
     return (
-      <span className="text-slate-400" title="La ficha del pretest no tiene el conteo observado">
+      <span className="text-slate-400" title="Este valor no se transcribió de la ficha de observación del pretest">
         sin dato
       </span>
     )
@@ -262,17 +313,16 @@ const Indicadores = () => {
   const [aviso, setAviso] = useState<{ tipo: 'exito' | 'error'; mensaje: string } | null>(null)
 
   /**
-   * La ficha del pretest se puede editar porque los porcentajes observados se
-   * cargan a mano desde la ficha de observación de la tesis. Se mantiene solo
-   * en esta sesión: es un dato de la investigación, no del sistema.
+   * Edición de la línea base del pretest.
    *
-   * `ficha` es el ajuste aplicado a la petición y `borrador` lo que se está
-   * escribiendo. Se guardan por separado para que abrir el editor no cambie
-   * nada hasta que el usuario confirme.
+   * Lo guardado vive en el servidor y se trae con el comparativo; `borrador`
+   * es lo que se está escribiendo ahora. Estar separados permite que abrir el
+   * editor no cambie la tabla hasta que el administrador pulse «Guardar» y
+   * el servidor confirme, con su nombre y su fecha, que quedó registrado.
    */
-  const [ficha, setFicha] = useState<ParametrosPretest | null>(null)
   const [editandoPretest, setEditandoPretest] = useState(false)
   const [borrador, setBorrador] = useState<ParametrosPretest | null>(null)
+  const [guardando, setGuardando] = useState(false)
 
   const rango = useMemo(
     () => (desde > hasta ? { fechaInicio: hasta, fechaFin: desde } : { fechaInicio: desde, fechaFin: hasta }),
@@ -282,23 +332,28 @@ const Indicadores = () => {
   const { cargando, error, datos, recargar } = usePeticion<{
     postest: IndicadoresProceso
     sistema: IndicadoresSistema
-    pretest: ParametrosPretest
     comparacion: Record<string, ComparacionIndicador>
+    registro: RegistroLineaBase
   }>(
     async () => {
-      // Sin `ficha` el servidor usa su línea base, que es la fuente de verdad.
-      const respuesta = await reportes.comparativo(rango.fechaInicio, rango.fechaFin, ficha ?? undefined)
+      // El comparativo y la línea base se piden juntos y en el mismo orden:
+      // una pantalla que muestre la tabla de un valor y el registro de otro
+      // estaría presentando como única verdad dos lecturas distintas.
+      const [respuesta, registro] = await Promise.all([
+        reportes.comparativo(rango.fechaInicio, rango.fechaFin),
+        reportes.pretest(),
+      ])
       // Se registra el momento de la lectura, no el del render: una pantalla
       // abierta debe seguir mostrando la hora del postest realmente calculado.
       setCalculadoEn(new Date().toISOString())
       return {
         postest: respuesta.postest,
         sistema: respuesta.sistema,
-        pretest: respuesta.pretest,
         comparacion: respuesta.comparacion,
+        registro,
       }
     },
-    [rango, ficha],
+    [rango],
   )
 
   const exportar = async () => {
@@ -313,9 +368,38 @@ const Indicadores = () => {
     }
   }
 
+  /**
+   * Guarda la línea base.
+   *
+   * Se envían solo los nueve valores: el servidor es quien decide quién figura
+   * como autor y cuándo se registró, que es precisamente lo que hace auditable
+   * la comparación. Hasta que la respuesta no llega, la pantalla sigue
+   * mostrando lo anterior.
+   */
+  const guardarLineaBase = async () => {
+    if (!borrador) return
+    setGuardando(true)
+    try {
+      await reportes.guardarPretest(borrador)
+      setEditandoPretest(false)
+      setBorrador(null)
+      setAviso({ tipo: 'exito', mensaje: 'La línea base quedó guardada con su nombre y fecha.' })
+      recargar()
+    } catch {
+      setAviso({
+        tipo: 'error',
+        mensaje: 'No se pudo guardar la línea base. Verifique los valores e intente nuevamente.',
+      })
+    } finally {
+      setGuardando(false)
+    }
+  }
+
   const camposPorcentaje: { clave: keyof ParametrosPretest; nombre: string }[] = [
     { clave: 'porcentajePedidosCorrectos', nombre: 'Pedidos correctos (%)' },
+    { clave: 'porcentajePedidosConErrores', nombre: 'Pedidos con errores (%)' },
     { clave: 'porcentajeVentasCorrectas', nombre: 'Ventas correctas (%)' },
+    { clave: 'porcentajeVentasConErrores', nombre: 'Ventas con errores (%)' },
     { clave: 'porcentajePedidosAtendidos', nombre: 'Pedidos atendidos (%)' },
     { clave: 'porcentajeTrazabilidadCompleta', nombre: 'Trazabilidad completa (%)' },
   ]
@@ -323,7 +407,7 @@ const Indicadores = () => {
   return (
     <Pagina
       titulo="Indicadores"
-      descripcion="Postest calculado por el sistema sobre los datos reales registrados, y comparación con la línea base del pretest."
+      descripcion="Postest calculado por el sistema sobre los datos reales registrados. La columna del pretest sale de la línea base que el administrador transcribe de la ficha de observación del proceso manual."
       acciones={
         esAdmin && (
           <Boton variante="secundario" onClick={exportar} cargando={descargando}>
@@ -368,65 +452,120 @@ const Indicadores = () => {
 
           <Tarjeta
             titulo="Comparación pretest / postest"
-            descripcion="El pretest proviene de la ficha de observación del proceso manual; el postest, de los datos del sistema."
+            descripcion="El postest sale de los datos del sistema. La línea base se transcribe una sola vez desde la ficha de observación del proceso manual y queda guardada con autor y fecha."
             acciones={
-              <Boton
-                variante="fantasma"
-                onClick={() => {
-                  if (editandoPretest && borrador) {
-                    setFicha(borrador)
-                    setEditandoPretest(false)
-                  } else {
-                    setBorrador(datos.pretest)
-                    setEditandoPretest(true)
-                  }
-                }}
-              >
-                {editandoPretest ? 'Aplicar ficha' : 'Editar ficha'}
-              </Boton>
+              esAdmin ? (
+                <div className="flex items-center gap-2">
+                  {editandoPretest ? (
+                    <>
+                      <Boton
+                        variante="fantasma"
+                        disabled={guardando}
+                        onClick={() => {
+                          setEditandoPretest(false)
+                          setBorrador(null)
+                        }}
+                      >
+                        Cancelar
+                      </Boton>
+                      <Boton variante="primario" cargando={guardando} onClick={guardarLineaBase}>
+                        Guardar línea base
+                      </Boton>
+                    </>
+                  ) : (
+                    <Boton
+                      variante="secundario"
+                      onClick={() => {
+                        setBorrador(comoBorrador(datos.registro))
+                        setEditandoPretest(true)
+                      }}
+                    >
+                      Transcribir ficha
+                    </Boton>
+                  )}
+                </div>
+              ) : (
+                <span className="text-xs text-slate-500">Solo el administrador puede modificarla.</span>
+              )
             }
           >
+            <p className="mb-3 text-xs text-slate-500" data-testid="procedencia-linea-base">
+              {datos.registro.registrada ? (
+                <>
+                  Línea base transcrita por {datos.registro.creadoPor} el {fechaHora(datos.registro.creadoEn)}.
+                  {datos.registro.actualizadoEn !== datos.registro.creadoEn && (
+                    <>
+                      {' '}
+                      Corregida por {datos.registro.actualizadoPor} el {fechaHora(datos.registro.actualizadoEn)}.
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  Sin línea base registrada. El pretest todavía no se ha transcribido de la ficha de observación,
+                  por eso la columna «Pretest» muestra «sin dato» y no un cero.
+                </>
+              )}
+            </p>
+
             {editandoPretest && borrador && (
-              <div className="mb-4 grid gap-3 rounded-lg bg-slate-50 p-4 sm:grid-cols-3">
-                <Entrada
-                  etiqueta="Registro (min)"
-                  type="number"
-                  step="0.1"
-                  value={String(borrador.tiempoRegistroMin ?? '')}
-                  onChange={(e) => setBorrador({ ...borrador, tiempoRegistroMin: Number(e.target.value) })}
-                />
-                <Entrada
-                  etiqueta="Procesamiento venta (min)"
-                  type="number"
-                  step="0.1"
-                  value={String(borrador.tiempoProcesamientoVentaMin ?? '')}
-                  onChange={(e) => setBorrador({ ...borrador, tiempoProcesamientoVentaMin: Number(e.target.value) })}
-                />
-                <Entrada
-                  etiqueta="Confirmación y asignación (min)"
-                  type="number"
-                  step="0.1"
-                  value={String(borrador.tiempoConfirmacionAsignacionMin ?? '')}
-                  onChange={(e) => setBorrador({ ...borrador, tiempoConfirmacionAsignacionMin: Number(e.target.value) })}
-                />
-                {camposPorcentaje.map((campo) => (
+              <div className="mb-4 rounded-lg bg-slate-50 p-4">
+                <p className="mb-3 text-xs text-slate-600">
+                  Transcriba aquí los valores de la ficha de observación del pretest. Lo que quede vacío se
+                  guardará como «no medido» y se mostrará como «sin dato». Al guardar quedará asociado a su
+                  nombre y a la fecha de hoy.
+                </p>
+                <div className="grid gap-3 sm:grid-cols-3">
                   <Entrada
-                    key={campo.clave}
-                    etiqueta={campo.nombre}
+                    etiqueta="Registro (min)"
                     type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    ayuda="Vacío si el conteo observado aún no está cargado."
-                    value={borrador[campo.clave] === null ? '' : String(borrador[campo.clave] ?? '')}
+                    step="0.1"
+                    ayuda="Vacío si no se midió."
+                    value={String(borrador.tiempoRegistroMin ?? '')}
+                    onChange={(e) => setBorrador({ ...borrador, tiempoRegistroMin: numeroODatoVacio(e.target.value) })}
+                  />
+                  <Entrada
+                    etiqueta="Procesamiento venta (min)"
+                    type="number"
+                    step="0.1"
+                    ayuda="Vacío si no se midió."
+                    value={String(borrador.tiempoProcesamientoVentaMin ?? '')}
+                    onChange={(e) =>
+                      setBorrador({ ...borrador, tiempoProcesamientoVentaMin: numeroODatoVacio(e.target.value) })
+                    }
+                  />
+                  <Entrada
+                    etiqueta="Confirmación y asignación (min)"
+                    type="number"
+                    step="0.1"
+                    ayuda="Vacío si no se midió."
+                    value={String(borrador.tiempoConfirmacionAsignacionMin ?? '')}
                     onChange={(e) =>
                       setBorrador({
                         ...borrador,
-                        [campo.clave]: e.target.value === '' ? null : Number(e.target.value),
+                        tiempoConfirmacionAsignacionMin: numeroODatoVacio(e.target.value),
                       })
                     }
                   />
-                ))}
+                  {camposPorcentaje.map((campo) => (
+                    <Entrada
+                      key={campo.clave}
+                      etiqueta={campo.nombre}
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      ayuda="Vacío si no se hizo el conteo observado."
+                      value={borrador[campo.clave] === null || borrador[campo.clave] === undefined ? '' : String(borrador[campo.clave])}
+                      onChange={(e) =>
+                        setBorrador({
+                          ...borrador,
+                          [campo.clave]: numeroODatoVacio(e.target.value),
+                        })
+                      }
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
@@ -516,7 +655,8 @@ const Indicadores = () => {
           <p className="text-xs text-slate-500">
             {calculadoEn && <>Postest calculado el {fechaHora(calculadoEn)}. </>}
             {`Periodo ${rango.fechaInicio} a ${rango.fechaFin}. `}
-            Los valores del pretest no se calculan: se transcriben de la ficha de observación del proceso manual.
+            La línea base del pretest no se mide en el sistema: se transcribe de la ficha de observación del
+            proceso manual y se guarda con autor y fecha.
           </p>
         </>
       )}

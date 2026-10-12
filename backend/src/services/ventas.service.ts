@@ -4,6 +4,7 @@ import { ErrorConflicto, ErrorNoEncontrado, ErrorReglaNegocio } from '../utils/e
 import { construirPaginacion } from '../utils/paginacion';
 import { generarCorrelativo } from '../utils/correlativos';
 import { registrarHistorial } from './historial.service';
+import { origenDe, type OpcionesOrigen } from './origen-dato';
 import { aplicarMovimientoInventario } from './inventario.service';
 import { assertPuedeVender } from './pedidos.service';
 import type { CrearVentaInput, ListarVentasQuery } from '../validators/operaciones.validator';
@@ -101,7 +102,12 @@ const SELECT_VENTA = {
  * El tiempo entre la confirmación del pedido y la creación de la venta es el
  * indicador "tiempo promedio de procesamiento de una venta".
  */
-export const crearVenta = async (entrada: CrearVentaInput, usuarioId: number) => {
+export const crearVenta = async (
+  entrada: CrearVentaInput,
+  usuarioId: number,
+  opciones?: OpcionesOrigen,
+) => {
+  const origen = origenDe(opciones);
   return prisma.$transaction(async (tx) => {
     const pedido = await tx.pedido.findUnique({
       where: { id: entrada.pedidoId },
@@ -170,6 +176,7 @@ export const crearVenta = async (entrada: CrearVentaInput, usuarioId: number) =>
         saldo: total,
         estado: 'PENDIENTE',
         observaciones: entrada.observaciones ?? null,
+        origen,
         detalles: {
           create: pedido.detalles.map((d) => ({
             productoId: d.productoId,
@@ -195,6 +202,8 @@ export const crearVenta = async (entrada: CrearVentaInput, usuarioId: number) =>
           observaciones: `Venta ${venta.numero} del pedido ${pedido.codigo}`,
           pedidoId: pedido.id,
           ventaId: venta.id,
+          // El movimiento hereda la procedencia de la venta que lo provoca.
+          procedencia: origen,
         },
         tx,
       );
@@ -212,6 +221,7 @@ export const crearVenta = async (entrada: CrearVentaInput, usuarioId: number) =>
         usuarioId,
         pedidoId: pedido.id,
         ventaId: venta.id,
+        origen,
       },
       tx,
     );
@@ -233,6 +243,7 @@ export const crearVenta = async (entrada: CrearVentaInput, usuarioId: number) =>
           referencia: entrada.pagoInicial.referencia ?? null,
           observaciones: entrada.pagoInicial.observaciones ?? null,
           recibidoPorId: usuarioId,
+          origen,
         },
       });
       const totalPagado = entrada.pagoInicial.monto;
@@ -257,6 +268,7 @@ export const crearVenta = async (entrada: CrearVentaInput, usuarioId: number) =>
           ventaId: venta.id,
           pagoId: pago.id,
           pedidoId: pedido.id,
+          origen,
         },
         tx,
       );
@@ -342,7 +354,7 @@ export const obtenerVenta = async (id: number) => {
  * genera y registra un comprobante imprimible, que forma parte del criterio
  * de "venta procesada correctamente".
  */
-export const emitirConstancia = async (id: number, usuarioId: number) => {
+export const emitirConstancia = async (id: number, usuarioId: number, opciones?: OpcionesOrigen) => {
   const venta = await prisma.venta.findUnique({
     where: { id },
     select: { id: true, numero: true, estado: true, constanciaEmitida: true, constanciaCodigo: true, total: true },
@@ -380,6 +392,7 @@ export const emitirConstancia = async (id: number, usuarioId: number) => {
         usuarioId,
         ventaId: id,
         pedidoId: actualizada.pedidoId,
+        origen: origenDe(opciones),
       },
       tx,
     );

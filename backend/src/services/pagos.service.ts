@@ -3,6 +3,7 @@ import { prisma } from '../config/prisma';
 import { ErrorNoEncontrado, ErrorReglaNegocio } from '../utils/errors';
 import { construirPaginacion } from '../utils/paginacion';
 import { registrarHistorial } from './historial.service';
+import { origenDe, type OpcionesOrigen } from './origen-dato';
 import type { CrearPagoInput, ListarPagosQuery } from '../validators/operaciones.validator';
 
 const SELECT_PAGO = {
@@ -38,7 +39,12 @@ const SELECT_PAGO = {
  * el total de la venta. Se valida dentro de la misma transacción que
  * actualiza el saldo, de modo que dos cobros simultáneos no superen la deuda.
  */
-export const crearPago = async (entrada: CrearPagoInput, usuarioId: number) => {
+export const crearPago = async (
+  entrada: CrearPagoInput,
+  usuarioId: number,
+  opciones?: OpcionesOrigen,
+) => {
+  const origen = origenDe(opciones);
   return prisma.$transaction(async (tx) => {
     const venta = await tx.venta.findUnique({
       where: { id: entrada.ventaId },
@@ -75,6 +81,7 @@ export const crearPago = async (entrada: CrearPagoInput, usuarioId: number) => {
         fecha: entrada.fecha ?? new Date(),
         estado: 'REGISTRADO',
         recibidoPorId: usuarioId,
+        origen,
       },
       select: SELECT_PAGO,
     });
@@ -105,6 +112,7 @@ export const crearPago = async (entrada: CrearPagoInput, usuarioId: number) => {
         pagoId: pago.id,
         pedidoId: venta.pedidoId,
         fecha: entrada.fecha ?? new Date(),
+        origen,
       },
       tx,
     );

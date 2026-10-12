@@ -28,7 +28,12 @@ export default function globalSetup(): void {
 
   // `prisma.config.ts` hace `import 'dotenv/config'`, y dotenv NO pisa las
   // variables ya presentes: por eso el entorno hijo es suficiente.
-  const entorno = { ...process.env, DATABASE_URL: url };
+  //
+  // `ENTORNO=test` es obligatorio, no una comodidad. El seed carga la
+  // configuración, que rechaza cualquier entorno cuya base no termine en
+  // `_test`: sin esto, una ejecución de la suite podría apuntar a la base de
+  // producción y sembrarla.
+  const entorno = { ...process.env, DATABASE_URL: url, ENTORNO: 'test' };
 
   const ejecutar = (comando: string, titulo: string) => {
     try {

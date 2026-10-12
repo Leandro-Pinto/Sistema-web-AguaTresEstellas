@@ -1,14 +1,17 @@
 import { Router } from 'express';
-import { autenticar, autorizar } from '../middlewares';
+import { autenticar, autorizar, validar } from '../middlewares';
 import * as reportesCtrl from '../controllers/reportes.controller';
 import * as indicadoresCtrl from '../controllers/indicadores.controller';
+import { pretestSchema } from '../validators/indicadores.validator';
 
 /**
  * RUTAS DE REPORTES E INDICADORES
  *
  * Son la base de la evidencia del postest. Todos los perfiles pueden consultar
  * lo que les corresponde, pero la exportación masiva queda reservada al
- * administrador porque incluye datos consolidados de toda la operación.
+ * administrador porque incluye datos consolidados de toda la operación, y lo
+ * mismo vale para la línea base del pretest, contra la que se interpreta
+ * toda la comparación.
  */
 const router = Router();
 
@@ -18,8 +21,13 @@ router.use(autenticar);
 router.get('/indicadores/proceso', indicadoresCtrl.proceso);
 router.get('/indicadores/sistema', indicadoresCtrl.sistema);
 router.get('/indicadores/comparativo', indicadoresCtrl.comparativo);
-router.post('/indicadores/comparativo', indicadoresCtrl.comparativo);
 router.get('/indicadores/pretest', indicadoresCtrl.pretest);
+router.put(
+  '/indicadores/pretest',
+  autorizar('ADMINISTRADOR'),
+  validar(pretestSchema),
+  indicadoresCtrl.guardarPretest,
+);
 router.get('/indicadores/periodo', indicadoresCtrl.periodo);
 
 // --- Reportes ---------------------------------------------------------

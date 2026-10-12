@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAutenticacion } from '@/context/autenticacion'
 import { useRetraso } from '@/hooks'
 import { Boton, Confirmacion } from '@/components/ui'
+import { consultarSalud } from '@/services/api'
 import { clases, tituloRol } from '@/utils/formato'
 import type { NombreRol } from '@/types/dominio'
 
@@ -143,6 +144,46 @@ const ENLACES: Enlace[] = [
     icono: <I d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.6L19 9.4V19a2 2 0 01-2 2z" />,
   },
 ]
+
+/**
+ * Cinta de datos de demostración.
+ *
+ * Aparece sobre el contenido, fija y sin ninguna forma de cerrarla, cuando el
+ * servidor declara `entorno = "demo"`. No es un detalle de estilo: una captura
+ * de una demostración sin rótulo sería indistinguible de una captura del
+ * postest, que es exactamente la confusión que la tesis no puede permitirse.
+ *
+ * Se consulta `/salud` una sola vez al montar. Si la consulta falla, no se
+ * muestra cinta: no se puede afirmar que los datos son de demostración sin que
+ * el servidor lo diga, pero tampoco debe impedirse usar el sistema por ello.
+ */
+const CintaDemo = () => {
+  const [demo, setDemo] = useState(false)
+
+  useEffect(() => {
+    let vigente = true
+    void consultarSalud().then((salud) => {
+      if (vigente) setDemo(salud?.entorno === 'demo')
+    })
+    return () => {
+      vigente = false
+    }
+  }, [])
+
+  if (!demo) return null
+
+  return (
+    <div
+      role="status"
+      className="border-b border-amber-300 bg-amber-100 px-4 py-2 text-center sm:px-6"
+      data-testid="cinta-demo"
+    >
+      <p className="text-xs font-semibold uppercase tracking-wide text-amber-900">
+        Datos de demostración · no son resultados de la investigación
+      </p>
+    </div>
+  )
+}
 
 /**
  * Estructura de la aplicación: barra lateral, cabecera y área de contenido.
@@ -377,6 +418,8 @@ export const Layout = () => {
             </p>
           </div>
         )}
+
+        <CintaDemo />
 
         <main className="px-4 py-5 sm:px-6 sm:py-6">
           <Outlet />

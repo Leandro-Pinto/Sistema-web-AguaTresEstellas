@@ -28,6 +28,10 @@ if (!urlPruebas) {
 
 process.env.NODE_ENV = 'test';
 process.env.DATABASE_URL = urlPruebas;
+// La suite corre contra la base `_test`. Declararlo evita que la configuración
+// la rechace por no terminar en `_demo` (que es lo que exige el entorno de
+// demostración) y deja constancia de que las pruebas no son producción.
+process.env.ENTORNO = 'test';
 
 // La suite emite decenas de logins en pocos segundos. Sin esto, el limitador
 // de `/api/auth` (30 por 15 min) los confundiría con un ataque.

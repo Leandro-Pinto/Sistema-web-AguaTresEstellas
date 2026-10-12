@@ -20,7 +20,7 @@
 El backend separa las rutas (qué se puede pedir), los validadores (que la
 petición sea válida), los controladores (la forma de la respuesta) y los
 servicios (la regla de negocio). La regla de negocio no vive en el controlador:
-así el simulador del postest puede invocar los mismos servicios que la
+así el simulador de demostración puede invocar los mismos servicios que la
 aplicación, sin escribir directamente en la base.
 
 ## 2. Capas
@@ -50,7 +50,7 @@ Se aplican en este orden, y el orden importa:
 9. Rutas.
 10. `noEncontrado` y `manejadorErrores` — respuestas 404 y de error.
 
-`bitacoraHttp` existe porque los indicadores de eficiencia del postest (tiempo
+`bitacoraHttp` existe porque los indicadores de eficiencia del sistema (tiempo
 de respuesta promedio, mediana, percentiles) se calculan a partir de lo que el
 sistema registró de sí mismo, no de una medición externa.
 
@@ -119,6 +119,7 @@ cambiarla.
 | Tablero | Indicadores del proceso, alertas de bidones | Sí | Sí | No |
 | Reportes | Todos los reportes del catálogo | Sí | Sí | Sí |
 | Reportes | Costo de consultas, exportar indicadores | Sí | No | No |
+| Reportes | Transcribir o corregir la línea base del pretest | Sí | No | No |
 | Usuarios y roles | Todo | Sí | No | No |
 | Evidencia | Incidencias y fiabilidad | Sí | Sí | Sí |
 | Evidencia | Crear, editar, resolver o descartar una incidencia | Sí | Sí | Sí |
@@ -138,7 +139,7 @@ cambiarla.
 | `Cliente` | Empresa, institución o persona que compra. | Clave compuesta por tipo y documento. |
 | `Producto` | Artículo vendible, incluido el bidón retornable. | `unidadMedida` distingue bidón de unidad. |
 | `Repartidor` | Persona que entrega. | `documento` es la llave del vínculo con `Usuario`. |
-| `Pedido` | Solicitud del cliente. | Guarda marcas de tiempo de cada etapa. |
+| `Pedido` | Solicitud del cliente. | Guarda marcas de tiempo de cada etapa y su `origen`. |
 | `DetallePedido` | Ítems del pedido. | |
 | `Venta` | Conversión de un pedido en venta. | Un pedido genera a lo sumo una venta. |
 | `DetalleVenta` | Ítems de la venta. | |
@@ -146,13 +147,14 @@ cambiarla.
 | `Entrega` | Asignación y ejecución de una entrega. | Registra salida a ruta, hora de entrega y demora. |
 | `MovimientoBidon` | Salida, devolución o pérdida de un envase. | Lleva el saldo resultante del cliente. |
 | `MovimientoInventario` | Entrada o salida de stock de un producto. | |
-| `HistorialEstado` | Cambio de estado de pedido, venta o entrega. | Es la trazabilidad que mide la tesis. |
+| `HistorialEstado` | Cambio de estado de pedido, venta o entrega. | Es la trazabilidad que mide la tesis. Hereda la procedencia del registro que documenta. |
 | `Correlativo` | Numeración por tipo y año. | |
 | `BitacoraHttp` | Petición registrada para los indicadores del sistema. | |
 | `IncidenciaSistema` | Incidencia reportada en el módulo de evidencia. | |
 | `LogConsulta` | Consulta lenta, para el reporte de costo de consultas. | |
 | `RequisitoFuncional` | Requisito de la tesis. | Alimenta el indicador de adecuación funcional. |
 | `CasoPrueba` | Caso de prueba asociado a un requisito. | Alimenta el mismo indicador. |
+| `LineaBasePretest` | Los nueve valores medidos sobre el proceso manual. | Fila única; guarda quién la registró y quién la corrigió. |
 
 ### Enums
 
@@ -169,6 +171,7 @@ cambiarla.
 | `TipoMovimientoInventario` | `ENTRADA`, `SALIDA`, `AJUSTE` |
 | `TipoMovimientoBidon` | `SALIDA`, `DEVOLUCION`, `PERDIDA_CLIENTE`, `PERDIDA_INTERNA` |
 | `EstadoCasoPrueba` | `PENDIENTE`, `APROBADO`, `FALLIDO` |
+| `OrigenDato` | `REAL`, `SIMULADO`. Procedencia de cada registro operativo; ver la sección 6. |
 
 ### Transiciones de estado
 
@@ -185,6 +188,21 @@ Entrega:  ASIGNADA → EN_RUTA → ENTREGADA | NO_ENTREGADA
 ## 5. Endpoints
 
 Prefijo: `/api`. Excepción: la salud pública responde en `/salud`.
+
+### Salud
+
+| Método | Ruta | Rol |
+|---|---|---|
+| GET | `/salud` | Público |
+| GET | `/salud/completa` | Administrador |
+
+`/salud` comprueba que la base responda con un `SELECT 1`. Responde `200` con
+`{ estado, baseDeDatos, entorno, version, horaServidor, latenciaBaseMs }` y, si
+la base no responde, `503` con `codigo: "BASE_NO_DISPONIBLE"` y los mismos
+campos. El entorno viaja en los dos casos porque el frontend lo usa para rotular
+la cinta de demostración; una cinta que dependiera de que la base esté bien no
+serviría de garantía. `/salud/completa` añade recuentos, memoria y latencia, y
+por eso exige sesión.
 
 ### Autenticación
 
@@ -241,9 +259,13 @@ Prefijo: `/api`. Excepción: la salud pública responde en `/salud`.
 | GET | `/reportes/historial-bidones/:clienteId` | Autenticado |
 | GET | `/reportes/costo-consultas` | Administrador |
 | GET | `/reportes/indicadores/{proceso,sistema,comparativo,pretest,periodo}` | Autenticado |
+| PUT | `/reportes/indicadores/pretest` | Administrador |
 | GET | `/reportes/indicadores/exportar` | Administrador |
 
-Los reportes aceptan `formato=csv` o `formato=pdf` para descargarse (sección 7).
+Los reportes aceptan `formato=csv` o `formato=pdf` para descargarse (sección 7),
+y `origen=REAL|SIMULADO` para elegir qué datos se leen (sección 6). Por omisión
+se lee `REAL`; pedir `SIMULADO` fuera del entorno `demo` no sirve la mezcla,
+corrige el origen y lo explica en el mensaje.
 
 ## 6. Forma de las respuestas
 
@@ -313,7 +335,8 @@ reporte en vez de suponer una forma única.
 
 ### Indicadores
 
-`/reportes/indicadores/proceso` devuelve el postest del proceso:
+`/reportes/indicadores/proceso` devuelve los indicadores del proceso de ventas
+medidos sobre los datos del periodo:
 
 ```json
 {
@@ -326,10 +349,53 @@ reporte en vez de suponer una forma única.
 }
 ```
 
-`/reportes/indicadores/comparativo` añade el pretest, los indicadores del
-sistema y la comparación. Cuando un valor del pretest no se ha medido, viaja
-como `null` y la interfaz lo muestra como «sin dato» en vez de como cero: un 0
-inventado se lee como una medición, y no lo es.
+`/reportes/indicadores/comparativo` añade la línea base del pretest, los
+indicadores del sistema y la comparación. Cuando un valor del pretest no se ha
+medido, viaja como `null` y la interfaz lo muestra como «sin dato» en vez de
+como cero: un 0 inventado se lee como una medición, y no lo es.
+
+La línea base vive en la tabla `linea_base_pretest`, que el sistema no precarga
+ni calcula. Los nueve valores se transcriben de la ficha de observación:
+
+| Petición | Qué hace | Quién |
+|---|---|---|
+| `GET /reportes/indicadores/pretest` | Devuelve los nueve valores con su procedencia: `registrada`, `creadoPor`, `creadoEn`, `actualizadoPor`, `actualizadoEn`. Sin registro, `registrada` es `false` y los valores son `null`. | Autenticado |
+| `PUT /reportes/indicadores/pretest` | Crea o corrige la fila única. Recibe **solo** los nueve valores. | Administrador |
+| `GET /reportes/indicadores/comparativo` | Lee la fila guardada. No acepta parámetros de pretest: la tabla y el registro no pueden divergir. | Autenticado |
+
+La escritura se valida con `pretestSchema.strict()`: porcentajes de 0 a 100,
+tiempos de 0 a 1440 minutos, campos vacíos admitidos como `null` («no se midió»
+y no «se midió cero») y cualquier clave desconocida rechazada con 422. El
+servidor, no la interfaz, decide quién figura como autor y cuándo: es lo que
+hace auditable la comparación.
+
+### Procedencia de los datos
+
+Todo registro operativo lleva una columna `origen` con dos valores:
+
+| Valor | Qué significa |
+|---|---|
+| `REAL` | La operación real de la empresa. Es lo que se mide en la tesis. |
+| `SIMULADO` | Lo generó el simulador para demostrar el sistema. |
+
+La regla que sostiene esa distinción está en
+`src/services/origen-dato.ts` y es la misma para indicadores y reportes:
+
+- Por omisión se lee `REAL`. Un conjunto simulado no entra en una medición ni
+  por descuido.
+- `?origen=SIMULADO` solo se atiende en el entorno `demo`. En `prod` y `test`
+  la petición se corrige al origen permitido y el mensaje de la respuesta
+  explica por qué, en vez de servir la mezcla en silencio.
+- Un valor fuera del catálogo se rechaza con 422.
+- El simulador no arranca fuera de `demo` (`scripts/simulador-proceso.ts`).
+
+El parámetro está disponible en `/reportes/*` y en
+`/reportes/indicadores/{proceso,comparativo}` y
+`/reportes/indicadores/exportar`. Los movimientos de inventarios y de envases no
+tienen columna propia: se filtran por el pedido que los provocó, que sí la
+tiene.
+
+La separación está probada en `tests/origen-datos.test.ts`.
 
 ## 7. Exportación CSV y PDF
 

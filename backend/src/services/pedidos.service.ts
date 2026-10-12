@@ -10,6 +10,7 @@ import { ErrorConflicto, ErrorNoEncontrado, ErrorReglaNegocio } from '../utils/e
 import { construirPaginacion } from '../utils/paginacion';
 import { generarCorrelativo } from '../utils/correlativos';
 import { registrarHistorial } from './historial.service';
+import { origenDe, type OpcionesOrigen } from './origen-dato';
 import type {
   ActualizarPedidoInput,
   CrearPedidoInput,
@@ -109,7 +110,12 @@ const calcularTotales = (detalles: { precioUnitario: number; cantidad: number }[
  * Todo ocurre en una sola transacción: o se guarda el pedido completo con su
  * historial, o no se guarda nada. Nunca quedan pedidos a medias.
  */
-export const crearPedido = async (entrada: CrearPedidoInput, usuarioId: number) => {
+export const crearPedido = async (
+  entrada: CrearPedidoInput,
+  usuarioId: number,
+  opciones?: OpcionesOrigen,
+) => {
+  const origen = origenDe(opciones);
   const cliente = await prisma.cliente.findUnique({
     where: { id: entrada.clienteId },
     select: { id: true, nombre: true, activo: true, eliminadoEn: true, direccion: true },
@@ -175,6 +181,7 @@ export const crearPedido = async (entrada: CrearPedidoInput, usuarioId: number) 
         observaciones: entrada.observaciones ?? null,
         incidencias: entrada.incidencias ?? null,
         requiereCorreccion: entrada.requiereCorreccion,
+        origen,
         usuarioId,
         detalles: { create: detalles },
       },
@@ -194,6 +201,7 @@ export const crearPedido = async (entrada: CrearPedidoInput, usuarioId: number) 
         usuarioId,
         pedidoId: pedido.id,
         fecha: ahora,
+        origen,
       },
       tx,
     );
@@ -211,6 +219,7 @@ export const crearPedido = async (entrada: CrearPedidoInput, usuarioId: number) 
           usuarioId,
           pedidoId: pedido.id,
           fecha: ahora,
+          origen,
         },
         tx,
       );
@@ -435,8 +444,9 @@ export const cambiarEstadoPedido = async (
   id: number,
   estado: EstadoPedido,
   usuarioId: number,
-  opciones: { observaciones?: string | null; motivo?: string | null } = {},
+  opciones: { observaciones?: string | null; motivo?: string | null } & OpcionesOrigen = {},
 ) => {
+  const origen = origenDe(opciones);
   const actual = await prisma.pedido.findUnique({
     where: { id },
     select: { id: true, codigo: true, estado: true, entregadoEn: true, canceladoEn: true, clienteId: true },
@@ -493,6 +503,7 @@ export const cambiarEstadoPedido = async (
         usuarioId,
         pedidoId: id,
         fecha: ahora,
+        origen,
       },
       tx,
     );

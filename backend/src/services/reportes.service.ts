@@ -7,6 +7,24 @@ import {
 } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { medirConsulta } from '../middlewares/logConsultas';
+import { filtroOrigenPorPedido, ORIGEN_POR_DEFECTO } from './origen-dato';
+import type { OrigenDato } from '@prisma/client';
+
+/**
+ * Procedencia de los registros que entran en un reporte.
+ *
+ * Los reportes son la evidencia que se lleva al libro de análisis de la tesis,
+ * así que por defecto solo leen `REAL`: los registros que produjo el simulador
+ * para demostraciones no pueden aparecer en una tabla de resultados. Ver
+ * `services/origen-dato.ts` para la regla de los tres entornos.
+ *
+ * Se declara en cada reporte como último argumento opcional: así el valor por
+ * omisión es explícito en la firma y quien llame desde el simulador tiene que
+ * escribirlo, en lugar de heredar el comportamiento por sorpresa.
+ */
+export type OrigenReporte = OrigenDato;
+
+export { ORIGEN_POR_DEFECTO };
 
 export interface RangoFechas {
   fechaInicio: Date;
@@ -24,7 +42,12 @@ const rango = (f: RangoFechas) => ({ gte: f.fechaInicio, lte: f.fechaFin });
  * de envases" de la matriz de operacionalización.
  */
 
-export const reporteVentas = async (f: RangoFechas, usuarioId: number, filtros?: { clienteId?: number; usuarioId?: number }) =>
+export const reporteVentas = async (
+  f: RangoFechas,
+  usuarioId: number,
+  filtros?: { clienteId?: number; usuarioId?: number },
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
+) =>
   medirConsulta(
     'REPORTE_VENTAS',
     `Reporte de ventas del ${f.fechaInicio.toISOString().slice(0, 10)} al ${f.fechaFin.toISOString().slice(0, 10)}`,
@@ -33,6 +56,7 @@ export const reporteVentas = async (f: RangoFechas, usuarioId: number, filtros?:
       const where: Prisma.VentaWhereInput = {
         fecha: rango(f),
         estado: { not: 'ANULADA' },
+        origen,
         ...(filtros?.clienteId ? { clienteId: filtros.clienteId } : {}),
         ...(filtros?.usuarioId ? { usuarioId: filtros.usuarioId } : {}),
       };
@@ -74,7 +98,8 @@ export const reporteVentas = async (f: RangoFechas, usuarioId: number, filtros?:
         prisma.$queryRaw<{ fecha: string; total: number; cantidad: number }[]>`
           SELECT DATE(fecha) AS fecha, SUM(total) AS total, COUNT(*) AS cantidad
           FROM ventas
-          WHERE fecha BETWEEN ${f.fechaInicio} AND ${f.fechaFin} AND estado <> 'ANULADA'
+          WHERE fecha BETWEEN ${f.fechaInicio} AND ${f.fechaFin}
+            AND estado <> 'ANULADA' AND origen = ${origen}
           GROUP BY DATE(fecha)
           ORDER BY fecha
         `,
@@ -130,6 +155,7 @@ export const reportePedidos = async (
   f: RangoFechas,
   usuarioId: number,
   filtros?: { estado?: EstadoPedido; clienteId?: number; repartidorId?: number; usuarioId?: number },
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
 ) =>
   medirConsulta(
     'REPORTE_PEDIDOS',
@@ -138,6 +164,7 @@ export const reportePedidos = async (
     async () => {
       const where: Prisma.PedidoWhereInput = {
         registradoEn: rango(f),
+        origen,
         ...(filtros?.estado ? { estado: filtros.estado } : {}),
         ...(filtros?.clienteId ? { clienteId: filtros.clienteId } : {}),
         ...(filtros?.repartidorId ? { entrega: { repartidorId: filtros.repartidorId } } : {}),
@@ -177,6 +204,7 @@ export const reportePedidos = async (
             AVG(TIMESTAMPDIFF(SECOND, registradoEn, entregadoEn)) / 60 AS ciclo
           FROM pedidos
           WHERE registradoEn BETWEEN ${f.fechaInicio} AND ${f.fechaFin}
+            AND origen = ${origen}
         `,
       ]);
 
@@ -202,7 +230,12 @@ export const reportePedidos = async (
     (r) => r.pedidos.length,
   );
 
-export const reportePagos = async (f: RangoFechas, usuarioId: number, filtros?: { metodo?: MetodoPago; clienteId?: number }) =>
+export const reportePagos = async (
+  f: RangoFechas,
+  usuarioId: number,
+  filtros?: { metodo?: MetodoPago; clienteId?: number },
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
+) =>
   medirConsulta(
     'REPORTE_PAGOS',
     `Reporte de pagos del ${f.fechaInicio.toISOString().slice(0, 10)} al ${f.fechaFin.toISOString().slice(0, 10)}`,
@@ -210,6 +243,7 @@ export const reportePagos = async (f: RangoFechas, usuarioId: number, filtros?: 
     async () => {
       const where: Prisma.PagoWhereInput = {
         fecha: rango(f),
+        origen,
         ...(filtros?.metodo ? { metodo: filtros.metodo } : {}),
         ...(filtros?.clienteId ? { venta: { clienteId: filtros.clienteId } } : {}),
       };
@@ -240,7 +274,8 @@ export const reportePagos = async (f: RangoFechas, usuarioId: number, filtros?: 
         prisma.$queryRaw<{ fecha: string; total: number }[]>`
           SELECT DATE(fecha) AS fecha, SUM(monto) AS total
           FROM pagos
-          WHERE fecha BETWEEN ${f.fechaInicio} AND ${f.fechaFin} AND estado = 'REGISTRADO'
+          WHERE fecha BETWEEN ${f.fechaInicio} AND ${f.fechaFin}
+            AND estado = 'REGISTRADO' AND origen = ${origen}
           GROUP BY DATE(fecha)
           ORDER BY fecha
         `,
@@ -272,6 +307,7 @@ export const reporteEntregas = async (
   f: RangoFechas,
   usuarioId: number,
   filtros?: { repartidorId?: number; resultado?: EstadoEntrega },
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
 ) =>
   medirConsulta(
     'REPORTE_ENTREGAS',
@@ -280,6 +316,7 @@ export const reporteEntregas = async (
     async () => {
       const where: Prisma.EntregaWhereInput = {
         fechaAsignacion: rango(f),
+        origen,
         ...(filtros?.repartidorId ? { repartidorId: filtros.repartidorId } : {}),
         ...(filtros?.resultado ? { estado: filtros.resultado } : {}),
       };
@@ -319,6 +356,7 @@ export const reporteEntregas = async (
             AVG(TIMESTAMPDIFF(MINUTE, horaSalida, horaEntrega)) AS entrega
           FROM entregas
           WHERE fechaAsignacion BETWEEN ${f.fechaInicio} AND ${f.fechaFin}
+            AND origen = ${origen}
         `,
       ]);
 
@@ -362,7 +400,11 @@ export const reporteEntregas = async (
     (r) => r.entregas.length,
   );
 
-export const reporteClientes = async (f: RangoFechas, usuarioId: number) =>
+export const reporteClientes = async (
+  f: RangoFechas,
+  usuarioId: number,
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
+) =>
   medirConsulta(
     'REPORTE_CLIENTES',
     'Reporte de clientes del periodo',
@@ -385,13 +427,13 @@ export const reporteClientes = async (f: RangoFechas, usuarioId: number) =>
 
       const ventas = await prisma.venta.groupBy({
         by: ['clienteId'],
-        where: { fecha: rango(f), estado: { not: 'ANULADA' } },
+        where: { fecha: rango(f), estado: { not: 'ANULADA' }, origen },
         _sum: { total: true, saldo: true },
         _count: true,
       });
       const pedidos = await prisma.pedido.groupBy({
         by: ['clienteId'],
-        where: { registradoEn: rango(f) },
+        where: { registradoEn: rango(f), origen },
         _count: true,
       });
 
@@ -431,14 +473,23 @@ export const reporteClientes = async (f: RangoFechas, usuarioId: number) =>
     (r) => r.clientes.length,
   );
 
-export const reporteBidones = async (f: RangoFechas, usuarioId: number, filtros?: { clienteId?: number; repartidorId?: number }) =>
+export const reporteBidones = async (
+  f: RangoFechas,
+  usuarioId: number,
+  filtros?: { clienteId?: number; repartidorId?: number },
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
+) =>
   medirConsulta(
     'REPORTE_BIDONES',
     'Reporte de control de bidones del periodo',
     usuarioId,
     async () => {
+      // El movimiento de bidón no tiene columna de origen: lo que se sabe es el
+      // pedido que lo originó, y ese es el que el simulador crea. La regla de
+      // los movimientos sin pedido está en `filtroOrigenPorPedido`.
       const where: Prisma.MovimientoBidonWhereInput = {
         fecha: rango(f),
+        ...filtroOrigenPorPedido(origen),
         ...(filtros?.clienteId ? { clienteId: filtros.clienteId } : {}),
         ...(filtros?.repartidorId ? { repartidorId: filtros.repartidorId } : {}),
       };
@@ -466,7 +517,9 @@ export const reporteBidones = async (f: RangoFechas, usuarioId: number, filtros?
                  SUM(CASE WHEN m.tipo IN ('ENTREGA','AJUSTE') THEN m.cantidad ELSE -m.cantidad END) AS saldo
           FROM clientes c
           JOIN movimientos_bidones m ON m.clienteId = c.id
+          LEFT JOIN pedidos p ON p.id = m.pedidoId
           WHERE c.eliminadoEn IS NULL
+            AND (m.pedidoId IS NULL OR p.origen = ${origen})
           GROUP BY c.id, c.nombre, c.documento
           HAVING saldo <> 0
           ORDER BY saldo DESC
@@ -499,12 +552,21 @@ export const reporteBidones = async (f: RangoFechas, usuarioId: number, filtros?
     (r) => r.movimientos.length,
   );
 
-export const reporteInventario = async (f: RangoFechas, usuarioId: number) =>
+export const reporteInventario = async (
+  f: RangoFechas,
+  usuarioId: number,
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
+) =>
   medirConsulta(
     'REPORTE_INVENTARIO',
     'Reporte de movimientos de inventario del periodo',
     usuarioId,
     async () => {
+      // Los movimientos de inventario no llevan columna de origen: son
+      // entradas y salidas del almacén, no del proceso de ventas. Se filtra por
+      // el pedido que causó el movimiento, según `filtroOrigenPorPedido`.
+      const soloPedidosDelOrigen = filtroOrigenPorPedido(origen);
+
       const [productos, movimientos, porTipo, valor, conteoInconsistencias] = await Promise.all([
         prisma.producto.findMany({
           where: { eliminadoEn: null },
@@ -521,7 +583,7 @@ export const reporteInventario = async (f: RangoFechas, usuarioId: number) =>
           },
         }),
         prisma.movimientoInventario.findMany({
-          where: { fecha: rango(f) },
+          where: { fecha: rango(f), ...soloPedidosDelOrigen },
           orderBy: { id: 'desc' },
           take: 500,
           select: {
@@ -536,17 +598,28 @@ export const reporteInventario = async (f: RangoFechas, usuarioId: number) =>
             usuario: { select: { nombreCompleto: true } },
           },
         }),
-        prisma.movimientoInventario.groupBy({ by: ['tipo'], where: { fecha: rango(f) }, _sum: { cantidad: true }, _count: true }),
-        prisma.movimientoInventario.aggregate({ where: { fecha: rango(f) }, _sum: { cantidad: true }, _count: true }),
+        prisma.movimientoInventario.groupBy({
+          by: ['tipo'],
+          where: { fecha: rango(f), ...soloPedidosDelOrigen },
+          _sum: { cantidad: true },
+          _count: true,
+        }),
+        prisma.movimientoInventario.aggregate({
+          where: { fecha: rango(f), ...soloPedidosDelOrigen },
+          _sum: { cantidad: true },
+          _count: true,
+        }),
         // La coherencia se cuenta en la base y no sobre el detalle de JS: el
         // detalle está recortado a 500 filas, así que filtrarlo en memoria
         // revisaría menos de un tercio de los movimientos del periodo y aun
         // así dividiría entre el total real, dando un 100 % sin comprobarlo.
         prisma.$queryRaw<{ inconsistentes: number }[]>`
           SELECT COUNT(*) AS inconsistentes
-          FROM movimientos_inventario
-          WHERE fecha BETWEEN ${f.fechaInicio} AND ${f.fechaFin}
-            AND stockResultante <> CASE
+          FROM movimientos_inventario mi
+          LEFT JOIN pedidos p ON p.id = mi.pedidoId
+          WHERE mi.fecha BETWEEN ${f.fechaInicio} AND ${f.fechaFin}
+            AND (mi.pedidoId IS NULL OR p.origen = ${origen})
+            AND mi.stockResultante <> CASE
               WHEN tipo = 'SALIDA' THEN stockAnterior - cantidad
               ELSE stockAnterior + cantidad
             END
@@ -584,7 +657,11 @@ export const reporteInventario = async (f: RangoFechas, usuarioId: number) =>
  * Consolidado diario: la respuesta directa a la pregunta "cuánto se vendió
  * hoy", que en el proceso manual obligaba a revisar cuadernos.
  */
-export const consolidadoDiario = async (fecha: Date, usuarioId: number) =>
+export const consolidadoDiario = async (
+  fecha: Date,
+  usuarioId: number,
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
+) =>
   medirConsulta(
     'CONSOLIDADO_DIARIO',
     `Consolidado diario del ${fecha.toISOString().slice(0, 10)}`,
@@ -597,24 +674,24 @@ export const consolidadoDiario = async (fecha: Date, usuarioId: number) =>
 
       const [ventas, pagos, pedidos, unidades] = await Promise.all([
         prisma.venta.aggregate({
-          where: { fecha: { gte: inicio, lte: fin }, estado: { not: 'ANULADA' } },
+          where: { fecha: { gte: inicio, lte: fin }, estado: { not: 'ANULADA' }, origen },
           _sum: { total: true, totalPagado: true, saldo: true, descuento: true },
           _count: true,
           _avg: { total: true },
         }),
         prisma.pago.groupBy({
           by: ['metodo'],
-          where: { fecha: { gte: inicio, lte: fin }, estado: 'REGISTRADO' },
+          where: { fecha: { gte: inicio, lte: fin }, estado: 'REGISTRADO', origen },
           _sum: { monto: true },
           _count: true,
         }),
         prisma.pedido.groupBy({
           by: ['estado'],
-          where: { registradoEn: { gte: inicio, lte: fin } },
+          where: { registradoEn: { gte: inicio, lte: fin }, origen },
           _count: { _all: true },
         }),
         prisma.detalleVenta.aggregate({
-          where: { venta: { fecha: { gte: inicio, lte: fin }, estado: { not: 'ANULADA' } } },
+          where: { venta: { fecha: { gte: inicio, lte: fin }, estado: { not: 'ANULADA' }, origen } },
           _sum: { cantidad: true },
         }),
       ]);
@@ -644,13 +721,18 @@ export const consolidadoDiario = async (fecha: Date, usuarioId: number) =>
  * Consulta del historial de bidones de un cliente.
  * Mide el indicador TPHE de la matriz de operacionalización.
  */
-export const consultaHistorialBidones = async (clienteId: number, usuarioId: number, productoId?: number) => {
+export const consultaHistorialBidones = async (
+  clienteId: number,
+  usuarioId: number,
+  productoId?: number,
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
+) => {
   const { historialBidonesCliente } = await import('./bidones.service');
   return medirConsulta(
     'CONSULTA_HISTORIAL_BIDONES',
     `Historial de bidones del cliente ${clienteId}`,
     usuarioId,
-    () => historialBidonesCliente(clienteId, productoId),
+    () => historialBidonesCliente(clienteId, productoId, origen),
     (r) => r.movimientos.length,
   );
 };
@@ -659,7 +741,11 @@ export const consultaHistorialBidones = async (clienteId: number, usuarioId: num
  * Reporte de tiempos del proceso, calculado con SQL sobre las marcas de
  * tiempo reales. Es la fuente del postest para las dimensiones de tiempo.
  */
-export const reporteTiemposProceso = async (f: RangoFechas, usuarioId: number) =>
+export const reporteTiemposProceso = async (
+  f: RangoFechas,
+  usuarioId: number,
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
+) =>
   medirConsulta(
     'REPORTE_TIEMPOS_PROCESO',
     'Reporte de tiempos del proceso de ventas',
@@ -692,6 +778,7 @@ export const reporteTiemposProceso = async (f: RangoFechas, usuarioId: number) =
           SUM(CASE WHEN requiereCorreccion = 1 THEN 1 ELSE 0 END) AS conError
         FROM pedidos
         WHERE registradoEn BETWEEN ${f.fechaInicio} AND ${f.fechaFin}
+          AND origen = ${origen}
       `;
       const r = filas[0];
       const div = (a: number | null, b: number | null) => (b ? Number((Number(a ?? 0) / b / 60).toFixed(2)) : 0);

@@ -1,4 +1,4 @@
-import { Prisma, TipoRegistroHistorial, AccionHistorial } from '@prisma/client';
+import { Prisma, TipoRegistroHistorial, AccionHistorial, OrigenDato } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { construirPaginacion, type ResultadoPaginacion } from '../utils/paginacion';
 import type { ListarHistorialQuery } from '../validators/operaciones.validator';
@@ -20,6 +20,12 @@ export interface RegistrarHistorialInput {
   ventaId?: number | null;
   pagoId?: number | null;
   fecha?: Date;
+  /**
+   * Procedencia del hecho que se registra. La operación real escribe REAL; el
+   * simulador escribe SIMULADO. Sin este campo, una auditoría del simulador
+   * sería indistinguible de la real y por tanto inútil como evidencia.
+   */
+  origen?: OrigenDato;
 }
 
 /**
@@ -46,6 +52,7 @@ export const registrarHistorial = async (
       ventaId: datos.ventaId ?? null,
       pagoId: datos.pagoId ?? null,
       fecha: datos.fecha ?? new Date(),
+      origen: datos.origen ?? 'REAL',
     },
   });
 };

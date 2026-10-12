@@ -1,4 +1,8 @@
+import type { OrigenDato } from '@prisma/client';
 import { prisma } from '../config/prisma';
+import { ORIGEN_POR_DEFECTO } from './origen-dato';
+
+export { ORIGEN_POR_DEFECTO };
 
 /**
  * ============================================================================
@@ -38,10 +42,12 @@ import { prisma } from '../config/prisma';
  *        - % de pedidos atendidos correctamente
  *        - % de pedidos con trazabilidad completa
  *
- *  IMPORTANTE: estos valores corresponden al POSTEST. La medición del
- *  PRETEST (proceso manual) se registra con la ficha de observación de la
- *  tesis, porque el sistema no existía durante ese periodo. Este módulo
- *  existe para que el postest NO dependa de cálculos manuales.
+ *  IMPORTANTE: los valores de este módulo son los del POSTEST, calculados
+ *  por el sistema. El PRETEST (proceso manual) se midió con la ficha de
+ *  observación de la tesis, porque no existía sistema durante ese periodo;
+ *  se transcribe una sola vez en `linea_base_pretest` y el comparativo la
+ *  lee de ahí. Así el postest no depende de cálculos manuales y el pretest
+ *  no depende de que alguien lo recuerde cada vez.
  * ============================================================================
  */
 
@@ -55,6 +61,8 @@ const intervalo = (desde?: Date, hasta?: Date) => ({
   ...(hasta ? { lte: hasta } : {}),
 });
 
+
+
 // ============================================================================
 //  VARIABLE DEPENDIENTE: PROCESO DE VENTAS
 // ============================================================================
@@ -63,8 +71,14 @@ const intervalo = (desde?: Date, hasta?: Date) => ({
  * POSTEST - Variable dependiente.
  * Calcula los nueve indicadores de las tres dimensiones del proceso de ventas
  * para el periodo solicitado.
+ *
+ * @param origen Procedencia de los datos a medir. Por defecto solo `REAL`.
  */
-export const indicadoresProcesoVentas = async (fechaInicio?: Date, fechaFin?: Date) => {
+export const indicadoresProcesoVentas = async (
+  fechaInicio?: Date,
+  fechaFin?: Date,
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
+) => {
   // ---------------------------------------------------------------------
   // Dimensión 1: Recepción y registro de pedidos
   // ---------------------------------------------------------------------
@@ -102,10 +116,12 @@ export const indicadoresProcesoVentas = async (fechaInicio?: Date, fechaFin?: Da
       TIMESTAMPDIFF(SECOND, p.registradoEn, p.entregadoEn) AS cicloCompleto,
       CASE WHEN
             (SELECT COUNT(DISTINCT he.estadoNuevo) FROM historial_estados he
-             WHERE he.tipo = 'PEDIDO' AND he.entidadId = p.id AND he.usuarioId IS NOT NULL AND he.fecha IS NOT NULL) >= 4
+             WHERE he.tipo = 'PEDIDO' AND he.entidadId = p.id AND he.usuarioId IS NOT NULL
+               AND he.fecha IS NOT NULL AND he.origen = ${origen}) >= 4
        THEN 1 ELSE 0 END AS conTrazabilidad
     FROM pedidos p
-    WHERE p.registradoEn BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
+    WHERE p.origen = ${origen}
+      AND p.registradoEn BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
   `;
 
   // ---------------------------------------------------------------------
@@ -125,7 +141,7 @@ export const indicadoresProcesoVentas = async (fechaInicio?: Date, fechaFin?: Da
       SUM(CASE WHEN v.estado <> 'ANULADA'
                 AND EXISTS (SELECT 1 FROM detalle_ventas dv WHERE dv.ventaId = v.id AND dv.cantidad > 0 AND dv.precioUnitario > 0)
                 AND v.total > 0
-                AND EXISTS (SELECT 1 FROM pagos pg WHERE pg.ventaId = v.id AND pg.estado = 'REGISTRADO')
+                AND EXISTS (SELECT 1 FROM pagos pg WHERE pg.ventaId = v.id AND pg.estado = 'REGISTRADO' AND pg.origen = ${origen})
                 AND v.constanciaEmitida = 1
            THEN 1 ELSE 0 END) AS correctas,
       SUM(CASE WHEN v.estado = 'ANULADA' THEN 1 ELSE 0 END) AS conError,
@@ -134,11 +150,13 @@ export const indicadoresProcesoVentas = async (fechaInicio?: Date, fechaFin?: Da
       -- válido. AVG descarta los NULL, así que solo entra lo ya cobrado.
       AVG(TIMESTAMPDIFF(SECOND, v.creadoEn, (
         SELECT MIN(pg2.fecha) FROM pagos pg2
-        WHERE pg2.ventaId = v.id AND pg2.estado = 'REGISTRADO'
+        WHERE pg2.ventaId = v.id AND pg2.estado = 'REGISTRADO' AND pg2.origen = ${origen}
       ))) AS tiempoHastaPago
     FROM ventas v
     INNER JOIN pedidos p ON p.id = v.pedidoId
-    WHERE v.fecha BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
+    WHERE v.origen = ${origen}
+      AND p.origen = ${origen}
+      AND v.fecha BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
   `;
 
   // ---------------------------------------------------------------------
@@ -157,16 +175,18 @@ export const indicadoresProcesoVentas = async (fechaInicio?: Date, fechaFin?: Da
       COUNT(*) AS total,
       SUM(CASE WHEN p.estado = 'ENTREGADO'
                 AND p.entregadoEn IS NOT NULL
-                AND EXISTS (SELECT 1 FROM entregas e WHERE e.pedidoId = p.id AND e.horaEntrega IS NOT NULL)
+                AND EXISTS (SELECT 1 FROM entregas e WHERE e.pedidoId = p.id AND e.horaEntrega IS NOT NULL AND e.origen = ${origen})
            THEN 1 ELSE 0 END) AS atendidos,
       SUM(CASE WHEN
             (SELECT COUNT(DISTINCT he.estadoNuevo) FROM historial_estados he
-             WHERE he.tipo = 'PEDIDO' AND he.entidadId = p.id AND he.usuarioId IS NOT NULL AND he.fecha IS NOT NULL) >= 4
+             WHERE he.tipo = 'PEDIDO' AND he.entidadId = p.id AND he.usuarioId IS NOT NULL
+               AND he.fecha IS NOT NULL AND he.origen = ${origen}) >= 4
        THEN 1 ELSE 0 END) AS conTrazabilidad,
       AVG(TIMESTAMPDIFF(SECOND, p.registradoEn, p.asignadoEn)) AS tiempoConfirmacionAsignacion,
       AVG(TIMESTAMPDIFF(SECOND, p.registradoEn, p.entregadoEn)) AS tiempoCiclo
     FROM pedidos p
-    WHERE p.registradoEn BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
+    WHERE p.origen = ${origen}
+      AND p.registradoEn BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
   `;
 
   // Pagos correctos sobre el total de ventas
@@ -177,7 +197,9 @@ export const indicadoresProcesoVentas = async (fechaInicio?: Date, fechaFin?: Da
       SUM(CASE WHEN pg.estado = 'ANULADO' THEN 1 ELSE 0 END) AS montoIncorrecto
     FROM pagos pg
     INNER JOIN ventas v ON v.id = pg.ventaId
-    WHERE pg.fecha BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
+    WHERE pg.origen = ${origen}
+      AND v.origen = ${origen}
+      AND pg.fecha BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
   `;
 
   // Entregas correctas sobre el total de entregas
@@ -188,7 +210,8 @@ export const indicadoresProcesoVentas = async (fechaInicio?: Date, fechaFin?: Da
                 AND e.motivoNoEntrega IS NULL
            THEN 1 ELSE 0 END) AS correctas
     FROM entregas e
-    WHERE e.fechaAsignacion BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
+    WHERE e.origen = ${origen}
+      AND e.fechaAsignacion BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
   `;
 
   // Clientes con datos completos
@@ -215,6 +238,8 @@ export const indicadoresProcesoVentas = async (fechaInicio?: Date, fechaFin?: Da
            THEN 1 ELSE 0 END) AS correctos
     FROM movimientos_inventario
     WHERE fecha BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
+      AND (pedidoId IS NULL
+           OR pedidoId IN (SELECT id FROM pedidos WHERE origen = ${origen}))
   `;
 
   // Envases (bidones) con información completa
@@ -224,6 +249,8 @@ export const indicadoresProcesoVentas = async (fechaInicio?: Date, fechaFin?: Da
       SUM(CASE WHEN pedidoId IS NOT NULL AND usuarioId IS NOT NULL AND cantidad > 0 THEN 1 ELSE 0 END) AS completos
     FROM movimientos_bidones
     WHERE fecha BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
+      AND (pedidoId IS NULL
+           OR pedidoId IN (SELECT id FROM pedidos WHERE origen = ${origen}))
   `;
 
   // Tiempos de consulta medidos por la aplicación
@@ -471,49 +498,154 @@ export const indicadoresSistemaWeb = async (fechaInicio?: Date, fechaFin?: Date)
 /**
  * Comparación pretest / postest.
  *
- * El pretest proviene de la ficha de observación aplicada al proceso manual
- * (se registra como línea base). El postest lo calcula este módulo desde los
- * datos reales del sistema. Este endpoint devuelve ambos lado a lado, listo
- * para las tablas del capítulo de resultados.
- */
-/**
- * LÍNEA BASE DEL PRETEST
+ * El pretest se midió sobre el proceso manual con la ficha de observación
+ * (Anexos 3 y 4 de la tesis). El sistema no lo calcula ni lo inventa: lo
+ * transcribe el investigador desde la propia pantalla de Indicadores y queda
+ * guardado en `linea_base_pretest`, con autor y fecha, para que la comparación
+ * sea reproducible y auditable.
  *
- * Valores de la ficha de observación aplicada al proceso manual, antes de
- * implementar el sistema. Los tiempos provienen de la medición directa
- * declarada en la tesis (registro ~5 min, procesamiento >10 min, confirmación
- * 3-5 min más asignación ~5 min).
- *
- * Los porcentajes correctos quedan en `null` hasta cargar el conteo de la
- * ficha: mientras no haya dato observado, la comparación devuelve `null` en
- * vez de inventar una cifra.
+ * Por eso el campo es opcional en la interfaz: lo que no se midió sigue
+ * llegando como `null` y cada fila del comparativo devuelve `antes: null`,
+ * que el frontend presenta como "sin dato". Nunca 0: un 0 sería una medición
+ * que nadie hizo.
  */
-export const PRETEST_BASE: ParametrosPretest = {
-  tiempoRegistroMin: 5,
-  tiempoProcesamientoVentaMin: 10,
-  tiempoConfirmacionAsignacionMin: 8,
-  porcentajePedidosCorrectos: null,
-  porcentajeVentasCorrectas: null,
-  porcentajePedidosAtendidos: null,
-  porcentajeTrazabilidadCompleta: null,
-};
-
 export interface ParametrosPretest {
   tiempoRegistroMin?: number | null;
   tiempoProcesamientoVentaMin?: number | null;
   tiempoConfirmacionAsignacionMin?: number | null;
   porcentajePedidosCorrectos?: number | null;
   porcentajeVentasCorrectas?: number | null;
+  porcentajeVentasConErrores?: number | null;
   porcentajePedidosAtendidos?: number | null;
+  porcentajePedidosConErrores?: number | null;
   porcentajeTrazabilidadCompleta?: number | null;
 }
 
+/**
+ * Los nueve campos, en el orden de la matriz de operacionalización.
+ * Se declara como tupla para poder escribirlos todos sin repetirlos a mano
+ * cuando se serializa la respuesta.
+ */
+const COLUMNAS_PRETEST = [
+  'tiempoRegistroMin',
+  'tiempoProcesamientoVentaMin',
+  'tiempoConfirmacionAsignacionMin',
+  'porcentajePedidosCorrectos',
+  'porcentajeVentasCorrectas',
+  'porcentajeVentasConErrores',
+  'porcentajePedidosAtendidos',
+  'porcentajePedidosConErrores',
+  'porcentajeTrazabilidadCompleta',
+] as const;
+
+/** Los nueve campos como objeto de base de datos, con `null` explícito. */
+const comoColumnas = (pretest: ParametrosPretest) =>
+  Object.fromEntries(
+    COLUMNAS_PRETEST.map((clave) => [clave, pretest[clave] ?? null]),
+  ) as Record<(typeof COLUMNAS_PRETEST)[number], number | null>;
+
+/** Los nueve campos como parámetros de negocio, sin la procedencia. */
+const comoParametros = (
+  columnas: Record<(typeof COLUMNAS_PRETEST)[number], number | null>,
+): ParametrosPretest => ({ ...columnas });
+
+/** Las relaciones que aportan la procedencia de la línea base. */
+const procedencia = {
+  creador: { select: { nombreCompleto: true } },
+  actualizador: { select: { nombreCompleto: true } },
+} as const;
+
+/** Línea base guardada, con la procedencia que la hace auditable. */
+export interface RegistroLineaBase extends ParametrosPretest {
+  /** `false` = todavía no se registró ninguna medición del proceso manual. */
+  registrada: boolean;
+  creadoPor: string | null;
+  creadoEn: string | null;
+  actualizadoPor: string | null;
+  actualizadoEn: string | null;
+}
+
+/**
+ * Lee la línea base guardada.
+ *
+ * Devuelve siempre la misma forma: si no existe, los nueve valores son
+ * `null` y `registrada` es `false`. Así una pantalla nueva nunca puede
+ * confundir "sin medir" con "medido en cero".
+ */
+export const leerRegistroLineaBase = async (): Promise<RegistroLineaBase> => {
+  const fila = await prisma.lineaBasePretest.findFirst({
+    orderBy: { creadoEn: 'desc' },
+    include: procedencia,
+  });
+
+  if (!fila) {
+    return {
+      // `comoColumnas({})` da los nueve campos en `null`, que es exactamente
+      // "no se midió": distinto de 0 y distinto de omitir la clave.
+      ...comoParametros(comoColumnas({})),
+      registrada: false,
+      creadoPor: null,
+      creadoEn: null,
+      actualizadoPor: null,
+      actualizadoEn: null,
+    };
+  }
+
+  return {
+    ...comoParametros(comoColumnas(fila)),
+    registrada: true,
+    creadoPor: fila.creador.nombreCompleto,
+    creadoEn: fila.creadoEn.toISOString(),
+    actualizadoPor: fila.actualizador.nombreCompleto,
+    actualizadoEn: fila.actualizadoEn.toISOString(),
+  };
+};
+
+/**
+ * Guarda (o corrige) la línea base del pretest.
+ *
+ * Es una sola fila: se crea una vez con el investigador que la levantó y,
+ * si se corrige, conserva ese autor original y quién la corrigió. El
+ * `update` usa los valores ya saneados por Zod, no `undefined`, porque en
+ * Prisma `undefined` significa "no tocar el campo" y borrar un porcentaje
+ * dejaría el valor anterior por error.
+ */
+export const guardarLineaBase = async (
+  valores: ParametrosPretest,
+  usuarioId: number,
+): Promise<RegistroLineaBase> => {
+  const columnas = comoColumnas(valores);
+  const existente = await prisma.lineaBasePretest.findFirst({
+    orderBy: { creadoEn: 'desc' },
+    select: { id: true },
+  });
+
+  if (existente) {
+    await prisma.lineaBasePretest.update({
+      where: { id: existente.id },
+      data: { ...columnas, actualizadoPor: usuarioId },
+    });
+  } else {
+    await prisma.lineaBasePretest.create({
+      data: { ...columnas, creadoPor: usuarioId, actualizadoPor: usuarioId },
+    });
+  }
+
+  return leerRegistroLineaBase();
+};
+
 export const compararPretestPostest = async (
-  pretest: ParametrosPretest = PRETEST_BASE,
   fechaInicio?: Date,
   fechaFin?: Date,
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
 ) => {
-  const postest = await indicadoresProcesoVentas(fechaInicio, fechaFin);
+  // La comparación no recibe el pretest por parámetro: lo lee de la línea
+  // base guardada. Una sola fuente evita que la tabla muestre unos números
+  // y el registro guardado otros.
+  const registro = await leerRegistroLineaBase();
+  const pretest = comoParametros(comoColumnas(registro));
+
+  const postest = await indicadoresProcesoVentas(fechaInicio, fechaFin, origen);
   const sistema = await indicadoresSistemaWeb(fechaInicio, fechaFin);
 
   const comparacion = (antes: number | null | undefined, despues: number, unidad: string) => {
@@ -534,6 +666,11 @@ export const compararPretestPostest = async (
     pretest,
     postest,
     sistema,
+    /**
+     * Las nueve filas del comparativo, una por indicador que se midió en las
+     * dos mediciones. Las dos filas de "con errores" forman parte de la ficha
+     * del pretest, así que también se comparan aquí.
+     */
     comparacion: {
       // Los tiempos se miden en minutos en ambas mediciones.
       tiempoPromedioRegistro: comparacion(
@@ -541,25 +678,35 @@ export const compararPretestPostest = async (
         postest.recepcionYRegistro.tiempoPromedioRegistroMin,
         'minutos',
       ),
-      tiempoPromedioProcesamientoVenta: comparacion(
-        pretest.tiempoProcesamientoVentaMin,
-        postest.procesamientoYControl.tiempoPromedioProcesamientoVentaMin,
-        'minutos',
-      ),
-      tiempoPromedioConfirmacionYAsignacion: comparacion(
-        pretest.tiempoConfirmacionAsignacionMin,
-        postest.atencionYSeguimiento.tiempoPromedioConfirmacionYAsignacionMin,
-        'minutos',
-      ),
       porcentajePedidosRegistradosCorrectamente: comparacion(
         pretest.porcentajePedidosCorrectos,
         postest.recepcionYRegistro.porcentajePedidosRegistradosCorrectamente,
         '%',
       ),
+      porcentajePedidosConErroresDeRegistro: comparacion(
+        pretest.porcentajePedidosConErrores,
+        postest.recepcionYRegistro.porcentajePedidosConErrores,
+        '%',
+      ),
+      tiempoPromedioProcesamientoVenta: comparacion(
+        pretest.tiempoProcesamientoVentaMin,
+        postest.procesamientoYControl.tiempoPromedioProcesamientoVentaMin,
+        'minutos',
+      ),
       porcentajeVentasProcesadasCorrectamente: comparacion(
         pretest.porcentajeVentasCorrectas,
         postest.procesamientoYControl.porcentajeVentasProcesadasCorrectamente,
         '%',
+      ),
+      porcentajeVentasConErrores: comparacion(
+        pretest.porcentajeVentasConErrores,
+        postest.procesamientoYControl.porcentajeVentasConErrores,
+        '%',
+      ),
+      tiempoPromedioConfirmacionYAsignacion: comparacion(
+        pretest.tiempoConfirmacionAsignacionMin,
+        postest.atencionYSeguimiento.tiempoPromedioConfirmacionYAsignacionMin,
+        'minutos',
       ),
       porcentajePedidosAtendidosCorrectamente: comparacion(
         pretest.porcentajePedidosAtendidos,
@@ -579,8 +726,12 @@ export const compararPretestPostest = async (
  * Exporta los indicadores a una tabla plana lista para pegar en el capítulo
  * de resultados de la tesis.
  */
-export const exportarIndicadores = async (fechaInicio?: Date, fechaFin?: Date) => {
-  const proceso = await indicadoresProcesoVentas(fechaInicio, fechaFin);
+export const exportarIndicadores = async (
+  fechaInicio?: Date,
+  fechaFin?: Date,
+  origen: OrigenDato = ORIGEN_POR_DEFECTO,
+) => {
+  const proceso = await indicadoresProcesoVentas(fechaInicio, fechaFin, origen);
   const sistema = await indicadoresSistemaWeb(fechaInicio, fechaFin);
 
   const filas = [

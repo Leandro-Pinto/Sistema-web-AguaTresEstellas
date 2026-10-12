@@ -22,8 +22,8 @@ npm run dev                   # servidor en modo desarrollo
 ```
 
 El servidor escucha en `http://localhost:4000` por defecto. El puerto se
-configura con `PUERTO` en `.env`, y el frontend de Vite corre en el `5173`,
-que ya está autorizado en `CORS_ORIGIN`.
+configura con `PORT` en `.env`, y el frontend de Vite corre en el `5173`, que ya
+está autorizado en `CORS_ORIGIN`.
 
 ### Comprobación rápida
 
@@ -31,8 +31,14 @@ que ya está autorizado en `CORS_ORIGIN`.
 curl http://localhost:4000/salud
 ```
 
-> La salud completa (`/api/salud/completa`) sí exige sesión de administrador:
-> expone el estado de la base y el entorno, y no debe ser pública.
+Responde `{ estado, baseDeDatos, entorno, version, horaServidor, latenciaBaseMs }`
+después de comprobar la base con un `SELECT 1`. Si la base no responde, la
+respuesta es **503** con `codigo: "BASE_NO_DISPONIBLE"` y los mismos campos, de
+modo que un monitor distingue el proceso caído (no contesta) de la base caída
+(contesta 503).
+
+> La salud completa (`/salud/completa`) sí exige sesión de administrador:
+> expone el estado de la base, el entorno y los recuentos, y no debe ser pública.
 
 ## 3. Variables de entorno
 
@@ -40,11 +46,24 @@ Ver `.env.example` para la lista completa con comentarios. Las imprescindibles:
 
 | Variable | Descripción |
 |---|---|
-| `DATABASE_URL` | Conexión a la base de datos de la aplicación |
+| `ENTORNO` | **Obligatoria.** `prod`, `demo` o `test`. Sin ella la aplicación no arranca. |
+| `DATABASE_URL` | Conexión a la base de datos del entorno declarado |
 | `DATABASE_URL_TEST` | Base separada para la suite de pruebas |
-| `PUERTO` | Puerto del servidor |
+| `PORT` | Puerto del servidor |
 | `JWT_SECRET` / `JWT_REFRESH_SECRET` | Firmas de los tokens |
 | `DISABLE_RATE_LIMIT` | Solo pruebas; desactiva el limitador de peticiones |
+
+### Los tres entornos
+
+| Entorno | Base exigida | Qué leen los reportes |
+|---|---|---|
+| `prod` | La que se le indique | Solo `REAL`. Único válido para una medición. |
+| `demo` | Nombre terminado en `_demo` | `SIMULADO` por omisión; `REAL` si se pide. |
+| `test` | Nombre terminado en `_test` | Solo `REAL`, contra la base de pruebas. |
+
+`config/env.ts` rechaza la aplicación si el entorno y el nombre de la base no
+concuerdan. Esa comprobación, junto con la barrera del simulador, es lo que
+impide que un histórico inventado termine mezclado con los datos de la empresa.
 
 > `DISABLE_RATE_LIMIT` nunca debe activarse en desarrollo ni en producción. Sin
 > él, el limitador interpreta las decenas de peticiones por segundo de la suite
@@ -113,7 +132,7 @@ la cuenta al superar el máximo permitido.
 ## 7. Pruebas
 
 ```bash
-npm test               # 85 pruebas, 6 suites
+npm test               # 113 pruebas, 8 suites
 npm run test:watch     # modo interactivo
 npm run test:cubrimiento
 ```
@@ -130,6 +149,18 @@ sistema, incluido el efecto sobre el stock y los saldos.
 | `ventas-pagos.test.ts` | Ventas, anulaciones, pagos, saldo |
 | `entregas-bidones.test.ts` | Ruta de reparto, saldos de envases, devoluciones |
 | `reportes.test.ts` | Forma de las respuestas, CSV, totales del resumen, acceso |
+| `origen-datos.test.ts` | Barrera del simulador, separación `REAL` / `SIMULADO` |
+| `linea-base-pretest.test.ts` | Línea base del pretest: escritura, lectura, procedencia y control de acceso |
+
+Son 113 pruebas. La que impide que un conjunto simulado termine presentándose
+como una medición es la de `origen-datos.test.ts`: ejecuta el simulador en un
+proceso aparte para comprobar que se detiene fuera del entorno `demo`, y siembra
+filas de las dos procedencias para verificar que los indicadores y los reportes
+solo leen `REAL` por omisión, incluidas las tablas sin columna de origen, que se
+filtran por el pedido que las causó. La de `linea-base-pretest.test.ts` verifica
+que la comparación lea exactamente lo que el administrador transcribió de la
+ficha del pretest, con autor y fecha, y nada inventado. Y la de `/salud`
+comprueba que un proceso vivo con la base caída conteste 503, no 200.
 
 Las pruebas **deben ejecutarse de forma secuencial**. Las suites comparten una
 única base y cada una limpia las tablas al comenzar; con varios workers, la
@@ -142,9 +173,11 @@ limpieza de una borraría los datos que otra está usando. `jest.config.js` fija
 
 ## 8. Simulador del proceso
 
-Genera un histórico de operación para calcular los indicadores del postest.
+Genera un conjunto de datos de demostración. **No sirve para el postest**: todo
+lo que escribe queda marcado `SIMULADO`.
 
 ```bash
+# Requiere ENTORNO="demo" y una base terminada en _demo.
 npm run simular -- --dias=30 --pedidosPorDia=60
 npm run simular -- --dias=7 --pedidosPorDia=20 --semilla=42
 npm run simular -- --fechaInicio=2026-09-01 --fechaFin=2026-09-30
@@ -152,16 +185,26 @@ npm run simular -- --limpiar
 npm run simular -- --ayuda
 ```
 
+**Barrera de entorno.** El proceso se detiene antes de escribir nada si `ENTORNO`
+no es `demo` o si el nombre de la base no termina en `_demo`. No hay bandera ni
+variable de entorno que lo desactive: una barrera que se puede desactivar con un
+argumento no protegería nada el día que alguien pase el argumento equivocado en
+producción.
+
+**Marcaje.** Todo lo que genera queda con `origen = SIMULADO` en el pedido, la
+venta, el pago, la entrega, el historial y los movimientos de inventario. La
+marca viaja desde la primera escritura, no se añade al final.
+
 **Cómo funciona.** El simulador invoca los servicios reales, no escribe en la
-base por la vía rápida. El histórico cumple por tanto las mismas reglas de
+base por la vía rápida. El conjunto cumple por tanto las mismas reglas de
 negocio que la aplicación en producción. La única excepción es que, después de
 cada paso, ajusta las columnas de fecha al instante simulado: los servicios
-escriben `new Date()`, y el postest necesita un periodo histórico. No se altera
-ningún saldo, cantidad ni estado.
+escriben `new Date()`, y la demostración necesita un periodo histórico. No se
+altera ningún saldo, cantidad ni estado.
 
 **Reproducibilidad.** Usa un generador congruencial con semilla propia en lugar
 de `Math.random()`. Con la misma semilla y los mismos argumentos, la corrida es
-idéntica, de modo que las cifras del postest pueden auditarse y repetirse.
+idéntica, de modo que una demostración puede auditarse y repetirse.
 
 **Realismo.** El volumen se ajusta por día de la semana, los canales siguen la
 distribución real del rubro, el 60% de los clientes paga al facturar y el resto
@@ -169,8 +212,9 @@ contra entrega, y una fracción de las entregas no se concretan porque el
 cliente no se encuentra. El inventario se reabastece cada mañana por el propio
 servicio de movimientos, lo que conserva la trazabilidad del stock.
 
-**Aviso.** `--limpiar` borra los datos operativos. Ejecutarlo siempre sobre la
-base de pruebas.
+**Aviso.** `--limpiar` borra los datos operativos y pide escribir el nombre de la
+base en la consola. Aunque la barrera de entorno impide correr en `prod`,
+conviene ejecutarlo siempre sobre la base de demostración.
 
 **Coste.** Un día de 60 pedidos tarda unos 22 segundos. Una corrida de 30 días
 con 60 pedidos diarios tarda alrededor de 11 minutos.
@@ -195,7 +239,7 @@ aplicación a través de sus endpoints.
 | `npm run prisma:deploy` | Aplica migraciones existentes |
 | `npm run prisma:studio` | Interfaz visual de la base |
 | `npm run seed` | Carga los datos iniciales |
-| `npm run simular` | Genera el histórico del postest |
+| `npm run simular` | Genera el conjunto de demostración (solo `ENTORNO=demo`) |
 | `npm test` | Ejecuta la suite |
 
 `tsconfig.json` compila únicamente `src/`, porque `dist/` debe reflejar el

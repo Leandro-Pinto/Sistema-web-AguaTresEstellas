@@ -3,6 +3,7 @@ import { prisma } from '../config/prisma';
 import { ErrorNoEncontrado, ErrorReglaNegocio } from '../utils/errors';
 import { construirPaginacion } from '../utils/paginacion';
 import { registrarHistorial } from './historial.service';
+import { origenDe, type OpcionesOrigen } from './origen-dato';
 import { registrarMovimientoBidon } from './bidones.service';
 import type {
   ActualizarEntregaInput,
@@ -64,7 +65,12 @@ const TRANSICIONES_ENTREGA: Record<EstadoEntrega, EstadoEntrega[]> = {
  * "tiempo promedio de confirmación y asignación del pedido" y analizar
  * el desempeño de la distribución.
  */
-export const registrarEntrega = async (entrada: RegistrarEntregaInput, usuarioId: number) => {
+export const registrarEntrega = async (
+  entrada: RegistrarEntregaInput,
+  usuarioId: number,
+  opciones?: OpcionesOrigen,
+) => {
+  const origen = origenDe(opciones);
   const pedido = await prisma.pedido.findUnique({
     where: { id: entrada.pedidoId },
     select: { id: true, codigo: true, estado: true, clienteId: true, entrega: { select: { id: true } } },
@@ -100,6 +106,7 @@ export const registrarEntrega = async (entrada: RegistrarEntregaInput, usuarioId
         fechaAsignacion: ahora,
         asignadoPorId: usuarioId,
         observaciones: entrada.observaciones ?? null,
+        origen,
       },
       select: SELECT_ENTREGA,
     });
@@ -122,6 +129,7 @@ export const registrarEntrega = async (entrada: RegistrarEntregaInput, usuarioId
           usuarioId,
           pedidoId: pedido.id,
           fecha: ahora,
+          origen,
         },
         tx,
       );
@@ -139,6 +147,7 @@ export const registrarEntrega = async (entrada: RegistrarEntregaInput, usuarioId
         usuarioId,
         pedidoId: pedido.id,
         fecha: ahora,
+        origen,
       },
       tx,
     );
@@ -235,7 +244,9 @@ export const actualizarEntrega = async (
   id: number,
   entrada: ActualizarEntregaInput,
   usuarioId: number,
+  opciones?: OpcionesOrigen,
 ) => {
+  const origen = origenDe(opciones);
   const actual = await prisma.entrega.findUnique({
     where: { id },
     select: {
@@ -350,6 +361,7 @@ export const actualizarEntrega = async (
           usuarioId,
           pedidoId: actual.pedidoId,
           fecha: ahora,
+          origen,
         },
         tx,
       );
@@ -371,6 +383,7 @@ export const actualizarEntrega = async (
           },
           usuarioId,
           tx,
+          opciones,
         );
       }
     }
@@ -392,6 +405,7 @@ export const actualizarEntrega = async (
           },
           usuarioId,
           tx,
+          opciones,
         );
       }
     }
@@ -411,6 +425,7 @@ export const actualizarEntrega = async (
           usuarioId,
           pedidoId: actual.pedidoId,
           fecha: ahora,
+          origen,
         },
         tx,
       );

@@ -5,9 +5,10 @@ import { autenticar, autorizar } from '../middlewares';
 /**
  * RUTAS DE SALUD
  *
- * `/salud` es pública y no consulta la base de datos, para que un monitor
- * pueda comprobar que el proceso responde. `/salud/completa` sí toca Prisma
- * y expone recuentos del sistema, así que exige sesión de administrador.
+ * `/salud` es público: comprueba con un `SELECT 1` que la base responda y
+ * responde 503 si no lo hace, para que un monitor distinga el proceso caído
+ * de la base caída. `/salud/completa` sí expone recuentos del sistema, así
+ * que exige sesión de administrador.
  */
 const router = Router();
 
