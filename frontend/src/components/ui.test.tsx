@@ -72,6 +72,22 @@ describe('Campo de formulario', () => {
     expect(screen.getByLabelText('Teléfono')).toBeInTheDocument()
   })
 
+  it('desactiva sugerencias genéricas y respeta los tokens de autofill explícitos', () => {
+    const { rerender } = render(
+      <>
+        <Entrada etiqueta="Código" />
+        <AreaTexto etiqueta="Observaciones" />
+        <Seleccion etiqueta="Canal" opciones={[{ valor: 'OTRO', texto: 'Otro' }]} />
+      </>,
+    )
+    expect(screen.getByLabelText('Código')).toHaveAttribute('autocomplete', 'off')
+    expect(screen.getByLabelText('Observaciones')).toHaveAttribute('autocomplete', 'off')
+    expect(screen.getByLabelText('Canal')).toHaveAttribute('autocomplete', 'off')
+
+    rerender(<Entrada etiqueta="Correo" autoComplete="email" />)
+    expect(screen.getByLabelText('Correo')).toHaveAttribute('autocomplete', 'email')
+  })
+
   it('anuncia el error y lo asocia al campo', () => {
     render(<Entrada etiqueta="Teléfono" error="El teléfono debe tener 9 dígitos" />)
     const campo = screen.getByLabelText(/teléfono/i)

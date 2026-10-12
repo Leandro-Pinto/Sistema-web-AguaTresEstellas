@@ -376,6 +376,7 @@ const ModalFormularioUsuario = ({
           <Entrada
             etiqueta="Nombres"
             requerido
+            autoComplete="given-name"
             value={formulario.valores.nombres}
             onChange={(evento) => formulario.cambiar('nombres', evento.target.value)}
             error={formulario.errores.nombres}
@@ -383,6 +384,7 @@ const ModalFormularioUsuario = ({
           <Entrada
             etiqueta="Apellidos"
             requerido
+            autoComplete="family-name"
             value={formulario.valores.apellidos}
             onChange={(evento) => formulario.cambiar('apellidos', evento.target.value)}
             error={formulario.errores.apellidos}
@@ -391,6 +393,7 @@ const ModalFormularioUsuario = ({
             etiqueta="Correo electrónico"
             requerido
             type="email"
+            autoComplete="email"
             value={formulario.valores.email}
             onChange={(evento) => formulario.cambiar('email', evento.target.value)}
             error={formulario.errores.email}
@@ -405,6 +408,7 @@ const ModalFormularioUsuario = ({
           <Entrada
             etiqueta="Teléfono"
             type="tel"
+            autoComplete="tel"
             value={formulario.valores.telefono}
             onChange={(evento) => formulario.cambiar('telefono', evento.target.value)}
             error={formulario.errores.telefono}
@@ -425,6 +429,7 @@ const ModalFormularioUsuario = ({
             etiqueta="Contraseña"
             requerido
             type="password"
+            autoComplete="new-password"
             ayuda="Mínimo 8 caracteres."
             value={formulario.valores.password}
             onChange={(evento) => formulario.cambiar('password', evento.target.value)}
@@ -498,6 +503,7 @@ const ModalResetearClave = ({
         etiqueta="Contraseña nueva"
         requerido
         type="password"
+        autoComplete="new-password"
         ayuda="Mínimo 8 caracteres."
         value={formulario.valores.passwordNueva}
         onChange={(evento) => formulario.cambiar('passwordNueva', evento.target.value)}

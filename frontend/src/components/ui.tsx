@@ -141,6 +141,7 @@ export const Entrada = ({ etiqueta, error, ayuda, requerido, className, ...resto
       <input
         id={id}
         required={requerido}
+        autoComplete="off"
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : ayuda ? `${id}-ayuda` : undefined}
         className={clasesCampo(error)}
@@ -175,6 +176,7 @@ export const AreaTexto = ({
         id={id}
         rows={filas}
         required={requerido}
+        autoComplete="off"
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : ayuda ? `${id}-ayuda` : undefined}
         className={clases(clasesCampo(error), 'resize-y')}
@@ -210,6 +212,7 @@ export const Seleccion = ({
       <select
         id={id}
         required={requerido}
+        autoComplete="off"
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${id}-error` : ayuda ? `${id}-ayuda` : undefined}
         className={clases(clasesCampo(error), 'pr-8')}

@@ -390,6 +390,7 @@ export const PaginaClientes = () => {
             <Entrada
               etiqueta="Teléfono alterno"
               type="tel"
+              autoComplete="tel"
               value={formulario.valores.telefonoAlt ?? ''}
               error={formulario.errores.telefonoAlt}
               onChange={(evento) => formulario.cambiar('telefonoAlt', evento.target.value)}
@@ -405,6 +406,7 @@ export const PaginaClientes = () => {
             <Entrada
               etiqueta="Distrito"
               list="distritos-cliente"
+              autoComplete="address-level3"
               value={formulario.valores.distrito ?? ''}
               error={formulario.errores.distrito}
               onChange={(evento) => formulario.cambiar('distrito', evento.target.value)}
@@ -427,6 +429,7 @@ export const PaginaClientes = () => {
           <Entrada
             etiqueta="Referencia de la dirección"
             ayuda="Punto de referencia para que el repartidor encuentre el local."
+            autoComplete="address-line2"
             value={formulario.valores.referencia ?? ''}
             error={formulario.errores.referencia}
             onChange={(evento) => formulario.cambiar('referencia', evento.target.value)}
