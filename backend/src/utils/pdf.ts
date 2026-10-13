@@ -57,9 +57,14 @@ const aplanar = (
 /** Convierte una ruta o clave con camelCase o guiones bajos en texto legible. */
 const tituloHumano = (texto: string): string => {
   const titulo = texto
-    .split(/(?=[A-Z])|_/)
-    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-    .join(' ')
+    .split('.')
+    .map((segmento) =>
+      segmento
+        .split(/(?=[A-Z])|_/)
+        .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+        .join(' '),
+    )
+    .join(' - ')
     .trim() || 'Detalle';
   return titulo
     .replace(/\bNumero\b/g, 'Número')
@@ -171,10 +176,11 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
   doc.on('pageAdded', dibujarCabeceraPagina);
   dibujarCabeceraPagina();
 
-  const limiteY = () => doc.page.height - doc.page.margins.bottom;
+  const limiteY = () => doc.page.height - doc.page.margins.bottom - 30;
   const relleno = 5;
 
   const dibujarResumen = (pares: [string, string][]) => {
+    if (doc.y + 42 > limiteY()) doc.addPage();
     doc.font('Helvetica-Bold').fontSize(11).fillColor('#0f766e').text('Resumen del periodo', {
       width: ancho,
     });
@@ -214,15 +220,15 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
   };
 
   const dibujarTabla = (ruta: string, filas: Record<string, string>[]) => {
-    const columnas = [...new Set(filas.flatMap((f) => Object.keys(f)))].map((clave) => ({
-      clave,
-      titulo: tituloHumano(clave),
-    }));
+    const columnas = [...new Set(filas.flatMap((f) => Object.keys(f)))].filter(
+      (clave) => !/(^|\.)id$/i.test(clave) && filas.some((fila) => Boolean(fila[clave]?.trim())),
+    ).map((clave) => ({ clave, titulo: tituloHumano(clave) }));
+    if (columnas.length === 0) return;
 
     const anchoDisponible = ancho - columnas.length * 2;
     const pesos = columnas.map((columna) =>
-      filas.slice(0, 12).reduce(
-        (mayor, fila) => Math.max(mayor, Math.min(36, (fila[columna.clave] ?? '').length)),
+      filas.slice(0, 20).reduce(
+        (mayor, fila) => Math.max(mayor, Math.min(40, (fila[columna.clave] ?? '').length)),
         columna.titulo.length + 3,
       ),
     );
@@ -230,6 +236,7 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
     const anchos = columnas.map(
       (_columna, indice) => (anchoDisponible * Math.max(10, pesos[indice])) / pesoTotal,
     );
+    const altoFila = 20;
 
     const celdaDe = (fila: Record<string, string>, columna: { clave: string; titulo: string }, i: number) => {
       const texto = fila[columna.clave] ?? '';
@@ -237,35 +244,40 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
       return { texto, alineacion, ancho: anchos[i] };
     };
 
-    const altoDe = (celdas: ReturnType<typeof celdaDe>[]) =>
-      Math.max(...celdas.map((c) => doc.heightOfString(c.texto, { width: c.ancho - relleno * 2 }))) +
-      relleno * 2;
+    const altoDe = () => altoFila;
 
     const dibujarCabecera = (y: number) => {
-      const alto = 22;
       doc.save();
-      doc.rect(margenIzq, y, ancho, alto).fill('#0f3d4a');
-      doc.font('Helvetica-Bold').fontSize(8).fillColor('#ffffff');
+      doc.rect(margenIzq, y, ancho, altoFila).fill('#0f3d4a');
+      doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff');
       let x = margenIzq;
       columnas.forEach((c, i) => {
-        doc.text(c.titulo, x + relleno, y + 6, { width: anchos[i] - relleno * 2, height: alto - 8 });
+        doc.text(c.titulo, x + relleno, y + 5, {
+          width: anchos[i] - relleno * 2,
+          height: 10,
+          lineBreak: false,
+          ellipsis: true,
+        });
         x += anchos[i];
       });
       doc.restore();
-      return y + alto;
+      return y + altoFila;
     };
 
     const dibujarFila = (y: number, fila: Record<string, string>, par: boolean) => {
       const celdas = columnas.map((c, i) => celdaDe(fila, c, i));
-      const alto = altoDe(celdas);
+      const alto = altoDe();
       doc.save();
       if (par) doc.rect(margenIzq, y, ancho, alto).fill('#f8fafc');
-      doc.font('Helvetica').fontSize(8).fillColor('#0f172a');
+      doc.font('Helvetica').fontSize(7.5).fillColor('#0f172a');
       let x = margenIzq;
       celdas.forEach((c) => {
-        doc.text(c.texto, x + relleno, y + relleno, {
+        doc.text(c.texto, x + relleno, y + 5, {
           width: c.ancho - relleno * 2,
           align: c.alineacion,
+          height: 10,
+          lineBreak: false,
+          ellipsis: true,
         });
         x += c.ancho;
       });
@@ -274,6 +286,7 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
     };
 
     // Título de la sección.
+    if (doc.y + 44 > limiteY()) doc.addPage();
     doc.font('Helvetica-Bold').fontSize(11).fillColor('#0f766e').text(tituloHumano(ruta), {
       width: ancho,
     });
@@ -290,7 +303,7 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
 
     let y = dibujarCabecera(doc.y + 2);
     for (let i = 0; i < filas.length; i++) {
-      const alto = altoDe(columnas.map((c, j) => celdaDe(filas[i], c, j)));
+      const alto = altoDe();
       if (y + alto > limiteY()) {
         doc.addPage();
         y = dibujarCabecera(doc.page.margins.top + 2);
@@ -322,7 +335,7 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
     doc.switchToPage(i);
     const p = doc.page;
     const anchoPagina = p.width - p.margins.left - p.margins.right;
-    const y = p.height - p.margins.bottom + 20;
+    const y = p.height - p.margins.bottom - 10;
     doc.font('Helvetica').fontSize(8).fillColor('#64748b');
     doc.text(`Generado el ${generado}`, p.margins.left, y, { width: anchoPagina });
     doc.text(`Página ${i - start + 1} de ${count}`, p.margins.left, y, {

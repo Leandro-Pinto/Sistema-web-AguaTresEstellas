@@ -7,6 +7,7 @@
  */
 import request from 'supertest';
 import { prisma } from '../src/config/prisma';
+import { aPdf } from '../src/utils/pdf';
 import {
   app,
   cabecera,
@@ -121,6 +122,20 @@ describe('Reportes: descarga CSV', () => {
 });
 
 describe('Reportes: descarga PDF', () => {
+  it('mantiene compacto un reporte largo y no agrega páginas vacías por el pie', async () => {
+    const ventas = Array.from({ length: 80 }, (_, indice) => ({
+      numero: `VEN-${indice}`,
+      cliente: { nombre: `Cliente largo de prueba ${indice}` },
+      pagos: [{ metodo: 'EFECTIVO', monto: 25 }],
+      total: 25,
+    }));
+    const pdf = await aPdf({ ventas }, 'Reporte de ventas');
+    const paginas = pdf.toString('latin1').split('/Type /Page').length - 2;
+
+    expect(pdf.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+    expect(paginas).toBeLessThanOrEqual(5);
+  });
+
   it('exporta un PDF con estructura válida y el detalle del periodo', async () => {
     await sembrarOperacion(3);
     const token = await iniciarSesion('admin');
