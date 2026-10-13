@@ -120,7 +120,8 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
   new Promise((resolver, rechazar) => {
     const doc = new PDFDocument({
       size: 'A4',
-      margins: { top: 96, bottom: 64, left: 56, right: 56 },
+      layout: 'landscape',
+      margins: { top: 100, bottom: 58, left: 48, right: 48 },
       bufferPages: true,
       info: {
         Title: titulo,
@@ -135,30 +136,82 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
     doc.on('end', () => resolver(Buffer.concat(trozos)));
     doc.on('error', rechazar);
 
-  // Banda superior en cada página que se agrega después de la primera.
-  doc.on('pageAdded', () => {
-    doc.rect(0, 0, doc.page.width, 4).fill('#1d4ed8');
-  });
-
   const margenIzq = doc.page.margins.left;
   const margenDer = doc.page.margins.right;
   const ancho = doc.page.width - margenIzq - margenDer;
   const generado = aIsoFechaHora(new Date());
-
-  // Cabecera de la primera página: banda, título y periodo.
-  doc.rect(0, 0, doc.page.width, 4).fill('#1d4ed8');
-  doc.font('Helvetica-Bold').fontSize(17).fillColor('#0f172a').text(titulo, margenIzq, 44, {
-    width: ancho,
-  });
   const subtitulo = subtituloDe(contenido);
-  if (subtitulo) {
-    doc.font('Helvetica').fontSize(10).fillColor('#64748b').text(subtitulo, margenIzq, 68, {
+
+  const dibujarCabeceraPagina = () => {
+    doc.save();
+    doc.rect(0, 0, doc.page.width, 5).fill('#0f3d4a');
+    doc.font('Helvetica-Bold').fontSize(8).fillColor('#0f766e').text(
+      'AGUA TRES ESTRELLAS',
+      margenIzq,
+      22,
+      { width: ancho },
+    );
+    doc.font('Helvetica-Bold').fontSize(19).fillColor('#0f172a').text(titulo, margenIzq, 39, {
       width: ancho,
     });
-  }
+    if (subtitulo) {
+      doc.font('Helvetica').fontSize(9).fillColor('#475569').text(subtitulo, margenIzq, 66, {
+        width: ancho,
+      });
+    }
+    doc.moveTo(margenIzq, 88)
+      .lineTo(margenIzq + ancho, 88)
+      .lineWidth(0.8)
+      .strokeColor('#cbd5e1')
+      .stroke();
+    doc.restore();
+    doc.y = doc.page.margins.top;
+  };
+
+  doc.on('pageAdded', dibujarCabeceraPagina);
+  dibujarCabeceraPagina();
 
   const limiteY = () => doc.page.height - doc.page.margins.bottom;
   const relleno = 5;
+
+  const dibujarResumen = (pares: [string, string][]) => {
+    doc.font('Helvetica-Bold').fontSize(11).fillColor('#0f766e').text('Resumen del periodo', {
+      width: ancho,
+    });
+    doc.moveDown(0.35);
+
+    const separacion = 10;
+    const anchoBloque = (ancho - separacion) / 2;
+    for (let i = 0; i < pares.length; i += 2) {
+      const fila = pares.slice(i, i + 2).map(([etiqueta, valor]) => {
+        doc.font('Helvetica-Bold').fontSize(9);
+        return {
+          etiqueta,
+          valor,
+          alto: Math.max(38, 27 + doc.heightOfString(valor, { width: anchoBloque - 18 })),
+        };
+      });
+      const alto = Math.max(...fila.map((celda) => celda.alto));
+      if (doc.y + alto > limiteY()) doc.addPage();
+      const y = doc.y;
+
+      fila.forEach((celda, indice) => {
+        const x = margenIzq + indice * (anchoBloque + separacion);
+        doc.save();
+        doc.roundedRect(x, y, anchoBloque, alto, 4).fill('#f1f5f9');
+        doc.font('Helvetica').fontSize(7.5).fillColor('#64748b').text(celda.etiqueta, x + 9, y + 7, {
+          width: anchoBloque - 18,
+        });
+        doc.font('Helvetica-Bold').fontSize(9).fillColor('#0f172a').text(celda.valor, x + 9, y + 19, {
+          width: anchoBloque - 18,
+        });
+        doc.restore();
+      });
+
+      doc.y = y + alto + 7;
+    }
+    doc.moveDown(0.3);
+  };
 
   const dibujarTabla = (ruta: string, filas: Record<string, string>[]) => {
     const columnas = [...new Set(filas.flatMap((f) => Object.keys(f)))].map((clave) => ({
@@ -167,9 +220,15 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
     }));
 
     const anchoDisponible = ancho - columnas.length * 2;
-    const pesoTotal = columnas.reduce((a, c) => a + Math.max(6, c.titulo.length + 4), 0);
+    const pesos = columnas.map((columna) =>
+      filas.slice(0, 12).reduce(
+        (mayor, fila) => Math.max(mayor, Math.min(36, (fila[columna.clave] ?? '').length)),
+        columna.titulo.length + 3,
+      ),
+    );
+    const pesoTotal = pesos.reduce((a, peso) => a + Math.max(10, peso), 0);
     const anchos = columnas.map(
-      (c) => (anchoDisponible * Math.max(6, c.titulo.length + 4)) / pesoTotal,
+      (_columna, indice) => (anchoDisponible * Math.max(10, pesos[indice])) / pesoTotal,
     );
 
     const celdaDe = (fila: Record<string, string>, columna: { clave: string; titulo: string }, i: number) => {
@@ -183,16 +242,17 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
       relleno * 2;
 
     const dibujarCabecera = (y: number) => {
+      const alto = 22;
       doc.save();
-      doc.rect(margenIzq, y, ancho, 18).fill('#1e293b');
-      doc.font('Helvetica-Bold').fontSize(7).fillColor('#ffffff');
+      doc.rect(margenIzq, y, ancho, alto).fill('#0f3d4a');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('#ffffff');
       let x = margenIzq;
       columnas.forEach((c, i) => {
-        doc.text(c.titulo, x + relleno, y + 5.5, { width: anchos[i] - relleno * 2 });
+        doc.text(c.titulo, x + relleno, y + 6, { width: anchos[i] - relleno * 2, height: alto - 8 });
         x += anchos[i];
       });
       doc.restore();
-      return y + 18;
+      return y + alto;
     };
 
     const dibujarFila = (y: number, fila: Record<string, string>, par: boolean) => {
@@ -200,7 +260,7 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
       const alto = altoDe(celdas);
       doc.save();
       if (par) doc.rect(margenIzq, y, ancho, alto).fill('#f8fafc');
-      doc.font('Helvetica').fontSize(7).fillColor('#0f172a');
+      doc.font('Helvetica').fontSize(8).fillColor('#0f172a');
       let x = margenIzq;
       celdas.forEach((c) => {
         doc.text(c.texto, x + relleno, y + relleno, {
@@ -214,7 +274,7 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
     };
 
     // Título de la sección.
-    doc.font('Helvetica-Bold').fontSize(10).fillColor('#1d4ed8').text(tituloHumano(ruta), {
+    doc.font('Helvetica-Bold').fontSize(11).fillColor('#0f766e').text(tituloHumano(ruta), {
       width: ancho,
     });
     doc.moveDown(0.15);
@@ -233,7 +293,7 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
       const alto = altoDe(columnas.map((c, j) => celdaDe(filas[i], c, j)));
       if (y + alto > limiteY()) {
         doc.addPage();
-        y = dibujarCabecera(doc.page.margins.top + 12);
+        y = dibujarCabecera(doc.page.margins.top + 2);
       }
       const usado = dibujarFila(y, filas[i], i % 2 === 1);
       y += usado;
@@ -249,9 +309,7 @@ export const aPdf = (contenido: unknown, titulo: string): Promise<Buffer> =>
 
   const escalares = extraerEscalares(contenido);
   if (escalares.length > 0) {
-    dibujarTabla('Resumen del periodo', [
-      Object.fromEntries(escalares.map(([c, v]) => [c, v])),
-    ]);
+    dibujarResumen(escalares);
   }
 
   for (const lista of extraerListas(contenido)) {

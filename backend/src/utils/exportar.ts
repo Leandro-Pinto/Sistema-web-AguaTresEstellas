@@ -64,6 +64,23 @@ const aplanar = (
   return salida;
 };
 
+/** Presenta rutas anidadas como encabezados legibles para una hoja de cálculo. */
+const encabezadoCsv = (clave: string): string =>
+  clave
+    .split('.')
+    .map((segmento) =>
+      segmento
+        .split(/(?=[A-Z])|_/)
+        .map((parte) => parte.charAt(0).toUpperCase() + parte.slice(1).toLowerCase())
+        .join(' ')
+        .replace(/\bId\b/g, 'ID')
+        .replace(/\bNumero\b/g, 'Número')
+        .replace(/\bMetodo\b/g, 'Método')
+        .replace(/\bCodigo\b/g, 'Código')
+        .replace(/\bDia\b/g, 'Día'),
+    )
+    .join(' - ');
+
 /**
  * Convierte un reporte en CSV.
  *
@@ -90,7 +107,7 @@ export const aCsv = (contenido: unknown): string => {
 
   const cabeceras = [...new Set(filas.flatMap((f) => Object.keys(f)))];
   const cuerpo = filas.map((fila) => cabeceras.map((c) => fila[c] ?? '').join(';'));
-  return [BOM, cabeceras.join(';'), ...cuerpo].join('\r\n');
+  return [BOM, cabeceras.map(encabezadoCsv).join(';'), ...cuerpo].join('\r\n');
 };
 
 /** Devuelve la lista más extensa dentro de una estructura anidada. */

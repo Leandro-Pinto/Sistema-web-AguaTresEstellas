@@ -83,7 +83,8 @@ describe('Reportes: descarga CSV', () => {
     // de pago, que tiene cuatro filas y no dice nada de las ventas.
     expect(lineas).toHaveLength(3);
     // Los importes son una sola columna, no el desarme interno del Decimal.
-    expect(lineas[0]).toContain('cliente.nombre');
+    expect(lineas[0]).toContain('Cliente - Nombre');
+    expect(lineas[0]).not.toContain('cliente.nombre');
     expect(lineas[0]).not.toMatch(/subtotal\./);
     expect(lineas[1]).toMatch(/VEN-/);
     expect(lineas[1]).toMatch(/Restaurante El Puerto S\.A\.C\./);
