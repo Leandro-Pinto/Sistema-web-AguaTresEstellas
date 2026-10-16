@@ -78,7 +78,7 @@ export const PaginaBidones = () => {
         <Tarjeta>
           <p className="text-xs uppercase tracking-wide text-slate-500">Bidones en la calle</p>
           <p className="mt-1 text-2xl font-semibold text-amber-700">
-            {numero(total.datos?.total ?? 0)}
+            {numero(total.datos?.totalBidones ?? 0)}
           </p>
           <p className="mt-0.5 text-xs text-slate-500">Suma de todos los saldos con signo</p>
         </Tarjeta>

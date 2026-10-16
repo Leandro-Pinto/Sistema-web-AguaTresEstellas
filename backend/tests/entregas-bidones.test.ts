@@ -218,6 +218,35 @@ describe('Saldos de bidones', () => {
 
     // El endpoint devuelve el saldo total de envases del cliente.
     expect(respuesta.body.datos).toBe(9);
+
+    const saldos = await request(app)
+      .get('/api/bidones/saldos?soloConSaldo=true')
+      .set(cabecera(tokenAdmin))
+      .expect(200);
+    expect(saldos.body.datos).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          clienteId,
+          cliente: expect.objectContaining({
+            id: clienteId,
+            nombre: expect.any(String),
+            documento: expect.any(String),
+          }),
+          producto: expect.objectContaining({
+            id: await idProducto('BID20'),
+            nombre: expect.any(String),
+            esRetornable: true,
+          }),
+          saldo: 9,
+        }),
+      ]),
+    );
+
+    const total = await request(app)
+      .get('/api/bidones/saldos/total')
+      .set(cabecera(tokenAdmin))
+      .expect(200);
+    expect(total.body.datos.totalBidones).toBe(9);
   });
 
   it('la devolución reduce el saldo y repone el inventario', async () => {

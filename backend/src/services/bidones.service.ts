@@ -383,41 +383,54 @@ export const listarSaldosBidones = async (
   const clientes = await prisma.cliente.findMany({
     where: {
       eliminadoEn: null,
-      ...(filtros.busqueda
-        ? {
-            OR: [
-              { nombre: { contains: filtros.busqueda } },
-              { documento: { contains: filtros.busqueda } },
-            ],
-          }
-        : {}),
     },
     orderBy: { nombre: 'asc' },
-    select: { id: true, nombre: true, telefono: true, direccion: true, tipo: true },
+    select: {
+      id: true,
+      nombre: true,
+      documento: true,
+      telefono: true,
+      distrito: true,
+    },
   });
 
   const ids = clientes.map((c) => c.id);
   const mapa = await saldosPorCliente(ids);
   const nombres = await nombresProductosRetornables();
 
-  let filas = clientes.map((c) => {
+  const busqueda = filtros.busqueda?.toLocaleLowerCase('es');
+  let filas = clientes.flatMap((c) => {
     const porProducto = mapa.get(c.id) ?? new Map<number, number>();
-    const detalle = [...porProducto.entries()]
-      .map(([productoId, saldo]) => ({
-        productoId,
-        nombre: nombres.get(productoId) ?? `Producto ${productoId}`,
-        saldo,
-      }))
-      .filter((d) => d.saldo !== 0);
-    return {
-      ...c,
-      saldo: detalle.reduce((a, d) => a + d.saldo, 0),
-      detalle,
-    };
+    return [...porProducto.entries()]
+      .map(([productoId, saldo]) => {
+        const nombreProducto = nombres.get(productoId) ?? `Producto ${productoId}`;
+        return {
+          clienteId: c.id,
+          cliente: {
+            id: c.id,
+            nombre: c.nombre,
+            documento: c.documento,
+            telefono: c.telefono,
+            distrito: c.distrito,
+          },
+          productoId,
+          producto: { id: productoId, nombre: nombreProducto, esRetornable: true },
+          saldo,
+        };
+      })
+      .filter(
+        (fila) =>
+          fila.saldo !== 0 &&
+          (!filtros.productoId || fila.productoId === filtros.productoId) &&
+          (!busqueda ||
+            fila.cliente.nombre.toLocaleLowerCase('es').includes(busqueda) ||
+            fila.cliente.documento.toLocaleLowerCase('es').includes(busqueda) ||
+            fila.producto.nombre.toLocaleLowerCase('es').includes(busqueda)),
+      );
   });
 
   if (filtros.soloConSaldo === 'true') {
-    filas = filas.filter((f) => f.saldo > 0);
+    filas = filas.filter((fila) => fila.saldo > 0);
   }
 
   const inicio = (filtros.pagina - 1) * filtros.limite;

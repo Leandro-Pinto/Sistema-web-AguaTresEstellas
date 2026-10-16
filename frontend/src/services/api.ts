@@ -519,7 +519,7 @@ export const bidones = {
   saldos: (
     consulta: ConsultaPaginada & { productoId?: number; soloConSaldo?: 'true' | 'false' } = {},
   ) => http.pagina<SaldoBidon[]>('/bidones/saldos', sinVacios({ ...consulta })),
-  saldoTotal: () => http.get<{ total: number }>('/bidones/saldos/total'),
+  saldoTotal: () => http.get<{ totalBidones: number }>('/bidones/saldos/total'),
   saldoCliente: (clienteId: number, productoId?: number) =>
     http.get<number>(`/bidones/clientes/${clienteId}/saldo`, { params: sinVacios({ productoId }) }),
   movimientos: (
