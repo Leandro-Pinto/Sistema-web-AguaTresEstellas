@@ -354,6 +354,24 @@ indicadores del sistema y la comparación. Cuando un valor del pretest no se ha
 medido, viaja como `null` y la interfaz lo muestra como «sin dato» en vez de
 como cero: un 0 inventado se lee como una medición, y no lo es.
 
+Los cálculos analíticos se realizan en el backend con agregaciones SQL y
+`groupBy` de Prisma: la API recibe totales, promedios, conteos y agrupaciones,
+no necesita cargar todos los pedidos ni todos los tiempos de respuesta en
+memoria. Los tiempos de respuesta se ordenan y clasifican en la base para
+obtener la mediana (promedio de los dos valores centrales si la muestra es par)
+y los percentiles p95 y p99 por rango más cercano. Los errores, promedios por
+ruta y pico por minuto usan la misma ventana de fechas del postest. La
+indisponibilidad se calcula solo con incidencias no descartadas que se
+superponen con ese periodo; las incidencias abiertas se cuentan hasta el fin
+del periodo y la duración total se limita a la longitud de la ventana.
+
+El indicador de ventas con pago registrado usa como denominador las ventas del
+periodo y cuenta cada venta una sola vez si tiene al menos un pago válido. Los
+promedios excluyen los intervalos que no tienen ambas marcas de tiempo; los
+porcentajes con una muestra vacía se devuelven como cero. La disponibilidad
+observada depende de que las incidencias se registren correctamente y no
+sustituye una monitorización externa del servicio.
+
 La línea base vive en la tabla `linea_base_pretest`, que el sistema no precarga
 ni calcula. Los nueve valores se transcriben de la ficha de observación:
 
@@ -415,6 +433,12 @@ fecha-hora de generación.
 - Los objetos anidados se aplanan con notación de punto: `cliente.nombre`.
 - Los importes de Prisma se escriben como número. No se desarman en sus
   atributos internos.
+- El CSV de Indicadores incluye periodo, fecha de generación, procedencia,
+  tamaño de muestra y columnas separadas para pretest, postest, diferencia y
+  variación porcentual. Los indicadores sin una medición de pretest se dejan
+  en blanco y se identifican con `pretestMedido = No`, para no confundir una
+  ausencia de medición con cero. Sin fechas explícitas, ese reporte usa los
+  últimos 30 días tanto para el proceso como para el sistema.
 
 ### PDF
 

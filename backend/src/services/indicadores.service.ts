@@ -1,5 +1,6 @@
 import type { OrigenDato } from '@prisma/client';
 import { prisma } from '../config/prisma';
+import { aIsoFecha, aIsoFechaHora, rangoPorDefecto } from '../utils/fechas';
 import { ORIGEN_POR_DEFECTO } from './origen-dato';
 
 export { ORIGEN_POR_DEFECTO };
@@ -84,41 +85,40 @@ export const indicadoresProcesoVentas = async (
   // ---------------------------------------------------------------------
   const pedidos = await prisma.$queryRaw<
     {
-      id: number;
-      total: number;
-      // Criterio de la tesis: un pedido es correcto si contiene identificación
-      // del cliente, producto y cantidad, precio e importe, fecha y hora, y
-      // dirección o modalidad de entrega.
-      correctos: number;
-      conError: number;
-      tiempoRegistro: number | null;
-      tiempoConfirmacion: number | null;
-      tiempoAsignacion: number | null;
-      cicloCompleto: number | null;
-      // Trazabilidad: existe historial de estados con usuario y fecha.
-      conTrazabilidad: number;
+      total: bigint;
+      correctos: bigint | null;
+      conError: bigint | null;
+      sumaRegistro: bigint | null;
+      conRegistro: bigint;
+      tiempoConfirmacionAsignacion: number | null;
+      tiempoCiclo: number | null;
+      atendidos: bigint | null;
+      conTrazabilidad: bigint | null;
     }[]
   >`
     SELECT
-      p.id AS id,
-      1 AS total,
-      CASE WHEN p.clienteId IS NOT NULL
+      COUNT(*) AS total,
+      SUM(CASE WHEN p.clienteId IS NOT NULL
             AND p.direccionEntrega IS NOT NULL AND p.direccionEntrega <> ''
             AND p.modalidadEntrega IS NOT NULL
             AND p.total > 0
             AND p.recibidoEn IS NOT NULL
             AND EXISTS (SELECT 1 FROM detalle_pedidos dp WHERE dp.pedidoId = p.id AND dp.cantidad > 0 AND dp.precioUnitario > 0)
-       THEN 1 ELSE 0 END AS correctos,
-      CASE WHEN p.requiereCorreccion = 1 THEN 1 ELSE 0 END AS conError,
-      TIMESTAMPDIFF(SECOND, p.recibidoEn, p.registradoEn) AS tiempoRegistro,
-      TIMESTAMPDIFF(SECOND, p.registradoEn, p.confirmadoEn) AS tiempoConfirmacion,
-      TIMESTAMPDIFF(SECOND, p.confirmadoEn, p.asignadoEn) AS tiempoAsignacion,
-      TIMESTAMPDIFF(SECOND, p.registradoEn, p.entregadoEn) AS cicloCompleto,
-      CASE WHEN
+       THEN 1 ELSE 0 END) AS correctos,
+      SUM(CASE WHEN p.requiereCorreccion = 1 THEN 1 ELSE 0 END) AS conError,
+      SUM(TIMESTAMPDIFF(SECOND, p.recibidoEn, p.registradoEn)) AS sumaRegistro,
+      COUNT(TIMESTAMPDIFF(SECOND, p.recibidoEn, p.registradoEn)) AS conRegistro,
+      AVG(TIMESTAMPDIFF(SECOND, p.registradoEn, p.asignadoEn)) AS tiempoConfirmacionAsignacion,
+      AVG(TIMESTAMPDIFF(SECOND, p.registradoEn, p.entregadoEn)) AS tiempoCiclo,
+      SUM(CASE WHEN p.estado = 'ENTREGADO'
+                AND p.entregadoEn IS NOT NULL
+                AND EXISTS (SELECT 1 FROM entregas e WHERE e.pedidoId = p.id AND e.horaEntrega IS NOT NULL AND e.origen = ${origen})
+           THEN 1 ELSE 0 END) AS atendidos,
+      SUM(CASE WHEN
             (SELECT COUNT(DISTINCT he.estadoNuevo) FROM historial_estados he
              WHERE he.tipo = 'PEDIDO' AND he.entidadId = p.id AND he.usuarioId IS NOT NULL
                AND he.fecha IS NOT NULL AND he.origen = ${origen}) >= 4
-       THEN 1 ELSE 0 END AS conTrazabilidad
+       THEN 1 ELSE 0 END) AS conTrazabilidad
     FROM pedidos p
     WHERE p.origen = ${origen}
       AND p.registradoEn BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
@@ -132,6 +132,7 @@ export const indicadoresProcesoVentas = async (
       total: number;
       correctas: number;
       conError: number;
+      conPago: number;
       tiempoProcesamiento: number | null;
       tiempoHastaPago: number | null;
     }[]
@@ -145,6 +146,11 @@ export const indicadoresProcesoVentas = async (
                 AND v.constanciaEmitida = 1
            THEN 1 ELSE 0 END) AS correctas,
       SUM(CASE WHEN v.estado = 'ANULADA' THEN 1 ELSE 0 END) AS conError,
+      SUM(CASE WHEN EXISTS (
+        SELECT 1 FROM pagos pg3
+        WHERE pg3.ventaId = v.id AND pg3.estado = 'REGISTRADO'
+          AND pg3.monto > 0 AND pg3.origen = ${origen}
+      ) THEN 1 ELSE 0 END) AS conPago,
       AVG(TIMESTAMPDIFF(SECOND, p.confirmadoEn, v.creadoEn)) AS tiempoProcesamiento,
       -- Tiempo hasta el cobro: desde que se creó la venta hasta su primer pago
       -- válido. AVG descarta los NULL, así que solo entra lo ya cobrado.
@@ -160,35 +166,6 @@ export const indicadoresProcesoVentas = async (
   `;
 
   // ---------------------------------------------------------------------
-  // Dimensión 3: Atención y seguimiento de pedidos
-  // ---------------------------------------------------------------------
-  const atencion = await prisma.$queryRaw<
-    {
-      total: number;
-      atendidos: number;
-      conTrazabilidad: number;
-      tiempoConfirmacionAsignacion: number | null;
-      tiempoCiclo: number | null;
-    }[]
-  >`
-    SELECT
-      COUNT(*) AS total,
-      SUM(CASE WHEN p.estado = 'ENTREGADO'
-                AND p.entregadoEn IS NOT NULL
-                AND EXISTS (SELECT 1 FROM entregas e WHERE e.pedidoId = p.id AND e.horaEntrega IS NOT NULL AND e.origen = ${origen})
-           THEN 1 ELSE 0 END) AS atendidos,
-      SUM(CASE WHEN
-            (SELECT COUNT(DISTINCT he.estadoNuevo) FROM historial_estados he
-             WHERE he.tipo = 'PEDIDO' AND he.entidadId = p.id AND he.usuarioId IS NOT NULL
-               AND he.fecha IS NOT NULL AND he.origen = ${origen}) >= 4
-       THEN 1 ELSE 0 END) AS conTrazabilidad,
-      AVG(TIMESTAMPDIFF(SECOND, p.registradoEn, p.asignadoEn)) AS tiempoConfirmacionAsignacion,
-      AVG(TIMESTAMPDIFF(SECOND, p.registradoEn, p.entregadoEn)) AS tiempoCiclo
-    FROM pedidos p
-    WHERE p.origen = ${origen}
-      AND p.registradoEn BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
-  `;
-
   // Pagos correctos sobre el total de ventas
   const pagos = await prisma.$queryRaw<{ total: number; correctos: number; montoIncorrecto: number }[]>`
     SELECT
@@ -256,13 +233,15 @@ export const indicadoresProcesoVentas = async (
   // Tiempos de consulta medidos por la aplicación
   const consultas = await prisma.logConsulta.groupBy({
     by: ['tipoConsulta'],
+    where: { fecha: intervalo(fechaInicio, fechaFin) },
     _avg: { duracionMs: true },
     _count: true,
     _min: { duracionMs: true },
     _max: { duracionMs: true },
   });
 
-  const totalPedidos = pedidos.length;
+  const agregadoPedidos = pedidos[0];
+  const totalPedidos = Number(agregadoPedidos?.total ?? 0);
   const totalVentas = Number(ventas[0]?.total ?? 0);
 
   return {
@@ -281,16 +260,16 @@ export const indicadoresProcesoVentas = async (
     // --- Dimensión 1: Recepción y registro de pedidos -----------------
     recepcionYRegistro: {
       tiempoPromedioRegistroMin: redondear(
-        (pedidos.reduce((a, p) => a + Number(p.tiempoRegistro ?? 0), 0) /
-          Math.max(1, pedidos.filter((p) => p.tiempoRegistro !== null).length)) /
+        Number(agregadoPedidos?.sumaRegistro ?? 0) /
+          Math.max(1, Number(agregadoPedidos?.conRegistro ?? 0)) /
           60,
       ),
       porcentajePedidosRegistradosCorrectamente: porcentaje(
-        pedidos.reduce((a, p) => a + p.correctos, 0),
+        Number(agregadoPedidos?.correctos ?? 0),
         totalPedidos,
       ),
       porcentajePedidosConErrores: porcentaje(
-        pedidos.reduce((a, p) => a + p.conError, 0),
+        Number(agregadoPedidos?.conError ?? 0),
         totalPedidos,
       ),
     },
@@ -306,8 +285,8 @@ export const indicadoresProcesoVentas = async (
       ),
       porcentajeVentasConErrores: porcentaje(Number(ventas[0]?.conError ?? 0), totalVentas),
       porcentajeVentasConPagoRegistrado: porcentaje(
-        Number(pagos[0]?.correctos ?? 0),
-        Number(pagos[0]?.total ?? 0),
+        Number(ventas[0]?.conPago ?? 0),
+        totalVentas,
       ),
       porcentajeActualizacionCorrectaStock: porcentaje(
         Number(inventario[0]?.correctos ?? 0),
@@ -318,16 +297,16 @@ export const indicadoresProcesoVentas = async (
     // --- Dimensión 3: Atención y seguimiento de pedidos --------------
     atencionYSeguimiento: {
       tiempoPromedioConfirmacionYAsignacionMin: redondear(
-        (Number(atencion[0]?.tiempoConfirmacionAsignacion ?? 0) / 60),
+        Number(agregadoPedidos?.tiempoConfirmacionAsignacion ?? 0) / 60,
       ),
-      tiempoPromedioCicloCompletoMin: redondear(Number(atencion[0]?.tiempoCiclo ?? 0) / 60),
+      tiempoPromedioCicloCompletoMin: redondear(Number(agregadoPedidos?.tiempoCiclo ?? 0) / 60),
       porcentajePedidosAtendidosCorrectamente: porcentaje(
-        Number(atencion[0]?.atendidos ?? 0),
-        Number(atencion[0]?.total ?? 0),
+        Number(agregadoPedidos?.atendidos ?? 0),
+        totalPedidos,
       ),
       porcentajePedidosConTrazabilidadCompleta: porcentaje(
-        Number(atencion[0]?.conTrazabilidad ?? 0),
-        Number(atencion[0]?.total ?? 0),
+        Number(agregadoPedidos?.conTrazabilidad ?? 0),
+        totalPedidos,
       ),
       porcentajeEntregasRealizadas: porcentaje(
         Number(entregas[0]?.correctas ?? 0),
@@ -401,13 +380,38 @@ export const indicadoresSistemaWeb = async (fechaInicio?: Date, fechaFin?: Date)
   const desde = fechaInicio ?? new Date(Date.now() - 30 * 24 * 3600 * 1000);
   const hasta = fechaFin ?? new Date();
 
-  const [totalPeticiones, duraciones, minutos, tiposRuta] = await Promise.all([
-    prisma.bitacoraHttp.count({ where: { fecha: intervalo(desde, hasta) } }),
-    prisma.bitacoraHttp.findMany({
-      where: { fecha: intervalo(desde, hasta) },
-      select: { duracionMs: true },
-      orderBy: { duracionMs: 'asc' },
-    }),
+  const [resumenPeticiones, minutos, tiposRuta] = await Promise.all([
+    prisma.$queryRaw<
+      {
+        total: bigint;
+        errores: bigint | null;
+        promedio: number | null;
+        medianaInferior: number | null;
+        medianaSuperior: number | null;
+        p95: number | null;
+        p99: number | null;
+      }[]
+    >`
+      WITH peticiones_ordenadas AS (
+        SELECT
+          duracionMs,
+          ROW_NUMBER() OVER (ORDER BY duracionMs ASC) AS posicion,
+          COUNT(*) OVER () AS cantidad,
+          AVG(duracionMs) OVER () AS promedio,
+          SUM(CASE WHEN esErrorServidor = 1 THEN 1 ELSE 0 END) OVER () AS errores
+        FROM bitacora_http
+        WHERE fecha BETWEEN ${desde} AND ${hasta}
+      )
+      SELECT
+        COALESCE(MAX(cantidad), 0) AS total,
+        COALESCE(MAX(errores), 0) AS errores,
+        COALESCE(MAX(promedio), 0) AS promedio,
+        COALESCE(MAX(CASE WHEN posicion = FLOOR((cantidad + 1) / 2) THEN duracionMs END), 0) AS medianaInferior,
+        COALESCE(MAX(CASE WHEN posicion = FLOOR((cantidad + 2) / 2) THEN duracionMs END), 0) AS medianaSuperior,
+        COALESCE(MAX(CASE WHEN posicion = CEIL(cantidad * 0.95) THEN duracionMs END), 0) AS p95,
+        COALESCE(MAX(CASE WHEN posicion = CEIL(cantidad * 0.99) THEN duracionMs END), 0) AS p99
+      FROM peticiones_ordenadas
+    `,
     prisma.$queryRaw<{ minuto: string; total: number }[]>`
       SELECT DATE_FORMAT(fecha, '%Y-%m-%d %H:%i') AS minuto, COUNT(*) AS total
       FROM bitacora_http
@@ -425,30 +429,57 @@ export const indicadoresSistemaWeb = async (fechaInicio?: Date, fechaFin?: Date)
     }),
   ]);
 
-  const tiempos = duraciones.map((d) => d.duracionMs).sort((a, b) => a - b);
-  const mediana = tiempos.length ? tiempos[Math.floor(tiempos.length * 0.5)] : 0;
-  const p95 = tiempos.length ? tiempos[Math.floor(tiempos.length * 0.95)] : 0;
-  const p99 = tiempos.length ? tiempos[Math.floor(tiempos.length * 0.99)] : 0;
-  const promedio = tiempos.length ? tiempos.reduce((a, b) => a + b, 0) / tiempos.length : 0;
-
+  const totalPeticiones = Number(resumenPeticiones[0]?.total ?? 0);
+  const errores = Number(resumenPeticiones[0]?.errores ?? 0);
+  const promedio = Number(resumenPeticiones[0]?.promedio ?? 0);
+  const medianaInferior = Number(resumenPeticiones[0]?.medianaInferior ?? 0);
+  const medianaSuperior = Number(resumenPeticiones[0]?.medianaSuperior ?? 0);
+  const mediana = (medianaInferior + medianaSuperior) / 2;
+  const p95 = Number(resumenPeticiones[0]?.p95 ?? 0);
+  const p99 = Number(resumenPeticiones[0]?.p99 ?? 0);
   const minutosTranscurridos = Math.max(1, (hasta.getTime() - desde.getTime()) / 60000);
 
   // --- Fiabilidad -----------------------------------------------------
-  const [errores, incidencias] = await Promise.all([
-    prisma.bitacoraHttp.count({
-      where: { fecha: intervalo(desde, hasta), esErrorServidor: true },
-    }),
-    prisma.incidenciaSistema.findMany({
-      where: { inicio: intervalo(desde, hasta) },
-      select: { estado: true, duracionMinutos: true, inicio: true, fin: true },
-    }),
-  ]);
+  const incidencias = await prisma.$queryRaw<
+    {
+      total: bigint;
+      resueltas: bigint;
+      indisponibilidadSegundos: number | null;
+      recuperacionSegundos: number | null;
+    }[]
+  >`
+    SELECT
+      COUNT(*) AS total,
+      SUM(CASE WHEN estado = 'RESUELTA' AND fin IS NOT NULL THEN 1 ELSE 0 END) AS resueltas,
+      SUM(
+        CASE WHEN GREATEST(inicio, ${desde}) < LEAST(COALESCE(fin, CURRENT_TIMESTAMP(3)), ${hasta})
+          THEN TIMESTAMPDIFF(
+            SECOND,
+            GREATEST(inicio, ${desde}),
+            LEAST(COALESCE(fin, CURRENT_TIMESTAMP(3)), ${hasta})
+          )
+          ELSE 0
+        END
+      ) AS indisponibilidadSegundos,
+      SUM(CASE WHEN estado = 'RESUELTA' AND fin IS NOT NULL
+        THEN COALESCE(duracionMinutos * 60, TIMESTAMPDIFF(SECOND, inicio, fin))
+        ELSE 0
+      END) AS recuperacionSegundos
+    FROM incidencias_sistema
+    WHERE estado <> 'DESCARTADA'
+      AND inicio <= ${hasta}
+      AND (fin IS NULL OR fin >= ${desde})
+  `;
 
-  const incidenciasResueltas = incidencias.filter((i) => i.fin !== null);
-  const minutosCaida = incidencias.reduce((a, i) => a + (i.duracionMinutos ?? 0), 0);
-  const mttr = incidenciasResueltas.length
+  const totalIncidencias = Number(incidencias[0]?.total ?? 0);
+  const incidenciasResueltas = Number(incidencias[0]?.resueltas ?? 0);
+  const minutosCaida = Math.min(
+    minutosTranscurridos,
+    Number(incidencias[0]?.indisponibilidadSegundos ?? 0) / 60,
+  );
+  const mttr = incidenciasResueltas
     ? redondear(
-        incidenciasResueltas.reduce((a, i) => a + (i.duracionMinutos ?? 0), 0) / incidenciasResueltas.length,
+        Number(incidencias[0]?.recuperacionSegundos ?? 0) / incidenciasResueltas / 60,
       )
     : 0;
 
@@ -484,11 +515,11 @@ export const indicadoresSistemaWeb = async (fechaInicio?: Date, fechaFin?: Date)
       porcentajeSolicitudesFallidas: porcentaje(errores, totalPeticiones),
       solicitudesFallidas: errores,
       tiempoMedioRecuperacionMin: mttr,
-      incidenciasRegistradas: incidencias.length,
-      incidenciasResueltas: incidenciasResueltas.length,
+      incidenciasRegistradas: totalIncidencias,
+      incidenciasResueltas,
       minutosTotalesDeIndisponibilidad: minutosCaida,
       porcentajeDisponibilidadObservado: porcentaje(
-        minutosTranscurridos - minutosCaida,
+        Math.max(0, minutosTranscurridos - minutosCaida),
         minutosTranscurridos,
       ),
     },
@@ -731,35 +762,73 @@ export const exportarIndicadores = async (
   fechaFin?: Date,
   origen: OrigenDato = ORIGEN_POR_DEFECTO,
 ) => {
-  const proceso = await indicadoresProcesoVentas(fechaInicio, fechaFin, origen);
-  const sistema = await indicadoresSistemaWeb(fechaInicio, fechaFin);
+  const rango = fechaInicio || fechaFin
+    ? { fechaInicio, fechaFin }
+    : rangoPorDefecto(30);
+  const comparativo = await compararPretestPostest(rango.fechaInicio, rango.fechaFin, origen);
+  const proceso = comparativo.postest;
+  const sistema = comparativo.sistema;
+  const generadoEn = new Date();
+  const periodoDesde = rango.fechaInicio ? aIsoFecha(rango.fechaInicio) : '';
+  const periodoHasta = rango.fechaFin ? aIsoFecha(rango.fechaFin) : '';
+  const muestraProceso = `pedidos=${proceso.muestra.pedidos}; ventas=${proceso.muestra.ventas}; pagos=${proceso.muestra.pagos}; entregas=${proceso.muestra.entregas}; clientes=${proceso.muestra.clientes}`;
+  const muestraSistema = `peticiones=${sistema.eficienciaDesempeno.totalPeticiones}; casos_prueba=${sistema.adecuacionFuncional.totalCasosEjecutados}; requisitos=${sistema.adecuacionFuncional.totalRequisitos}; incidencias=${sistema.fiabilidad.incidenciasRegistradas}`;
+
+  type ClaveComparacion = keyof typeof comparativo.comparacion;
+  const fila = (
+    variable: string,
+    dimension: string,
+    indicador: string,
+    valorPostest: number,
+    unidad: string,
+    muestra: string,
+    claveComparacion?: ClaveComparacion,
+  ) => {
+    const comparacion = claveComparacion ? comparativo.comparacion[claveComparacion] : null;
+    return {
+      'Periodo desde': periodoDesde,
+      'Periodo hasta': periodoHasta,
+      'Generado en': aIsoFechaHora(generadoEn),
+      'Origen de datos': origen,
+      Variable: variable,
+      Dimensión: dimension,
+      Indicador: indicador,
+      Pretest: comparacion?.antes ?? '',
+      Postest: valorPostest,
+      'Diferencia (postest - pretest)': comparacion?.diferencia ?? '',
+      'Variación porcentual vs. pretest': comparacion?.variacionPorcentual ?? '',
+      'Pretest medido': comparacion?.antes === null || !comparacion ? 'No' : 'Sí',
+      Unidad: unidad,
+      Muestra: muestra,
+    };
+  };
 
   const filas = [
-    { variable: 'Sistema web', dimension: 'Adecuación funcional', indicador: '% de requisitos funcionales implementados y aprobados', valor: sistema.adecuacionFuncional.porcentajeRequisitosImplementadosYApruebados, unidad: '%' },
-    { variable: 'Sistema web', dimension: 'Adecuación funcional', indicador: '% de casos de prueba funcional superados', valor: sistema.adecuacionFuncional.porcentajeCasosDePruebaSuperados, unidad: '%' },
-    { variable: 'Sistema web', dimension: 'Adecuación funcional', indicador: '% de transacciones con el resultado esperado', valor: sistema.adecuacionFuncional.porcentajeTransaccionesConResultadoEsperado, unidad: '%' },
-    { variable: 'Sistema web', dimension: 'Eficiencia del desempeño', indicador: 'Tiempo de respuesta (mediana)', valor: sistema.eficienciaDesempeno.tiempoRespuestaMedianaMs, unidad: 'ms' },
-    { variable: 'Sistema web', dimension: 'Eficiencia del desempeño', indicador: 'Tiempo de respuesta (percentil 95)', valor: sistema.eficienciaDesempeno.tiempoRespuestaP95Ms, unidad: 'ms' },
-    { variable: 'Sistema web', dimension: 'Eficiencia del desempeño', indicador: 'Rendimiento (transacciones por minuto)', valor: sistema.eficienciaDesempeno.rendimientoTransaccionesPorMinuto, unidad: 'trans/min' },
-    { variable: 'Sistema web', dimension: 'Fiabilidad', indicador: '% de solicitudes fallidas (5xx)', valor: sistema.fiabilidad.porcentajeSolicitudesFallidas, unidad: '%' },
-    { variable: 'Sistema web', dimension: 'Fiabilidad', indicador: 'Tiempo medio de recuperación (MTTR)', valor: sistema.fiabilidad.tiempoMedioRecuperacionMin, unidad: 'min' },
-    { variable: 'Sistema web', dimension: 'Fiabilidad', indicador: '% de disponibilidad observada', valor: sistema.fiabilidad.porcentajeDisponibilidadObservado, unidad: '%' },
-    { variable: 'Proceso de ventas', dimension: 'Recepción y registro de pedidos', indicador: 'Tiempo promedio de registro de un pedido', valor: proceso.recepcionYRegistro.tiempoPromedioRegistroMin, unidad: 'min' },
-    { variable: 'Proceso de ventas', dimension: 'Recepción y registro de pedidos', indicador: '% de pedidos registrados correctamente', valor: proceso.recepcionYRegistro.porcentajePedidosRegistradosCorrectamente, unidad: '%' },
-    { variable: 'Proceso de ventas', dimension: 'Recepción y registro de pedidos', indicador: '% de pedidos con errores de registro', valor: proceso.recepcionYRegistro.porcentajePedidosConErrores, unidad: '%' },
-    { variable: 'Proceso de ventas', dimension: 'Procesamiento y control de ventas', indicador: 'Tiempo promedio de procesamiento de una venta', valor: proceso.procesamientoYControl.tiempoPromedioProcesamientoVentaMin, unidad: 'min' },
-    { variable: 'Proceso de ventas', dimension: 'Procesamiento y control de ventas', indicador: '% de ventas procesadas correctamente', valor: proceso.procesamientoYControl.porcentajeVentasProcesadasCorrectamente, unidad: '%' },
-    { variable: 'Proceso de ventas', dimension: 'Procesamiento y control de ventas', indicador: '% de ventas con pago registrado correctamente', valor: proceso.procesamientoYControl.porcentajeVentasConPagoRegistrado, unidad: '%' },
-    { variable: 'Proceso de ventas', dimension: 'Procesamiento y control de ventas', indicador: '% de actualización correcta del stock', valor: proceso.procesamientoYControl.porcentajeActualizacionCorrectaStock, unidad: '%' },
-    { variable: 'Proceso de ventas', dimension: 'Atención y seguimiento de pedidos', indicador: 'Tiempo promedio de confirmación y asignación', valor: proceso.atencionYSeguimiento.tiempoPromedioConfirmacionYAsignacionMin, unidad: 'min' },
-    { variable: 'Proceso de ventas', dimension: 'Atención y seguimiento de pedidos', indicador: '% de pedidos atendidos correctamente', valor: proceso.atencionYSeguimiento.porcentajePedidosAtendidosCorrectamente, unidad: '%' },
-    { variable: 'Proceso de ventas', dimension: 'Atención y seguimiento de pedidos', indicador: '% de pedidos con trazabilidad completa', valor: proceso.atencionYSeguimiento.porcentajePedidosConTrazabilidadCompleta, unidad: '%' },
-    { variable: 'Proceso de ventas', dimension: 'Atención y seguimiento de pedidos', indicador: '% de pedidos entregados correctamente', valor: proceso.atencionYSeguimiento.porcentajeEntregasRealizadas, unidad: '%' },
-    { variable: 'Proceso de ventas', dimension: 'Gestión de clientes y envases', indicador: '% de clientes con datos completos', valor: proceso.complementarios.porcentajeClientesConDatosCompletos, unidad: '%' },
-    { variable: 'Proceso de ventas', dimension: 'Gestión de clientes y envases', indicador: '% de envases con información completa', valor: proceso.complementarios.porcentajeEnvasesConInformacionCompleta, unidad: '%' },
-    { variable: 'Proceso de ventas', dimension: 'Gestión de clientes y envases', indicador: 'Tiempo promedio de consulta del historial de envases', valor: proceso.complementarios.tiempoPromedioConsultaEnvasesSegundos, unidad: 'seg' },
-    { variable: 'Proceso de ventas', dimension: 'Control de ventas', indicador: 'Tiempo promedio para obtener el consolidado diario', valor: proceso.complementarios.tiempoPromedioConsolidadoDiarioSegundos, unidad: 'seg' },
+    fila('Sistema web', 'Adecuación funcional', '% de requisitos funcionales implementados y aprobados', sistema.adecuacionFuncional.porcentajeRequisitosImplementadosYApruebados, '%', muestraSistema),
+    fila('Sistema web', 'Adecuación funcional', '% de casos de prueba funcional superados', sistema.adecuacionFuncional.porcentajeCasosDePruebaSuperados, '%', muestraSistema),
+    fila('Sistema web', 'Adecuación funcional', '% de transacciones con el resultado esperado', sistema.adecuacionFuncional.porcentajeTransaccionesConResultadoEsperado, '%', muestraSistema),
+    fila('Sistema web', 'Eficiencia del desempeño', 'Tiempo de respuesta (mediana)', sistema.eficienciaDesempeno.tiempoRespuestaMedianaMs, 'ms', muestraSistema),
+    fila('Sistema web', 'Eficiencia del desempeño', 'Tiempo de respuesta (percentil 95)', sistema.eficienciaDesempeno.tiempoRespuestaP95Ms, 'ms', muestraSistema),
+    fila('Sistema web', 'Eficiencia del desempeño', 'Rendimiento (transacciones por minuto)', sistema.eficienciaDesempeno.rendimientoTransaccionesPorMinuto, 'trans/min', muestraSistema),
+    fila('Sistema web', 'Fiabilidad', '% de solicitudes fallidas (5xx)', sistema.fiabilidad.porcentajeSolicitudesFallidas, '%', muestraSistema),
+    fila('Sistema web', 'Fiabilidad', 'Tiempo medio de recuperación (MTTR)', sistema.fiabilidad.tiempoMedioRecuperacionMin, 'min', muestraSistema),
+    fila('Sistema web', 'Fiabilidad', '% de disponibilidad observada', sistema.fiabilidad.porcentajeDisponibilidadObservado, '%', muestraSistema),
+    fila('Proceso de ventas', 'Recepción y registro de pedidos', 'Tiempo promedio de registro de un pedido', proceso.recepcionYRegistro.tiempoPromedioRegistroMin, 'min', muestraProceso, 'tiempoPromedioRegistro'),
+    fila('Proceso de ventas', 'Recepción y registro de pedidos', '% de pedidos registrados correctamente', proceso.recepcionYRegistro.porcentajePedidosRegistradosCorrectamente, '%', muestraProceso, 'porcentajePedidosRegistradosCorrectamente'),
+    fila('Proceso de ventas', 'Recepción y registro de pedidos', '% de pedidos con errores de registro', proceso.recepcionYRegistro.porcentajePedidosConErrores, '%', muestraProceso, 'porcentajePedidosConErroresDeRegistro'),
+    fila('Proceso de ventas', 'Procesamiento y control de ventas', 'Tiempo promedio de procesamiento de una venta', proceso.procesamientoYControl.tiempoPromedioProcesamientoVentaMin, 'min', muestraProceso, 'tiempoPromedioProcesamientoVenta'),
+    fila('Proceso de ventas', 'Procesamiento y control de ventas', '% de ventas procesadas correctamente', proceso.procesamientoYControl.porcentajeVentasProcesadasCorrectamente, '%', muestraProceso, 'porcentajeVentasProcesadasCorrectamente'),
+    fila('Proceso de ventas', 'Procesamiento y control de ventas', '% de ventas con pago registrado correctamente', proceso.procesamientoYControl.porcentajeVentasConPagoRegistrado, '%', muestraProceso),
+    fila('Proceso de ventas', 'Procesamiento y control de ventas', '% de actualización correcta del stock', proceso.procesamientoYControl.porcentajeActualizacionCorrectaStock, '%', muestraProceso),
+    fila('Proceso de ventas', 'Atención y seguimiento de pedidos', 'Tiempo promedio de confirmación y asignación', proceso.atencionYSeguimiento.tiempoPromedioConfirmacionYAsignacionMin, 'min', muestraProceso, 'tiempoPromedioConfirmacionYAsignacion'),
+    fila('Proceso de ventas', 'Atención y seguimiento de pedidos', '% de pedidos atendidos correctamente', proceso.atencionYSeguimiento.porcentajePedidosAtendidosCorrectamente, '%', muestraProceso, 'porcentajePedidosAtendidosCorrectamente'),
+    fila('Proceso de ventas', 'Atención y seguimiento de pedidos', '% de pedidos con trazabilidad completa', proceso.atencionYSeguimiento.porcentajePedidosConTrazabilidadCompleta, '%', muestraProceso, 'porcentajePedidosConTrazabilidadCompleta'),
+    fila('Proceso de ventas', 'Atención y seguimiento de pedidos', '% de pedidos entregados correctamente', proceso.atencionYSeguimiento.porcentajeEntregasRealizadas, '%', muestraProceso),
+    fila('Proceso de ventas', 'Gestión de clientes y envases', '% de clientes con datos completos', proceso.complementarios.porcentajeClientesConDatosCompletos, '%', muestraProceso),
+    fila('Proceso de ventas', 'Gestión de clientes y envases', '% de envases con información completa', proceso.complementarios.porcentajeEnvasesConInformacionCompleta, '%', muestraProceso),
+    fila('Proceso de ventas', 'Gestión de clientes y envases', 'Tiempo promedio de consulta del historial de envases', proceso.complementarios.tiempoPromedioConsultaEnvasesSegundos, 'seg', muestraProceso),
+    fila('Proceso de ventas', 'Control de ventas', 'Tiempo promedio para obtener el consolidado diario', proceso.complementarios.tiempoPromedioConsolidadoDiarioSegundos, 'seg', muestraProceso),
   ];
 
-  return { filas, generadoEn: new Date() };
+  return { filas, generadoEn };
 };

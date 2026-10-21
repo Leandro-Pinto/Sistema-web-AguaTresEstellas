@@ -177,7 +177,7 @@ export const clientes = {
   /** Autocompletado al registrar un pedido. El backend exige 2 caracteres. */
   buscar: (termino: string, limite?: number, opciones: { signal?: AbortSignal } = {}) =>
     http.get<ClienteRapido[]>('/clientes/buscar', {
-      params: sinVacios({ termino, limite }),
+      params: sinVacios({ q: termino, limite }),
       ...opciones,
     }),
   distritos: () => http.get<string[]>('/clientes/distritos'),
@@ -663,8 +663,16 @@ export const reportes = {
    * Exportación de indicadores: la genera el backend en CSV y es exclusiva de
    * `ADMINISTRADOR`.
    */
-  descargarIndicadores: (fechaInicio?: string, fechaFin?: string) =>
-    http.descargar('/reportes/indicadores/exportar', 'indicadores-postest.csv', rango(fechaInicio, fechaFin)),
+  descargarIndicadores: (fechaInicio?: string, fechaFin?: string) => {
+    const periodo = fechaInicio && fechaFin
+      ? `${fechaInicio}_${fechaFin}`
+      : new Date().toISOString().slice(0, 10)
+    return http.descargar(
+      '/reportes/indicadores/exportar',
+      `indicadores_${periodo}.csv`,
+      rango(fechaInicio, fechaFin),
+    )
+  },
 }
 
 // --- Evidencia del postest ------------------------------------------------
