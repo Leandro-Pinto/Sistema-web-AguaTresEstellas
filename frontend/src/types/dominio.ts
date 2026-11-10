@@ -646,6 +646,8 @@ export interface IndicadoresProceso {
   }
   procesamientoYControl: {
     tiempoPromedioProcesamientoVentaMin: number
+    tiempoPromedioCobroMin: number
+    margenBrutoPorcentaje: number
     porcentajeVentasProcesadasCorrectamente: number
     porcentajeVentasConErrores: number
     porcentajeVentasConPagoRegistrado: number
@@ -657,9 +659,13 @@ export interface IndicadoresProceso {
     porcentajePedidosAtendidosCorrectamente: number
     porcentajePedidosConTrazabilidadCompleta: number
     porcentajeEntregasRealizadas: number
+    porcentajePedidosEntregadosATiempo: number
+    productividadRepartidorEntregas: number
   }
   complementarios: {
     porcentajeClientesConDatosCompletos: number
+    porcentajeClientesInactivosReactivados: number
+    concentracionVentasTop20Porcentaje: number
     porcentajeEnvasesConInformacionCompleta: number
     tiempoPromedioConsultaHistorialEnvasesMin: number
     tiempoPromedioConsultaEnvasesSegundos: number
@@ -698,6 +704,7 @@ export interface IndicadoresSistema {
     incidenciasResueltas: number
     minutosTotalesDeIndisponibilidad: number
     porcentajeDisponibilidadObservado: number
+    tiempoMedioRecuperacionPorSeveridad: { severidad: number; minutos: number }[]
   }
 }
 

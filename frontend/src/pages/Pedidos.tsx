@@ -742,7 +742,6 @@ const ModalPedido = ({
               <Entrada
                 etiqueta="Dirección de entrega"
                 requerido
-                autoComplete="street-address"
                 value={formulario.valores.direccionEntrega}
                 error={formulario.errores.direccionEntrega}
                 onChange={(evento) => formulario.cambiar('direccionEntrega', evento.target.value)}
@@ -750,7 +749,6 @@ const ModalPedido = ({
               <Entrada
                 etiqueta="Referencia"
                 ayuda="Punto de referencia para el repartidor."
-                autoComplete="address-line2"
                 value={formulario.valores.referenciaEntrega}
                 error={formulario.errores.referenciaEntrega}
                 onChange={(evento) => formulario.cambiar('referenciaEntrega', evento.target.value)}

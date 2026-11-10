@@ -78,6 +78,20 @@ const indicadoresProceso = (d: IndicadoresProceso): Indicador[] => [
     lectura: 'Desde el registro del pedido hasta el cobro completo.',
   },
   {
+    clave: 'cobro',
+    nombre: 'Tiempo promedio de cobro',
+    valor: d.procesamientoYControl.tiempoPromedioCobroMin,
+    unidad: 'minutos',
+    lectura: 'Desde la venta hasta el primer pago registrado.',
+  },
+  {
+    clave: 'margenBruto',
+    nombre: 'Margen bruto de las ventas',
+    valor: d.procesamientoYControl.margenBrutoPorcentaje,
+    unidad: 'porcentaje',
+    lectura: 'Porcentaje del total de ventas que queda como margen.',
+  },
+  {
     clave: 'ventasCorrectas',
     nombre: 'Ventas procesadas correctamente',
     valor: d.procesamientoYControl.porcentajeVentasProcesadasCorrectamente,
@@ -134,11 +148,39 @@ const indicadoresProceso = (d: IndicadoresProceso): Indicador[] => [
     lectura: 'Historial de estados con usuario y fecha en cada transición.',
   },
   {
+    clave: 'entregadosATiempo',
+    nombre: 'Pedidos entregados a tiempo',
+    valor: d.atencionYSeguimiento.porcentajePedidosEntregadosATiempo,
+    unidad: 'porcentaje',
+    lectura: 'Pedidos entregados dentro de la fecha programada.',
+  },
+  {
+    clave: 'productividadRepartidor',
+    nombre: 'Productividad por repartidor',
+    valor: d.atencionYSeguimiento.productividadRepartidorEntregas,
+    unidad: 'numero',
+    lectura: 'Promedio de entregas realizadas por repartidor.',
+  },
+  {
     clave: 'clientesCompletos',
     nombre: 'Clientes con datos completos',
     valor: d.complementarios.porcentajeClientesConDatosCompletos,
     unidad: 'porcentaje',
     lectura: 'Indicador complementario de calidad de datos.',
+  },
+  {
+    clave: 'clientesReactivados',
+    nombre: 'Clientes inactivos reactivados',
+    valor: d.complementarios.porcentajeClientesInactivosReactivados,
+    unidad: 'porcentaje',
+    lectura: 'Clientes que volvieron a pedir tras 60 días sin actividad.',
+  },
+  {
+    clave: 'concentracionVentas',
+    nombre: 'Concentración de ventas (top 20% clientes)',
+    valor: d.complementarios.concentracionVentasTop20Porcentaje,
+    unidad: 'porcentaje',
+    lectura: 'Porcentaje del total vendido por el 20% de clientes.',
   },
   {
     clave: 'envasesCompletos',
@@ -197,7 +239,7 @@ const indicadoresSistema = (d: IndicadoresSistema): Indicador[] => [
     nombre: 'Tiempo de respuesta (p95)',
     valor: d.eficienciaDesempeno.tiempoRespuestaP95Ms,
     unidad: 'ms',
-    lectura: 'El 95 % de las peticiones responde más rápido que este valor.',
+    lectura: 'El 95 % de las peticiones responde en este tiempo o menos.',
   },
   {
     clave: 'rendimiento',
@@ -637,6 +679,29 @@ const Indicadores = () => {
                         <td className="px-3 py-2.5 text-right text-slate-600">{numero(ruta.peticiones)}</td>
                         <td className="px-3 py-2.5 text-right text-slate-800">{numero(ruta.promedioMs)} ms</td>
                         <td className="px-3 py-2.5 text-right text-slate-600">{numero(ruta.maximoMs)} ms</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Tarjeta>
+          )}
+
+          {datos.sistema.fiabilidad.tiempoMedioRecuperacionPorSeveridad.length > 0 && (
+            <Tarjeta titulo="MTTR por severidad" descripcion="Tiempo medio de recuperación según severidad de la incidencia.">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-200 text-sm">
+                  <thead>
+                    <tr>
+                      <th className="px-3 py-2 text-left font-medium text-slate-600">Severidad</th>
+                      <th className="px-3 py-2 text-right font-medium text-slate-600">MTTR (min)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {datos.sistema.fiabilidad.tiempoMedioRecuperacionPorSeveridad.map((r) => (
+                      <tr key={r.severidad} className="border-t border-slate-100">
+                        <td className="px-3 py-2.5 text-slate-800">{r.severidad}</td>
+                        <td className="px-3 py-2.5 text-right text-slate-800">{numero(r.minutos, 2)}</td>
                       </tr>
                     ))}
                   </tbody>

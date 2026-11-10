@@ -50,6 +50,8 @@ const postest = {
   },
   procesamientoYControl: {
     tiempoPromedioProcesamientoVentaMin: 2.1,
+    tiempoPromedioCobroMin: 1.2,
+    margenBrutoPorcentaje: 35,
     porcentajeVentasProcesadasCorrectamente: 99,
     porcentajeVentasConErrores: 1,
     porcentajeVentasConPagoRegistrado: 97,
@@ -60,9 +62,13 @@ const postest = {
     tiempoPromedioCicloCompletoMin: 45,
     porcentajePedidosAtendidosCorrectamente: 96,
     porcentajePedidosConTrazabilidadCompleta: 100,
+    porcentajePedidosEntregadosATiempo: 90,
+    productividadRepartidorEntregas: 12,
   },
   complementarios: {
     porcentajeClientesConDatosCompletos: 90,
+    porcentajeClientesInactivosReactivados: 12,
+    concentracionVentasTop20Porcentaje: 70,
     porcentajeEnvasesConInformacionCompleta: 88,
     tiempoPromedioConsultaEnvasesSegundos: 0.4,
     tiempoPromedioConsolidadoDiarioSegundos: 0.6,
@@ -95,6 +101,7 @@ const sistema = {
     tiempoMedioRecuperacionMin: 18,
     incidenciasResueltas: 4,
     incidenciasRegistradas: 0,
+    tiempoMedioRecuperacionPorSeveridad: [],
   },
 }
 

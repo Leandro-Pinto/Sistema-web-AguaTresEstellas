@@ -425,7 +425,7 @@ const TablaReporte = ({ columnas, filas }: { columnas: Columna[]; filas: FilaRep
       )
     }
     renderFila={(fila) => (
-      <tr key={String(fila.id ?? fila.codigo ?? fila.fecha ?? fila.clienteId ?? fila.nombre ?? fila.metodo)} className="border-t border-slate-100">
+      <>
         {columnas.map((c) => (
           <td
             key={c.clave}
@@ -434,7 +434,7 @@ const TablaReporte = ({ columnas, filas }: { columnas: Columna[]; filas: FilaRep
             {presentar(leer(fila, c.clave), c.tipo)}
           </td>
         ))}
-      </tr>
+      </>
     )}
   />
 )

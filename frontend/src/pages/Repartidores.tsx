@@ -320,7 +320,6 @@ const ModalFormulario = ({
           <Entrada
             etiqueta="Nombres"
             requerido
-            autoComplete="given-name"
             value={formulario.valores.nombres}
             onChange={(evento) => formulario.cambiar('nombres', evento.target.value)}
             error={formulario.errores.nombres}
@@ -328,7 +327,6 @@ const ModalFormulario = ({
           <Entrada
             etiqueta="Apellidos"
             requerido
-            autoComplete="family-name"
             value={formulario.valores.apellidos}
             onChange={(evento) => formulario.cambiar('apellidos', evento.target.value)}
             error={formulario.errores.apellidos}
@@ -345,7 +343,6 @@ const ModalFormulario = ({
             etiqueta="Teléfono"
             requerido
             type="tel"
-            autoComplete="tel"
             value={formulario.valores.telefono}
             onChange={(evento) => formulario.cambiar('telefono', evento.target.value)}
             error={formulario.errores.telefono}
@@ -371,7 +368,6 @@ const ModalFormulario = ({
         <AreaTexto
           etiqueta="Dirección"
           filas={2}
-          autoComplete="street-address"
           ayuda="Opcional."
           value={formulario.valores.direccion}
           onChange={(evento) => formulario.cambiar('direccion', evento.target.value)}

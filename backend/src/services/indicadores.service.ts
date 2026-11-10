@@ -94,6 +94,8 @@ export const indicadoresProcesoVentas = async (
       tiempoCiclo: number | null;
       atendidos: bigint | null;
       conTrazabilidad: bigint | null;
+      entregadosATiempo: bigint | null;
+      conFechaProgramada: bigint | null;
     }[]
   >`
     SELECT
@@ -118,7 +120,12 @@ export const indicadoresProcesoVentas = async (
             (SELECT COUNT(DISTINCT he.estadoNuevo) FROM historial_estados he
              WHERE he.tipo = 'PEDIDO' AND he.entidadId = p.id AND he.usuarioId IS NOT NULL
                AND he.fecha IS NOT NULL AND he.origen = ${origen}) >= 4
-       THEN 1 ELSE 0 END) AS conTrazabilidad
+       THEN 1 ELSE 0 END) AS conTrazabilidad,
+      SUM(CASE WHEN p.estado = 'ENTREGADO' AND p.entregadoEn IS NOT NULL
+                AND p.fechaEntregaProgramada IS NOT NULL
+                AND p.entregadoEn <= p.fechaEntregaProgramada
+           THEN 1 ELSE 0 END) AS entregadosATiempo,
+      SUM(CASE WHEN p.fechaEntregaProgramada IS NOT NULL THEN 1 ELSE 0 END) AS conFechaProgramada
     FROM pedidos p
     WHERE p.origen = ${origen}
       AND p.registradoEn BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
@@ -191,6 +198,48 @@ export const indicadoresProcesoVentas = async (
       AND e.fechaAsignacion BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
   `;
 
+  // Margen bruto de las ventas del periodo
+  const margen = await prisma.$queryRaw<{ total: number; costo: number }[]>`
+    SELECT
+      COALESCE(SUM(dv.cantidad * dv.precioUnitario), 0) AS total,
+      COALESCE(SUM(dv.cantidad * COALESCE(dv.costoUnitario, 0)), 0) AS costo
+    FROM detalle_ventas dv
+    INNER JOIN ventas v ON v.id = dv.ventaId
+    WHERE v.origen = ${origen}
+      AND v.fecha BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
+  `;
+
+  // Concentración de ventas (Pareto): % del total vendido por el 20% de clientes
+  const concentracion = await prisma.$queryRaw<{ top20: number; total: number }[]>`
+    WITH ventas_cliente AS (
+      SELECT clienteId, COALESCE(SUM(total), 0) AS total
+      FROM ventas
+      WHERE origen = ${origen}
+        AND fecha BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
+      GROUP BY clienteId
+    ),
+    rankeado AS (
+      SELECT total, NTILE(5) OVER (ORDER BY total DESC) AS quintil
+      FROM ventas_cliente
+    )
+    SELECT
+      COALESCE(SUM(CASE WHEN quintil = 1 THEN total END), 0) AS top20,
+      COALESCE(SUM(total), 0) AS total
+    FROM rankeado
+  `;
+
+  // Productividad por repartidor (entregas realizadas por repartidor)
+  const productividad = await prisma.$queryRaw<{ promedio: number | null }[]>`
+    SELECT AVG(conteo) AS promedio FROM (
+      SELECT repartidorId, COUNT(*) AS conteo
+      FROM entregas
+      WHERE origen = ${origen}
+        AND estado = 'ENTREGADA'
+        AND fechaAsignacion BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
+      GROUP BY repartidorId
+    ) t
+  `;
+
   // Clientes con datos completos
   const clientes = await prisma.$queryRaw<{ total: number; completos: number }[]>`
     SELECT
@@ -228,6 +277,33 @@ export const indicadoresProcesoVentas = async (
     WHERE fecha BETWEEN ${fechaInicio ?? new Date(0)} AND ${fechaFin ?? new Date()}
       AND (pedidoId IS NULL
            OR pedidoId IN (SELECT id FROM pedidos WHERE origen = ${origen}))
+  `;
+
+  // Clientes inactivos reactivados en el periodo
+  const inicioReactivacion = fechaInicio ?? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const finReactivacion = fechaFin ?? new Date();
+  const clientesReactivados = await prisma.$queryRaw<{ total: bigint; reactivados: bigint }[]>`
+    WITH clientes_periodo AS (
+      SELECT DISTINCT p.clienteId AS clienteId
+      FROM pedidos p
+      WHERE p.origen = ${origen}
+        AND p.registradoEn BETWEEN ${inicioReactivacion} AND ${finReactivacion}
+    )
+    SELECT
+      (SELECT COUNT(*) FROM clientes_periodo) AS total,
+      (SELECT COUNT(*) FROM clientes_periodo cp
+        WHERE EXISTS (
+          SELECT 1 FROM pedidos p2
+          WHERE p2.clienteId = cp.clienteId AND p2.origen = ${origen}
+            AND p2.registradoEn < ${inicioReactivacion}
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM pedidos p3
+          WHERE p3.clienteId = cp.clienteId AND p3.origen = ${origen}
+            AND p3.registradoEn >= DATE_SUB(${inicioReactivacion}, INTERVAL 60 DAY)
+            AND p3.registradoEn < ${inicioReactivacion}
+        )
+      ) AS reactivados
   `;
 
   // Tiempos de consulta medidos por la aplicación
@@ -292,7 +368,11 @@ export const indicadoresProcesoVentas = async (
         Number(inventario[0]?.correctos ?? 0),
         Number(inventario[0]?.total ?? 0),
       ),
-    },
+      tiempoPromedioCobroMin: redondear(Number(ventas[0]?.tiempoHastaPago ?? 0) / 60),
+      margenBrutoPorcentaje: porcentaje(
+        Number(margen[0]?.total ?? 0) - Number(margen[0]?.costo ?? 0),
+        Number(margen[0]?.total ?? 0),
+      ),    },
 
     // --- Dimensión 3: Atención y seguimiento de pedidos --------------
     atencionYSeguimiento: {
@@ -312,6 +392,11 @@ export const indicadoresProcesoVentas = async (
         Number(entregas[0]?.correctas ?? 0),
         Number(entregas[0]?.total ?? 0),
       ),
+      porcentajePedidosEntregadosATiempo: porcentaje(
+        Number(agregadoPedidos?.entregadosATiempo ?? 0),
+        Number(agregadoPedidos?.conFechaProgramada ?? 0),
+      ),
+      productividadRepartidorEntregas: redondear(Number(productividad[0]?.promedio ?? 0), 2),
     },
 
     // --- Indicadores complementarios de la matriz --------------------
@@ -319,6 +404,14 @@ export const indicadoresProcesoVentas = async (
       porcentajeClientesConDatosCompletos: porcentaje(
         Number(clientes[0]?.completos ?? 0),
         Number(clientes[0]?.total ?? 0),
+      ),
+      porcentajeClientesInactivosReactivados: porcentaje(
+        Number(clientesReactivados[0]?.reactivados ?? 0),
+        Number(clientesReactivados[0]?.total ?? 0),
+      ),
+      concentracionVentasTop20Porcentaje: porcentaje(
+        Number(concentracion[0]?.top20 ?? 0),
+        Number(concentracion[0]?.total ?? 0),
       ),
       porcentajeEnvasesConInformacionCompleta: porcentaje(
         Number(envases[0]?.completos ?? 0),
@@ -471,6 +564,18 @@ export const indicadoresSistemaWeb = async (fechaInicio?: Date, fechaFin?: Date)
       AND (fin IS NULL OR fin >= ${desde})
   `;
 
+  const mttrPorSeveridad = await prisma.$queryRaw<{ severidad: number; mttr: number | null }[]>`
+    SELECT
+      severidad,
+      AVG(COALESCE(duracionMinutos, TIMESTAMPDIFF(MINUTE, inicio, fin))) AS mttr
+    FROM incidencias_sistema
+    WHERE estado = 'RESUELTA'
+      AND fin IS NOT NULL
+      AND inicio <= ${hasta}
+      AND fin >= ${desde}
+    GROUP BY severidad
+  `;
+
   const totalIncidencias = Number(incidencias[0]?.total ?? 0);
   const incidenciasResueltas = Number(incidencias[0]?.resueltas ?? 0);
   const minutosCaida = Math.min(
@@ -522,6 +627,10 @@ export const indicadoresSistemaWeb = async (fechaInicio?: Date, fechaFin?: Date)
         Math.max(0, minutosTranscurridos - minutosCaida),
         minutosTranscurridos,
       ),
+      tiempoMedioRecuperacionPorSeveridad: mttrPorSeveridad.map((r) => ({
+        severidad: Number(r.severidad),
+        minutos: redondear(Number(r.mttr ?? 0)),
+      })),
     },
   };
 };
@@ -812,20 +921,24 @@ export const exportarIndicadores = async (
     fila('Sistema web', 'Eficiencia del desempeño', 'Rendimiento (transacciones por minuto)', sistema.eficienciaDesempeno.rendimientoTransaccionesPorMinuto, 'trans/min', muestraSistema),
     fila('Sistema web', 'Fiabilidad', '% de solicitudes fallidas (5xx)', sistema.fiabilidad.porcentajeSolicitudesFallidas, '%', muestraSistema),
     fila('Sistema web', 'Fiabilidad', 'Tiempo medio de recuperación (MTTR)', sistema.fiabilidad.tiempoMedioRecuperacionMin, 'min', muestraSistema),
-    fila('Sistema web', 'Fiabilidad', '% de disponibilidad observada', sistema.fiabilidad.porcentajeDisponibilidadObservado, '%', muestraSistema),
+    ...sistema.fiabilidad.tiempoMedioRecuperacionPorSeveridad.map((r) =>
+      fila('Sistema web', 'Fiabilidad', `MTTR severidad ${r.severidad}`, r.minutos, 'min', muestraSistema),
+    ),    fila('Sistema web', 'Fiabilidad', '% de disponibilidad observada', sistema.fiabilidad.porcentajeDisponibilidadObservado, '%', muestraSistema),
     fila('Proceso de ventas', 'Recepción y registro de pedidos', 'Tiempo promedio de registro de un pedido', proceso.recepcionYRegistro.tiempoPromedioRegistroMin, 'min', muestraProceso, 'tiempoPromedioRegistro'),
     fila('Proceso de ventas', 'Recepción y registro de pedidos', '% de pedidos registrados correctamente', proceso.recepcionYRegistro.porcentajePedidosRegistradosCorrectamente, '%', muestraProceso, 'porcentajePedidosRegistradosCorrectamente'),
     fila('Proceso de ventas', 'Recepción y registro de pedidos', '% de pedidos con errores de registro', proceso.recepcionYRegistro.porcentajePedidosConErrores, '%', muestraProceso, 'porcentajePedidosConErroresDeRegistro'),
     fila('Proceso de ventas', 'Procesamiento y control de ventas', 'Tiempo promedio de procesamiento de una venta', proceso.procesamientoYControl.tiempoPromedioProcesamientoVentaMin, 'min', muestraProceso, 'tiempoPromedioProcesamientoVenta'),
     fila('Proceso de ventas', 'Procesamiento y control de ventas', '% de ventas procesadas correctamente', proceso.procesamientoYControl.porcentajeVentasProcesadasCorrectamente, '%', muestraProceso, 'porcentajeVentasProcesadasCorrectamente'),
     fila('Proceso de ventas', 'Procesamiento y control de ventas', '% de ventas con pago registrado correctamente', proceso.procesamientoYControl.porcentajeVentasConPagoRegistrado, '%', muestraProceso),
-    fila('Proceso de ventas', 'Procesamiento y control de ventas', '% de actualización correcta del stock', proceso.procesamientoYControl.porcentajeActualizacionCorrectaStock, '%', muestraProceso),
-    fila('Proceso de ventas', 'Atención y seguimiento de pedidos', 'Tiempo promedio de confirmación y asignación', proceso.atencionYSeguimiento.tiempoPromedioConfirmacionYAsignacionMin, 'min', muestraProceso, 'tiempoPromedioConfirmacionYAsignacion'),
+    fila('Proceso de ventas', 'Procesamiento y control de ventas', 'Tiempo promedio de cobro', proceso.procesamientoYControl.tiempoPromedioCobroMin, 'min', muestraProceso),    fila('Proceso de ventas', 'Procesamiento y control de ventas', '% de actualización correcta del stock', proceso.procesamientoYControl.porcentajeActualizacionCorrectaStock, '%', muestraProceso),
+    fila('Proceso de ventas', 'Procesamiento y control de ventas', 'Margen bruto de las ventas', proceso.procesamientoYControl.margenBrutoPorcentaje, '%', muestraProceso),    fila('Proceso de ventas', 'Atención y seguimiento de pedidos', 'Tiempo promedio de confirmación y asignación', proceso.atencionYSeguimiento.tiempoPromedioConfirmacionYAsignacionMin, 'min', muestraProceso, 'tiempoPromedioConfirmacionYAsignacion'),
     fila('Proceso de ventas', 'Atención y seguimiento de pedidos', '% de pedidos atendidos correctamente', proceso.atencionYSeguimiento.porcentajePedidosAtendidosCorrectamente, '%', muestraProceso, 'porcentajePedidosAtendidosCorrectamente'),
     fila('Proceso de ventas', 'Atención y seguimiento de pedidos', '% de pedidos con trazabilidad completa', proceso.atencionYSeguimiento.porcentajePedidosConTrazabilidadCompleta, '%', muestraProceso, 'porcentajePedidosConTrazabilidadCompleta'),
     fila('Proceso de ventas', 'Atención y seguimiento de pedidos', '% de pedidos entregados correctamente', proceso.atencionYSeguimiento.porcentajeEntregasRealizadas, '%', muestraProceso),
-    fila('Proceso de ventas', 'Gestión de clientes y envases', '% de clientes con datos completos', proceso.complementarios.porcentajeClientesConDatosCompletos, '%', muestraProceso),
-    fila('Proceso de ventas', 'Gestión de clientes y envases', '% de envases con información completa', proceso.complementarios.porcentajeEnvasesConInformacionCompleta, '%', muestraProceso),
+        fila('Proceso de ventas', 'Atención y seguimiento de pedidos', '% de pedidos entregados a tiempo', proceso.atencionYSeguimiento.porcentajePedidosEntregadosATiempo, '%', muestraProceso),
+    fila('Proceso de ventas', 'Atención y seguimiento de pedidos', 'Productividad por repartidor (entregas)', proceso.atencionYSeguimiento.productividadRepartidorEntregas, 'entregas', muestraProceso),    fila('Proceso de ventas', 'Gestión de clientes y envases', '% de clientes con datos completos', proceso.complementarios.porcentajeClientesConDatosCompletos, '%', muestraProceso),
+        fila('Proceso de ventas', 'Gestión de clientes y envases', '% de clientes inactivos reactivados', proceso.complementarios.porcentajeClientesInactivosReactivados, '%', muestraProceso),
+    fila('Proceso de ventas', 'Gestión de clientes y envases', 'Concentración de ventas (top 20% clientes)', proceso.complementarios.concentracionVentasTop20Porcentaje, '%', muestraProceso),    fila('Proceso de ventas', 'Gestión de clientes y envases', '% de envases con información completa', proceso.complementarios.porcentajeEnvasesConInformacionCompleta, '%', muestraProceso),
     fila('Proceso de ventas', 'Gestión de clientes y envases', 'Tiempo promedio de consulta del historial de envases', proceso.complementarios.tiempoPromedioConsultaEnvasesSegundos, 'seg', muestraProceso),
     fila('Proceso de ventas', 'Control de ventas', 'Tiempo promedio para obtener el consolidado diario', proceso.complementarios.tiempoPromedioConsolidadoDiarioSegundos, 'seg', muestraProceso),
   ];

@@ -99,7 +99,7 @@ describe('agregación de indicadores del sistema', () => {
     const registro = reporte.filas.find((fila) => fila.Indicador === 'Tiempo promedio de registro de un pedido');
     const indicadorSistema = reporte.filas.find((fila) => fila.Indicador === 'Tiempo de respuesta (mediana)');
 
-    expect(reporte.filas).toHaveLength(24);
+    expect(reporte.filas).toHaveLength(30);
     expect(registro).toMatchObject({
       'Periodo desde': '2020-01-01',
       'Periodo hasta': '2020-01-31',

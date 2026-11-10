@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ErrorApi, almacenamiento, alTerminarSesion, http } from '@/services/http'
+import { clientes } from '@/services/api'
 
 /**
  * El cliente HTTP concentra dos comportamientos que, si fallan, dejan al
@@ -93,6 +94,15 @@ describe('adjuntar la cabecera de autorización', () => {
     expect(url).toContain('tipo=EMPRESA')
     expect(url).not.toContain('busqueda')
     expect(url).not.toContain('activo')
+  })
+
+  it('busca clientes con el nombre de parámetro que espera la API', async () => {
+    const falso = configurarFetch(respuesta([]))
+
+    await clientes.buscar('45677889', 8)
+
+    const [url] = falso.mock.calls[0] as [string]
+    expect(url).toBe('/api/clientes/buscar?q=45677889&limite=8')
   })
 })
 

@@ -16,6 +16,7 @@ import { useListado } from '@/hooks/useListado'
 import { useAutenticacion } from '@/context/autenticacion'
 import { useFormulario, usePeticion, useRetraso } from '@/hooks'
 import { bidones, clientes, productos } from '@/services/api'
+import type { MovimientoBidonInput } from '@/services/api'
 import type { MovimientoBidon, SaldoBidon, TipoMovimientoBidon } from '@/types/dominio'
 import { fechaHora, numero } from '@/utils/formato'
 
@@ -24,10 +25,19 @@ type Vista = 'saldos' | 'movimientos'
 const TIPOS: TipoMovimientoBidon[] = ['ENTREGA', 'DEVOLUCION', 'PERDIDA', 'AJUSTE']
 
 const NOMBRE_TIPO: Record<TipoMovimientoBidon, string> = {
-  ENTREGA: 'Entrega',
-  DEVOLUCION: 'Devolución',
-  PERDIDA: 'Pérdida',
-  AJUSTE: 'Ajuste',
+  ENTREGA: 'Entrega no registrada',
+  DEVOLUCION: 'Devolución recibida',
+  PERDIDA: 'Pérdida en almacén',
+  AJUSTE: 'Corregir saldo de un cliente',
+}
+
+const AYUDA_TIPO: Record<TipoMovimientoBidon, string> = {
+  ENTREGA:
+    'Usa esta opción solo si la entrega al cliente no se registró al cerrar el reparto. Si ya se cerró, no la repitas.',
+  DEVOLUCION: 'Registra aquí los envases vacíos que el cliente devuelve. Su saldo pendiente disminuirá.',
+  PERDIDA: 'Registra un envase perdido en el almacén. Esta opción descuenta existencias y no cambia la deuda de un cliente.',
+  AJUSTE:
+    'Corrige la cantidad pendiente de un cliente. Elige al cliente y explica el motivo; no modifica las existencias del almacén.',
 }
 
 export const PaginaBidones = () => {
@@ -61,12 +71,12 @@ export const PaginaBidones = () => {
 
   return (
     <Pagina
-      titulo="Bidones"
-      descripcion="Saldo de envases por cliente y movimientos de entrega, devolución, pérdida y ajuste."
+      titulo="Control de envases retornables"
+      descripcion="Consulta cuántos envases debe devolver cada cliente y registra devoluciones o correcciones."
       acciones={
         <>
           <Boton variante="secundario" onClick={() => setRegistrando(true)}>
-            Registrar movimiento
+            Registrar devolución o corrección
           </Boton>
           {esAdmin && <Boton variante="secundario" onClick={recargar}>Actualizar saldos</Boton>}
         </>
@@ -74,35 +84,44 @@ export const PaginaBidones = () => {
     >
       {aviso && <Aviso tipo={aviso.tipo} mensaje={aviso.mensaje} alCerrar={() => setAviso(null)} />}
 
+      <div className="rounded-lg bg-sky-50 p-4 text-sm text-sky-950 ring-1 ring-sky-200">
+        <p className="font-semibold">¿Cómo usar esta pantalla?</p>
+        <p className="mt-1">
+          El saldo indica los envases que el cliente tiene pendientes de devolver. Las entregas se
+          suman automáticamente al cerrar el reparto; registra aquí las devoluciones recibidas y
+          corrige el saldo solo si detectas un error.
+        </p>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-3">
         <Tarjeta>
-          <p className="text-xs uppercase tracking-wide text-slate-500">Bidones en la calle</p>
+          <p className="text-xs uppercase tracking-wide text-slate-500">Pendientes de devolución</p>
           <p className="mt-1 text-2xl font-semibold text-amber-700">
             {numero(total.datos?.totalBidones ?? 0)}
           </p>
-          <p className="mt-0.5 text-xs text-slate-500">Suma de todos los saldos con signo</p>
+          <p className="mt-0.5 text-xs text-slate-500">Envases que los clientes tienen en su poder</p>
         </Tarjeta>
         <Tarjeta>
-          <p className="text-xs uppercase tracking-wide text-slate-500">Saldos con deuda</p>
+          <p className="text-xs uppercase tracking-wide text-slate-500">Clientes con envases pendientes</p>
           <p className="mt-1 text-2xl font-semibold text-slate-900">
             {numero(saldos.paginacion.total)}
           </p>
-          <p className="mt-0.5 text-xs text-slate-500">Clientes con envases pendientes</p>
+          <p className="mt-0.5 text-xs text-slate-500">Clientes que aún deben devolver envases</p>
         </Tarjeta>
         <Tarjeta>
-          <p className="text-xs uppercase tracking-wide text-slate-500">Movimientos</p>
+          <p className="text-xs uppercase tracking-wide text-slate-500">Registros en el historial</p>
           <p className="mt-1 text-2xl font-semibold text-slate-900">
             {numero(movimientos.paginacion.total)}
           </p>
-          <p className="mt-0.5 text-xs text-slate-500">Historial registrado</p>
+          <p className="mt-0.5 text-xs text-slate-500">Entregas, devoluciones y correcciones guardadas</p>
         </Tarjeta>
       </div>
 
       <div className="flex gap-1 rounded-lg bg-slate-100 p-1">
         {(
           [
-            ['saldos', 'Saldos'],
-            ['movimientos', 'Movimientos'],
+            ['saldos', 'Pendientes por cliente'],
+            ['movimientos', 'Historial de cambios'],
           ] as [Vista, string][]
         ).map(([valor, texto]) => (
           <button
@@ -128,7 +147,7 @@ export const PaginaBidones = () => {
             <BarraListado
               busqueda={saldos.consulta.busqueda}
               alBuscar={saldos.buscar}
-              marcador="Buscar por cliente o producto…"
+              marcador="Buscar cliente, documento o producto…"
               alRecargar={saldos.recargar}
             />
           }
@@ -141,7 +160,7 @@ export const PaginaBidones = () => {
                   onChange={(evento) => setSoloConSaldo(evento.target.checked)}
                   className="h-4 w-4 rounded border-slate-300 text-marca-600 focus:ring-marca-500"
                 />
-                Solo clientes con saldo pendiente
+                Mostrar solo clientes que deben devolver envases
               </label>
             </div>
           }
@@ -149,11 +168,11 @@ export const PaginaBidones = () => {
             { clave: 'cliente', encabezado: 'Cliente' },
             { clave: 'documento', encabezado: 'Documento' },
             { clave: 'producto', encabezado: 'Producto' },
-            { clave: 'saldo', encabezado: 'Saldo', clase: 'text-right' },
+            { clave: 'saldo', encabezado: 'Envases por devolver', clase: 'text-right' },
           ]}
           vacio={{
-            titulo: 'No hay saldos que coincidan',
-            descripcion: 'El saldo se calcula a partir de los movimientos de envases.',
+            titulo: 'No se encontraron envases pendientes',
+            descripcion: 'Prueba otra búsqueda o desactiva el filtro de clientes con envases pendientes.',
           }}
           renderFila={(fila) => (
             <>
@@ -183,7 +202,7 @@ export const PaginaBidones = () => {
             <BarraListado
               busqueda={movimientos.consulta.busqueda}
               alBuscar={movimientos.buscar}
-              marcador="Buscar por cliente, producto o pedido…"
+              marcador="Buscar cliente, producto o pedido…"
               alRecargar={movimientos.recargar}
             >
               <Seleccion
@@ -192,7 +211,7 @@ export const PaginaBidones = () => {
                 value={tipo}
                 onChange={(evento) => setTipo(evento.target.value as typeof tipo)}
                 opciones={[
-                  { valor: 'todos', texto: 'Todos los tipos' },
+                  { valor: 'todos', texto: 'Todos los registros' },
                   ...TIPOS.map((valor) => ({ valor, texto: NOMBRE_TIPO[valor] })),
                 ]}
                 className="w-full sm:w-44"
@@ -220,13 +239,13 @@ export const PaginaBidones = () => {
             { clave: 'tipo', encabezado: 'Tipo' },
             { clave: 'cliente', encabezado: 'Cliente' },
             { clave: 'producto', encabezado: 'Producto' },
-            { clave: 'cantidad', encabezado: 'Cantidad', clase: 'text-right' },
-            { clave: 'saldo', encabezado: 'Saldo resultante', clase: 'text-right' },
-            { clave: 'origen', encabezado: 'Origen' },
+            { clave: 'cantidad', encabezado: 'Envases', clase: 'text-right' },
+            { clave: 'saldo', encabezado: 'Pendientes después', clase: 'text-right' },
+            { clave: 'origen', encabezado: 'Registrado por' },
           ]}
           vacio={{
-            titulo: 'No hay movimientos que coincidan',
-            descripcion: 'Los movimientos se generan al entregar, devolver o registrar una pérdida.',
+            titulo: 'No hay registros para mostrar',
+            descripcion: 'Cambia los filtros o registra una devolución si el cliente acaba de entregar envases.',
           }}
           renderFila={(movimiento) => (
             <>
@@ -261,7 +280,7 @@ export const PaginaBidones = () => {
           setRegistrando(false)
           setAviso({
             tipo: 'exito',
-            mensaje: `Movimiento de ${signo(movimiento.tipo, movimiento.cantidad)} bidones registrado.`,
+            mensaje: `${NOMBRE_TIPO[movimiento.tipo]}: ${signo(movimiento.tipo, movimiento.cantidad)} envases registrados.`,
           })
           recargar()
         }}
@@ -313,6 +332,7 @@ const ModalMovimiento = ({
   })
   const [busquedaCliente, setBusquedaCliente] = useState('')
   const [busquedaProducto, setBusquedaProducto] = useState('')
+  const requiereCliente = formulario.valores.tipo !== 'PERDIDA'
   const clienteBuscado = useRetraso(busquedaCliente)
   const productoBuscado = useRetraso(busquedaProducto)
 
@@ -363,16 +383,14 @@ const ModalMovimiento = ({
     const productoId = Number(formulario.valores.productoId)
     const clienteId = Number(formulario.valores.clienteId)
     const { tipo, observaciones } = formulario.valores
-    if (!productoId || cantidad <= 0) return
+    if (!productoId || cantidad <= 0 || (requiereCliente && !clienteId)) return
 
     void formulario.enviar(async () => {
-      // `PERDIDA` y `AJUSTE` no llevan cliente: una pérdida del almacén no es
-      // deuda de nadie, y el backend lo rechaza si se lo asignamos.
-      const cuerpo =
-        tipo === 'AJUSTE'
+      const cuerpo: MovimientoBidonInput =
+        tipo === 'PERDIDA'
           ? { tipo, productoId, cantidad, observaciones }
-          : tipo === 'PERDIDA'
-            ? { tipo, productoId, cantidad, observaciones }
+          : tipo === 'AJUSTE'
+            ? { tipo, clienteId, productoId, cantidad, observaciones }
             : { tipo, clienteId, productoId, cantidad, observaciones: observaciones || null }
 
       const movimiento = await bidones.registrar(cuerpo)
@@ -386,8 +404,8 @@ const ModalMovimiento = ({
   return (
     <Modal
       abierto={abierto}
-      titulo="Registrar movimiento de bidones"
-      descripcion="Solo los productos retornables admiten control de envases; el saldo se recalcula en el servidor."
+      titulo="Registrar un cambio de envases"
+      descripcion="Registra lo que ocurrió. El sistema actualizará automáticamente los envases pendientes."
       ancho="lg"
       alCerrar={cerrar}
       pie={
@@ -398,7 +416,11 @@ const ModalMovimiento = ({
           <Boton
             onClick={registrar}
             cargando={formulario.enviando}
-            disabled={!formulario.valores.productoId || !formulario.valores.cantidad}
+            disabled={
+              !formulario.valores.productoId ||
+              !formulario.valores.cantidad ||
+              (requiereCliente && !formulario.valores.clienteId)
+            }
           >
             Registrar movimiento
           </Boton>
@@ -409,21 +431,32 @@ const ModalMovimiento = ({
         <Seleccion
           etiqueta="Tipo de movimiento"
           value={formulario.valores.tipo}
-          onChange={(evento) =>
+          onChange={(evento) => {
             formulario.cambiar('tipo', evento.target.value as TipoMovimientoBidon)
-          }
+            formulario.cambiar('clienteId', '')
+            setBusquedaCliente('')
+          }}
           opciones={TIPOS.map((valor) => ({ valor, texto: NOMBRE_TIPO[valor] }))}
         />
 
-        {formulario.valores.tipo === 'ENTREGA' || formulario.valores.tipo === 'DEVOLUCION' ? (
+        <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700 ring-1 ring-slate-200">
+          {AYUDA_TIPO[formulario.valores.tipo]}
+        </p>
+
+        {requiereCliente ? (
           <div>
             <Entrada
               etiqueta="Cliente"
-              placeholder="Nombre o documento (mínimo 2 letras)…"
+              requerido
+              placeholder="Escribe al menos 2 letras del nombre o documento"
               value={busquedaCliente}
-              onChange={(evento) => setBusquedaCliente(evento.target.value)}
+              onChange={(evento) => {
+                setBusquedaCliente(evento.target.value)
+                formulario.cambiar('clienteId', '')
+              }}
             />
-            <div className="mt-2 max-h-36 overflow-y-auto rounded-lg ring-1 ring-slate-200">
+            {clienteBuscado.length >= 2 && (
+              <div className="mt-2 max-h-36 overflow-y-auto rounded-lg ring-1 ring-slate-200">
               {(clientesEncontrados.datos ?? []).map((persona) => (
                 <button
                   key={persona.id}
@@ -435,7 +468,16 @@ const ModalMovimiento = ({
                   <span className="text-xs text-slate-500">{persona.documento}</span>
                 </button>
               ))}
-            </div>
+                {(clientesEncontrados.datos ?? []).length === 0 && !clientesEncontrados.cargando && (
+                  <p className="p-3 text-sm text-slate-500">No se encontraron clientes.</p>
+                )}
+              </div>
+            )}
+            {!clienteElegido && !formulario.errores.clienteId && (
+              <p className="mt-1 text-xs text-slate-500">
+                Busca y selecciona al cliente para continuar.
+              </p>
+            )}
             {clienteElegido && (
               <p className="mt-1 text-xs text-slate-500">
                 Cliente seleccionado: {clienteElegido.nombre}
@@ -445,22 +487,22 @@ const ModalMovimiento = ({
               <p className="mt-1 text-sm text-rose-600">{formulario.errores.clienteId}</p>
             )}
           </div>
-        ) : (
-          <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200">
-            Este movimiento se registra sin cliente: afecta al saldo general de la empresa, no a la
-            deuda de un cliente concreto.
-          </p>
-        )}
+        ) : null}
 
         <div>
           <Entrada
-            etiqueta="Producto retornable"
-            placeholder="Nombre o código (mínimo 2 letras)…"
+            etiqueta="Tipo de envase"
+            requerido
+            placeholder="Escribe al menos 2 letras del nombre o código"
             value={busquedaProducto}
-            onChange={(evento) => setBusquedaProducto(evento.target.value)}
+            onChange={(evento) => {
+              setBusquedaProducto(evento.target.value)
+              formulario.cambiar('productoId', '')
+            }}
             error={formulario.errores.productoId}
           />
-          <div className="mt-2 max-h-36 overflow-y-auto rounded-lg ring-1 ring-slate-200">
+          {productoBuscado.length >= 2 && (
+            <div className="mt-2 max-h-36 overflow-y-auto rounded-lg ring-1 ring-slate-200">
             {(productosEncontrados.datos ?? []).map((producto) => (
               <button
                 key={producto.id}
@@ -472,7 +514,16 @@ const ModalMovimiento = ({
                 <span className="text-xs text-slate-500">{producto.unidadMedida}</span>
               </button>
             ))}
-          </div>
+              {(productosEncontrados.datos ?? []).length === 0 && !productosEncontrados.cargando && (
+                <p className="p-3 text-sm text-slate-500">No se encontraron envases retornables.</p>
+              )}
+            </div>
+          )}
+          {!productoElegido && (
+            <p className="mt-1 text-xs text-slate-500">
+              Busca y selecciona el envase para continuar.
+            </p>
+          )}
           {productoElegido && (
             <p className="mt-1 text-xs text-slate-500">
               Producto seleccionado: {productoElegido.nombre}
@@ -484,6 +535,7 @@ const ModalMovimiento = ({
           etiqueta="Cantidad"
           type="number"
           min={1}
+          step={1}
           requerido
           value={formulario.valores.cantidad}
           onChange={(evento) => formulario.cambiar('cantidad', evento.target.value)}
